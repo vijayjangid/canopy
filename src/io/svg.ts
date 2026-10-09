@@ -20,7 +20,7 @@ import {
   type Layout,
   type TopicBox,
 } from '../layout';
-import type { ChipContext } from '../canvas/Chips';
+import { contextOnCore, type ChipContext } from '../canvas/Chips';
 import { descendantCounts, planningOf, today, type CanopyMap, type TopicId } from '../model';
 import { chipsMarkup, edgeMarkup, stickersMarkup } from './chipsMarkup';
 import { mixHex, type ExportTheme } from './exportTheme';
@@ -309,7 +309,11 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
     );
     if (options.chips !== false && rows.chips.length > 0) {
       out.push(
-        `<g transform="translate(${f((b.w - chipRowWidth(rows.chips)) / 2)} ${f(b.h - rows.total)})">${chipsMarkup(rows.chips, topic, chipContext)}</g>`,
+        `<g transform="translate(${f((b.w - chipRowWidth(rows.chips)) / 2)} ${f(b.h - rows.total)})">${chipsMarkup(
+          rows.chips,
+          topic,
+          b.depth === 0 && theme.look !== 'playful' ? contextOnCore(chipContext) : chipContext,
+        )}</g>`,
       );
     }
     if (stickers && topic.stickers?.length) {

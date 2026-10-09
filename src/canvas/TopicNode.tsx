@@ -17,7 +17,7 @@ import {
   type TopicBox,
 } from '../layout';
 import type { Topic } from '../model';
-import { ChipRow, type ChipContext } from './Chips';
+import { ChipRow, contextOnCore, type ChipContext } from './Chips';
 import { StickerLayer } from './StickerLayer';
 import { TopicGlyph } from './TopicGlyph';
 import type { Look } from '../model';
@@ -319,7 +319,11 @@ export const TopicNode = memo(function TopicNode({
           aria-hidden="true"
           transform={`translate(${(w - chipRowWidth(chips)) / 2} ${h - chipsH})`}
         >
-          <ChipRow items={chips} topic={topic} ctx={chipContext} />
+          <ChipRow
+            items={chips}
+            topic={topic}
+            ctx={depth === 0 && look !== 'playful' ? contextOnCore(chipContext) : chipContext}
+          />
         </g>
       )}
       {real && detail === 'full' && topic?.stickers && (

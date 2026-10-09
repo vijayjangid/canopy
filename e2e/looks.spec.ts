@@ -143,3 +143,15 @@ test('in Playful the title editor text matches the selected sticker, Core includ
     await page.keyboard.press('Escape');
   }
 });
+
+test('tags on the Core stay readable against its solid colour', async ({ page }) => {
+  await page.goto('/?demo=10');
+  await page.locator('.topic[data-depth="0"]').first().click();
+  // The first tag gets the same purple as the Core, which is the worst case.
+  const field = page.getByPlaceholder('Add a tag, or press comma');
+  await field.fill('CPO');
+  await field.press('Enter');
+  const dot = page.locator('.topic[data-depth="0"] .topic-chips circle').first();
+  await expect(dot).toHaveAttribute('stroke', /.+/);
+  await expect(dot).toHaveAttribute('fill', '#5b4bdb');
+});

@@ -1,6 +1,6 @@
 import { CHIP_ROW_HEIGHT, type ChipItem } from '../layout';
 import { formatDate, type StatusDef, type TagDef, type Topic } from '../model';
-import { legibleOn, readableOn, type ExportTheme } from '../io/exportTheme';
+import { legibleOn, mixHex, readableOn, type ExportTheme } from '../io/exportTheme';
 
 /** What chips need to look things up. Built once per map and theme, so memoized topics stay still. */
 export interface ChipContext {
@@ -11,6 +11,23 @@ export interface ChipContext {
   theme: ExportTheme;
   /** Show status names next to their marks. */
   full: boolean;
+  /** The chips sit on the solid Core, so they read against its colour instead of a plain topic's. */
+  onCore?: boolean;
+}
+
+/** The same context, with colours that read on the solid Core. */
+export function contextOnCore(ctx: ChipContext): ChipContext {
+  const { theme } = ctx;
+  return {
+    ...ctx,
+    onCore: true,
+    theme: {
+      ...theme,
+      topicBg: theme.coreBg,
+      topicText: theme.coreText,
+      muted: mixHex(theme.coreText, theme.coreBg, 0.78),
+    },
+  };
 }
 
 const CY = CHIP_ROW_HEIGHT / 2;
@@ -206,7 +223,17 @@ function Chip({ item, topic, ctx }: { item: ChipItem; topic: Topic; ctx: ChipCon
             const tag = ctx.tags.get(key);
             const colour = tag?.color ?? theme.muted;
             if (!ctx.full) {
-              return <circle key={key} cx={i * 14 + 5} cy={CY} r={5} fill={colour} />;
+              return (
+                <circle
+                  key={key}
+                  cx={i * 14 + 5}
+                  cy={CY}
+                  r={5}
+                  fill={colour}
+                  stroke={ctx.onCore ? theme.topicText : undefined}
+                  strokeWidth={ctx.onCore ? 1.2 : undefined}
+                />
+              );
             }
             return (
               <text
