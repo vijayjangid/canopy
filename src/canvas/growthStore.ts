@@ -18,7 +18,11 @@ export interface GrowthState {
   peekId: TopicId | null;
   /** IDs of ghost topics that were never created. */
   ghostIds: ReadonlySet<TopicId>;
+  /** A reference line being dragged out of `from`. Positions are in pixels over the canvas. */
+  refDrag: { from: TopicId; x: number; y: number; target: TopicId | null } | null;
 
+  setRefDrag: (drag: NonNullable<GrowthState['refDrag']>) => void;
+  endRefDrag: () => void;
   setHover: (id: TopicId | null) => void;
   setPeek: (id: TopicId | null) => void;
   /** Starts the leave timer. `keepAlive` or entering a topic again cancels it. */
@@ -49,6 +53,13 @@ export function createGrowthStore() {
     canvasFocused: false,
     peekId: null,
     ghostIds: new Set(),
+    refDrag: null,
+
+    setRefDrag: (refDrag) => set({ refDrag, hoverId: refDrag.from }),
+
+    endRefDrag: () => {
+      if (get().refDrag) set({ refDrag: null });
+    },
 
     setPeek: (id) => {
       if (get().peekId !== id) set({ peekId: id });
@@ -63,7 +74,7 @@ export function createGrowthStore() {
       cancelTimer();
       timer = setTimeout(() => {
         timer = undefined;
-        if (!get().dragOrigin) set({ hoverId: null });
+        if (!get().dragOrigin && !get().refDrag) set({ hoverId: null });
       }, LEAVE_DELAY_MS);
     },
 
@@ -105,7 +116,14 @@ export function createGrowthStore() {
     reset: () => {
       cancelTimer();
       pendingId = null;
-      set({ hoverId: null, slot: null, dragOrigin: null, peekId: null, ghostIds: new Set() });
+      set({
+        hoverId: null,
+        slot: null,
+        dragOrigin: null,
+        refDrag: null,
+        peekId: null,
+        ghostIds: new Set(),
+      });
     },
   }));
 }

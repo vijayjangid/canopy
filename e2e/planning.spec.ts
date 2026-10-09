@@ -151,10 +151,7 @@ test('a Filter dims or isolates, counts matches and jumps between them', async (
   await page.goto('/?demo=40&plan=1');
   await tree(page).focus();
   await page.keyboard.press('/');
-  await page
-    .getByRole('dialog', { name: 'Filter' })
-    .getByRole('option', { name: /^Blocked/ })
-    .click();
+  await page.getByRole('list', { name: 'Status' }).getByRole('button', { name: 'Blocked' }).click();
   const control = page.locator('.filter-control');
   await expect(control).toContainText('Filter: Blocked');
   const count = Number((await control.textContent())?.match(/· (\d+)/)?.[1]);
@@ -180,10 +177,7 @@ test('a tag becomes a Filter', async ({ page }) => {
   await page.goto('/?demo=40&plan=1');
   await tree(page).focus();
   await page.keyboard.press('/');
-  await page
-    .getByRole('dialog', { name: 'Filter' })
-    .getByRole('option', { name: '#Launch' })
-    .click();
+  await page.getByRole('list', { name: 'Tags' }).getByRole('button', { name: 'Launch' }).click();
   await expect(page.locator('.filter-control')).toContainText('Filter: #Launch');
 });
 
@@ -191,10 +185,7 @@ test('exports a table with properties and respects a Filter', async ({ page }) =
   await page.goto('/?demo=40&plan=1');
   await tree(page).focus();
   await page.keyboard.press('/');
-  await page
-    .getByRole('dialog', { name: 'Filter' })
-    .getByRole('option', { name: /^Blocked/ })
-    .click();
+  await page.getByRole('list', { name: 'Status' }).getByRole('button', { name: 'Blocked' }).click();
   await tree(page).focus();
   await page.keyboard.press('ControlOrMeta+e');
   const panel = mapPanel(page);
@@ -254,8 +245,8 @@ test('Quick add, the details panel and an active Filter have no accessibility vi
   await tree(page).focus();
   await page.keyboard.press('/');
   await page
-    .getByRole('dialog', { name: 'Filter' })
-    .getByRole('option', { name: /^Overdue/ })
+    .getByRole('list', { name: 'Due date' })
+    .getByRole('button', { name: 'Overdue' })
     .click();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
@@ -268,8 +259,8 @@ test('every Look keeps chips, stickers and the Filter pill accessible in dark mo
   await tree(page).focus();
   await page.keyboard.press('/');
   await page
-    .getByRole('dialog', { name: 'Filter' })
-    .getByRole('option', { name: /^Due this week/ })
+    .getByRole('list', { name: 'Due date' })
+    .getByRole('button', { name: 'Due this week' })
     .click();
   for (const look of ['Minimal', 'High contrast', 'Playful']) {
     const panel = await openMapPanel(page, 'Settings');

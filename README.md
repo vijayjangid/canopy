@@ -50,6 +50,8 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 
 - **Trail** highlights (or isolates) the path from the focused topic up to the Core, with a clickable breadcrumb and **Copy path**.
 - **Branch view** (`[`) shows only one branch and collapses everything above it into a single dotted node.
+- **References** link one topic to another existing topic without duplicating its branch; dashed arrows distinguish references from parent-child lines. Drag from the link handle above a selected topic onto any topic to connect them, or click the handle (or press `X`) to search by name or path. Click an arrow to show its delete icon, or right-click it to go to, change or remove the reference.
+- **Find a topic** with `⌘F` by title or path. Choose **Advanced filters** for status, tags, dates and stickers.
 - **Fold** with `]`, fold the whole map to **Level N** with `1`–`9`, and peek inside a folded branch from its badge.
 - **Zen** (`Z`) hides every panel until you press `Esc`. **Auto-pan** keeps the topic you are working on in view.
 - A **Command Palette** (`⌘K`) searches every action, shows its shortcut, and covers settings too.
@@ -146,7 +148,8 @@ Press `?` in the app for the searchable cheat sheet. A hint strip at the bottom 
 | Add sub-topic / peer         | `Tab` / `Enter`    | Command palette          | `⌘K`                  |
 | Insert between levels        | `W` / `Shift+W`    | Export                   | `⌘E`                  |
 | Edit / finish editing        | `Space` / `⌘Enter` | Settings                 | `⌘,`                  |
-| Fold / Branch view           | `]` / `[`          | Filter                   | `/`                   |
+| Fold / Branch view           | `]` / `[`          | Find a topic             | `⌘F`                  |
+| Advanced filters             | `F` or `/`         | Reference another topic  | `X`                   |
 | Fold to Level N / unfold all | `1`–`9` / `0`      | Trail on or off          | `R`                   |
 | Status / Due / Tag           | `T` / `D` / `G`    | Zen                      | `Z`                   |
 | Note / Sticker / Line label  | `N` / `S` / `L`    | Select / Pan / Zoom tool | `V` / `H` / `Shift+Z` |

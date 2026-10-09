@@ -17,6 +17,10 @@ export function validateMap(map: CanopyMap): string[] {
     if (topic.parentId !== null && !map.topics[topic.parentId]) {
       errors.push(`Topic ${key} has missing parent ${topic.parentId}`);
     }
+    if (topic.referenceTo && !map.topics[topic.referenceTo]) {
+      errors.push(`Topic ${key} references missing topic ${topic.referenceTo}`);
+    }
+    if (topic.referenceTo === topic.id) errors.push(`Topic ${key} cannot reference itself`);
     if (!isValidKey(topic.orderKey)) errors.push(`Topic ${key} has invalid order key`);
   }
 

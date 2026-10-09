@@ -33,9 +33,9 @@ test('the shortcuts dialog can be searched by name, group or key', async ({ page
   await expect(dialog).toHaveCount(0);
 });
 
-test('F opens the Filter, like /', async ({ page }) => {
+test('F opens advanced filters, like /', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('tree', { name: 'Mind map' }).focus();
   await page.keyboard.press('f');
-  await expect(page.getByRole('dialog', { name: 'Filter' })).toBeVisible();
+  await expect(page.getByRole('searchbox', { name: 'Search topics and lines' })).toBeFocused();
 });

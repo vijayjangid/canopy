@@ -38,6 +38,7 @@ const MAX_ERRORS = 20;
 function extrasOf(topic: Topic): TopicExtras {
   const out: TopicExtras = {};
   if (topic.note) out.note = topic.note;
+  if (topic.referenceTo) out.referenceTo = topic.referenceTo;
   if (topic.stickers?.length) out.stickers = topic.stickers;
   if (topic.props && Object.keys(topic.props).length > 0) out.props = topic.props;
   if (topic.edge && (topic.edge.label || topic.edge.stickers?.length)) out.edge = topic.edge;
@@ -188,6 +189,14 @@ export function parseFile(raw: unknown): ParseResult {
   }
 
   const map: CanopyMap = { schema: SCHEMA, meta, prefs, coreId, topics };
+  for (const topic of Object.values(topics)) {
+    if (topic.referenceTo && !topics[topic.referenceTo]) {
+      fail(`Topic "${topic.id}" references missing topic "${topic.referenceTo}"`);
+    } else if (topic.referenceTo === topic.id) {
+      fail(`Topic "${topic.id}" cannot reference itself`);
+    }
+  }
+  if (errors.length > 0) return { ok: false, errors };
   if (planning) map.planning = planning;
   if (filters) map.filters = filters;
   return { ok: true, map };

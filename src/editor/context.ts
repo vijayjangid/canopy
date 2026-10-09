@@ -14,6 +14,8 @@ import {
   pointAtEdge,
   startEdgeEdit,
   focusFilterSearch,
+  openLeft,
+  openTopicSearch,
   setFilter,
   setFocusBranch,
   setTrailMode,
@@ -80,6 +82,11 @@ export const appContext: CommandContext = {
       );
     },
     searchFilter: focusFilterSearch,
+    topicSearch: (sourceId) => openTopicSearch(sourceId ?? null),
+    advancedFilters: () => {
+      openLeft('filter');
+      focusFilterSearch();
+    },
     unfoldParents: () => setFocusBranch(null),
     filter: (action) => {
       if (action === 'off') setFilter(null);

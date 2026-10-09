@@ -157,8 +157,34 @@ export function deleteBranch(map: CanopyMap, id: TopicId): CanopyMap {
   const topic = getTopic(map, id);
   if (topic.parentId === null) throw new ModelError('CORE_IMMUTABLE', 'The Core cannot be deleted');
   const doomed = subtreeOf(map, id);
+  const doomedIds = new Set(doomed.map((t) => t.id));
   return produce(map, (draft) => {
     for (const t of doomed) delete draft.topics[t.id];
+    for (const remaining of Object.values(draft.topics)) {
+      if (remaining.referenceTo && doomedIds.has(remaining.referenceTo)) {
+        delete remaining.referenceTo;
+      }
+    }
+  });
+}
+
+/** Points a topic at another topic without changing either topic's place in the tree. */
+export function setTopicReference(
+  map: CanopyMap,
+  sourceId: TopicId,
+  targetId: TopicId | null,
+): CanopyMap {
+  const source = getTopic(map, sourceId);
+  if (targetId === sourceId) {
+    throw new ModelError('INVALID_ARGUMENT', 'A topic cannot reference itself');
+  }
+  if (targetId !== null) getTopic(map, targetId);
+  if (source.referenceTo === (targetId ?? undefined)) return map;
+  return produce(map, (draft) => {
+    const topic = draft.topics[sourceId];
+    if (!topic) return;
+    if (targetId === null) delete topic.referenceTo;
+    else topic.referenceTo = targetId;
   });
 }
 

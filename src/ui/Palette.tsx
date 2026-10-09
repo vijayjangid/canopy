@@ -31,6 +31,10 @@ interface PaletteProps {
   remember?: boolean;
   /** Run the choice before closing, for choices that change the map and must act on what is selected now. */
   immediate?: boolean;
+  /** Optional action shown beside the keyboard help. */
+  footerAction?: { label: string; run: () => void };
+  /** Describes the result type instead of commands, for specialized search palettes. */
+  resultLabel?: string;
 }
 
 type Row = { kind: 'heading'; label: string } | { kind: 'entry'; entry: PaletteEntry };
@@ -64,6 +68,8 @@ export function Palette({
   source,
   remember = true,
   immediate = false,
+  footerAction,
+  resultLabel = 'commands',
 }: PaletteProps = {}) {
   const commands = useMemo(() => buildPalette(), []);
   const [query, setQuery] = useState('');
@@ -91,21 +97,28 @@ export function Palette({
     const groups = new Map<string, PaletteEntry[]>();
     for (const entry of entries) {
       if (skip.has(entry.id)) continue;
-      groups.set(entry.group, [...(groups.get(entry.group) ?? []), entry]);
+      const group = groups.get(entry.group);
+      if (group) group.push(entry);
+      else groups.set(entry.group, [entry]);
     }
     const out: Row[] = [];
     const ordered: PaletteEntry[] = [];
+    const resultLimit = MAX_RESULTS + (remember ? MAX_RECENT : 0);
     const add = (label: string, list: PaletteEntry[]) => {
-      if (list.length === 0) return;
+      const visible = list.slice(0, resultLimit - ordered.length);
+      if (visible.length === 0) return;
       out.push({ kind: 'heading', label });
-      for (const entry of list) {
+      for (const entry of visible) {
         out.push({ kind: 'entry', entry });
         ordered.push(entry);
       }
     };
     add('Recent', used);
-    for (const [group, list] of groups) add(group, list);
-    return { rows: out, results: ordered.slice(0, MAX_RESULTS + MAX_RECENT) };
+    for (const [group, list] of groups) {
+      if (ordered.length >= resultLimit) break;
+      add(group, list);
+    }
+    return { rows: out, results: ordered.slice(0, resultLimit) };
   }, [entries, query, recent, remember, searching]);
 
   const current = results[Math.min(active, results.length - 1)];
@@ -160,7 +173,7 @@ export function Palette({
             onKeyDown={onKeyDown}
           />
         </div>
-        <ul id={listId} className="palette-list" role="listbox" aria-label="Commands">
+        <ul id={listId} className="palette-list" role="listbox" aria-label={resultLabel}>
           {rows.map((row) => {
             if (row.kind === 'heading') {
               return (
@@ -196,15 +209,22 @@ export function Palette({
               </li>
             );
           })}
-          {results.length === 0 && <li className="palette-empty">No matching commands</li>}
+          {results.length === 0 && <li className="palette-empty">No matching {resultLabel}</li>}
         </ul>
         <div className="palette-footer">
           <span className="palette-help" aria-hidden="true">
             <kbd>↑</kbd>
             <kbd>↓</kbd> move <kbd>↵</kbd> run <kbd>esc</kbd> close
           </span>
+          {footerAction && (
+            <button type="button" className="palette-footer-action" onClick={footerAction.run}>
+              {footerAction.label}
+            </button>
+          )}
           <span role="status">
-            {results.length === 0 ? 'No matching commands' : `${results.length} commands`}
+            {results.length === 0
+              ? `No matching ${resultLabel}`
+              : `${results.length} ${resultLabel}`}
           </span>
         </div>
       </div>

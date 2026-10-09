@@ -21,6 +21,7 @@ function extrasOf(topic: Topic): TopicExtras | undefined {
   if (topic.stickers) extras.stickers = topic.stickers;
   if (topic.props) extras.props = topic.props;
   if (topic.edge) extras.edge = topic.edge;
+  if (topic.referenceTo) extras.referenceTo = topic.referenceTo;
   return Object.keys(extras).length > 0 ? extras : undefined;
 }
 
@@ -227,13 +228,18 @@ export function pasteBranches(
     while (work.length > 0) {
       const item = work.pop();
       if (!item) break;
+      const extras = item.branch.extras;
+      const transferableExtras = extras ? { ...extras } : undefined;
+      if (transferableExtras?.referenceTo && !map.topics[transferableExtras.referenceTo]) {
+        delete transferableExtras.referenceTo;
+      }
       draft.topics[item.id] = {
         id: item.id,
         parentId: item.parentId,
         orderKey: item.orderKey,
         title: cleanTitle(item.branch.title),
         folded: item.branch.folded === true && item.branch.children.length > 0,
-        ...item.branch.extras,
+        ...transferableExtras,
       };
       const keys = spreadKeys(item.branch.children.length);
       item.branch.children.forEach((child, i) => {

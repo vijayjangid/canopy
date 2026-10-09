@@ -144,6 +144,19 @@
   border-top: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
 }
 
+.palette-footer-action {
+  padding: 3px 8px;
+  color: var(--color-accent);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.palette-footer-action:hover {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+
 .palette-help {
   display: inline-flex;
   gap: 4px;

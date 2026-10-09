@@ -51,6 +51,68 @@
   vector-effect: non-scaling-stroke;
 }
 
+.reference-connector {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+  stroke-linecap: round;
+  opacity: 0.78;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.reference-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+.reference-link:hover .reference-connector {
+  stroke-width: 3;
+  opacity: 1;
+}
+
+.reference-link[data-selected] .reference-connector {
+  stroke-width: 3;
+  opacity: 1;
+}
+
+/* Delete icon on a picked reference line. */
+.reference-delete {
+  cursor: pointer;
+}
+
+.reference-delete circle {
+  fill: var(--color-surface);
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.reference-delete path {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.reference-delete:hover circle {
+  fill: var(--color-accent);
+}
+
+.reference-delete:hover path {
+  stroke: var(--color-core-text);
+}
+
+.reference-arrow {
+  fill: var(--color-accent);
+}
+
 .topic {
   cursor: pointer;
 }
@@ -445,7 +507,8 @@
 }
 
 .canvas-svg[data-filter] .topic,
-.canvas-svg[data-filter] .connector {
+.canvas-svg[data-filter] .connector,
+.canvas-svg[data-filter] .reference-connector {
   transition: opacity var(--motion-standard) var(--ease-standard);
 }
 

@@ -42,6 +42,8 @@ export interface EdgeData {
 export interface TopicExtras {
   /** The line to the parent: its label and stickers. */
   edge?: EdgeData;
+  /** A non-hierarchical link to another topic in this map. */
+  referenceTo?: TopicId;
   /** Markdown. */
   note?: string;
   stickers?: StickerRef[];

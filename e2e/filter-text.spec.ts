@@ -22,10 +22,18 @@ test('typing in the Filter search picks out matching topics', async ({ page }) =
   await expect(control).toHaveCount(0);
 });
 
-test('the search shortcut opens the Filter with the cursor in the box', async ({ page }) => {
+test('Cmd+F opens fuzzy topic search with advanced filters available', async ({ page }) => {
   await page.goto('/?demo=14');
   await page.getByRole('tree', { name: 'Mind map' }).focus();
   await page.keyboard.press('Meta+f');
+  const dialog = page.getByRole('dialog', { name: 'Find a topic' });
+  const search = dialog.getByRole('combobox', { name: 'Search topics by name or path' });
+  await expect(search).toBeFocused();
+  await search.fill('rsch');
+  await expect(dialog.getByRole('option', { name: /Research/ })).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Advanced filters…' })).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await dialog.getByRole('button', { name: 'Advanced filters…' }).click();
   await expect(page.getByRole('searchbox', { name: 'Search topics and lines' })).toBeFocused();
 });
 

@@ -40,7 +40,8 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 | Structured metadata | **Properties** | Typed fields on a topic: Status, Due date, Tags |
 | Visible form of a Property | **Chip** | Compact pill on the topic (status shape, due date, tags, note mark) |
 | Workflow states | **Status Set** | Ordered states, each in a category (see 3.4) |
-| Hover add-buttons | **Growth Handles** | Child to the right or below, peers above and below, and one that inserts a topic between two levels |
+| Hover add-buttons | **Growth Handles** | Child to the right or below, a peer below, and one that inserts a topic between two levels. The handle above the topic is the **Reference Handle** |
+| Link to another topic | **Reference** | A dashed arrow from one topic to an existing topic elsewhere in the map, so a shared branch is linked instead of copied |
 | The line from a topic up to its parent | **Line** | Can carry a label and up to three stickers |
 | The way from a topic up to the Core | **Trail** | Highlighted, or isolated, with a status bar that shows it as a path |
 | One branch with everything above it folded | **Branch view** | The rest of the map becomes one dotted node |
@@ -70,7 +71,7 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 
 ### 3.1 Canvas and topic creation [Built, with Brain-dump partly planned]
 
-- **Growth Handles:** hovering or focusing a topic shows `+` handles on its right, bottom, and top/bottom edges (for peers), and one on the line above it that inserts a topic between the topic and its parent (hold `Shift` to take all its peers along).
+- **Growth Handles:** hovering or focusing a topic shows `+` handles on its right (sub-topic) and bottom (peer below) edges, and one on the line above it that inserts a topic between the topic and its parent (hold `Shift` to take all its peers along). The handle on the top edge is the Reference Handle (see 3.10). "Add peer above" stays available as `Shift+Enter`, the context menu and the palette.
   - **Ghost preview:** hovering a handle shows a translucent ghost topic at its exact landing position, and surrounding topics shift slightly to make room.
   - **Click** creates the topic and enters inline edit.
   - **Drag from a handle** creates a topic at the drop point with a magnetic snap to valid slots.
@@ -152,8 +153,9 @@ Every topic can carry Properties. They are optional and invisible until used, so
 **Roster (Members) [Cut]**
 - The local list of people, Roles and "I am this person" went with People. Old files that still contain them open normally, and those fields are ignored.
 
-**Filters [Built]**
-- The Filter panel (left panel, or `/` or `F`) ticks choices in four groups: Due date (overdue, this week, a date range), Status, Tags and Stickers. Choices inside a group are alternatives, and the groups combine (AND). Only the stickers that are on the map are offered.
+**Find a topic and Filters [Built]**
+- **Find a topic (`⌘F`):** a fuzzy search over every topic by title or full path. Choosing a result unfolds the path to it, selects it and scrolls it into view. Without a query it lists the first topics, and the list is capped (60) so it stays fast on large maps. An *Advanced filters…* button opens the Filter panel.
+- The Filter panel (opened with `/` or `F`, with the cursor in its search box) ticks choices in four groups: Due date (overdue, this week, a date range), Status, Tags and Stickers. Choices inside a group are alternatives, and the groups combine (AND). Only the stickers that are on the map are offered.
 - **Filter modes:** *Highlight* (non-matching topics fade) or *Isolate* (non-matching topics are hidden, with the paths to matches kept).
 - A Filter tells you how many topics match, and `.` and `,` jump to the next and previous match, opening folded branches on the way and announcing each jump. A pill over the map shows the active Filter with its mode and a switch off.
 - Filters are also used by the export ("only what the Filter picks out").
@@ -241,6 +243,17 @@ These were not in v0.2. They exist to help someone work inside a big map without
 - The line from a topic to its parent can be picked (click it, or press `L` on the topic). A small bar offers quick stickers, and the Stickers tab then edits the line instead of the topic.
 - A line can carry a short label (up to 80 characters), such as "depends on", shown on the line, and up to three stickers.
 - Lines are drawn with their label and stickers in exports.
+
+### 3.10a References [Built, new]
+
+A Reference links a topic to **one** existing topic anywhere in the map, so two branches that share the same sub-tree can point at one copy instead of repeating it. A Reference does not move or copy anything and never changes the tree.
+
+- **Drawn as:** a dashed arrow in the accent colour, curved between the two topics, so it reads differently from the solid parent-child lines.
+- **Create by dragging:** the link-icon Reference Handle sits above a selected topic (not shown on the Core). Drag it onto any other topic: a dashed line follows the pointer and the topic under it is highlighted. Release to connect. Releasing on empty canvas, or `Esc`, cancels.
+- **Create by search:** click the handle, press `X`, or choose "Reference to…" in the topic's context menu. A search over every topic by name or full path (for example "Case Types › Workflow › Templates") picks the target.
+- **Replace:** a topic has at most one reference, so a new one replaces the old.
+- **Remove:** click the arrow to pick it and a delete icon appears on its middle. Click the icon to remove the Reference (undo restores it). Right-clicking the arrow offers *Go to referenced topic*, *Change reference…* and *Remove reference*. Clicking elsewhere puts the icon away.
+- **Integrity:** deleting a topic (or its branch) removes every Reference that pointed into it. A Reference to a missing topic or to itself is rejected when a file is opened. Copy and paste keeps a Reference when the target is in the same map and drops it otherwise.
 
 ### 3.11 Editing aids [Built, new]
 
@@ -338,7 +351,9 @@ Tokens live in `motion/`. A layout animator (`canvas/animator.ts`) tweens every 
 | Show or hide the inspector | `I` | Built |
 | Property Quick-Add / all properties | `P` / `Shift+P` | Built |
 | Set status / due date / tag | `T` / `D` / `G` | Built |
-| Open Filter | `/` or `F` | Built |
+| Find a topic (fuzzy, by title or path) | `⌘F` | Built |
+| Advanced filters (Filter panel) | `/` or `F` | Built (was a dialog) |
+| Reference another topic (search) | `X` | Built |
 | Next / previous Filter match | `.` / `,` | Built (were `]` / `[`) |
 | Trail on or off | `R` | Built |
 | Zen | `Z` | Built |
@@ -386,6 +401,7 @@ The file keeps schema `canopy/1`. Every change since v0.2 only removed fields or
     "note": "Markdown text",
     "stickers": [{ "id": "s_1", "key": "star" }],
     "edge": { "label": "depends on", "stickers": [{ "id": "s_2", "key": "flag" }] },
+    "referenceTo": "t_9",
     "props": {
       "status": "doing",
       "due": { "start": null, "end": "2026-11-01" },
@@ -399,7 +415,8 @@ The file keeps schema `canopy/1`. Every change since v0.2 only removed fields or
 
 Notes:
 - The colour Mode is a device setting and is not saved in the file.
-- `props`, `note`, `stickers` and `edge` are omitted on topics without them, keeping plain maps small.
+- `props`, `note`, `stickers`, `edge` and `referenceTo` are omitted on topics without them, keeping plain maps small.
+- `referenceTo` holds the ID of the topic a Reference points to. It must name another topic in the same file. A missing or self-pointing target makes the file fail to open with a clear message.
 - Roll-ups are computed, never stored. Fold state is stored. Children are written in order, and their fractional ordering keys are rebuilt on load.
 - A Filter query can use `status`, `statusCategory`, `tags`, `stickers`, `due` (`overdue` or `week`), `dueBetween` and `match` (`all` or `any`).
 - **Removed since v0.2:** `roster`, `planning.roles`, `planning.customProperties`, `planning.rules`, `attachments`, and the `people`, `approval`, `priority`, `progress` and `custom` Properties. Old files that contain them still open, and the fields are dropped on the next save.
@@ -535,6 +552,7 @@ A scope cut on 2026-10-08 kept planning to Status, Due date, Tags and Stickers. 
 - Auto-pan, context menu, tooltips, searchable cheat sheet, save indicator.
 - Font size, level numbers in small faded monospace, and refreshed Minimal (subtle borders, flat shadows) and Playful (flat shadows) Looks.
 - Filter by sticker, and the date-range Filter.
+- References between topics (Reference Handle with drag-to-connect, search by path, delete icon and line menu), and `⌘F` fuzzy topic search with the Filter panel as its advanced mode.
 
 ### 12.4 What remains
 

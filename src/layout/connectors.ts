@@ -103,3 +103,48 @@ export function connectorPath(
   }
   return `M${at(u1, v1)}C${at(mid, c1v)} ${at(mid, c2v)} ${at(u2, v2)}`;
 }
+
+/** A curved, non-hierarchical link between two topic boxes, and the point halfway along it. */
+export function referenceGeometry(
+  source: Box,
+  target: Box,
+): { d: string; mid: { x: number; y: number } } {
+  const sx = source.x + source.w / 2;
+  const sy = source.y + source.h / 2;
+  const tx = target.x + target.w / 2;
+  const ty = target.y + target.h / 2;
+  const dx = tx - sx;
+  const dy = ty - sy;
+  const distance = Math.hypot(dx, dy);
+  if (distance === 0) {
+    return { d: `M${f(sx)} ${f(sy)}L${f(tx)} ${f(ty)}`, mid: { x: sx, y: sy } };
+  }
+
+  const ux = dx / distance;
+  const uy = dy / distance;
+  const sourceEdge = Math.min(
+    1,
+    Math.abs(ux) > 0 ? source.w / 2 / Math.abs(dx) : Infinity,
+    Math.abs(uy) > 0 ? source.h / 2 / Math.abs(dy) : Infinity,
+  );
+  const targetEdge = Math.min(
+    1,
+    Math.abs(ux) > 0 ? target.w / 2 / Math.abs(dx) : Infinity,
+    Math.abs(uy) > 0 ? target.h / 2 / Math.abs(dy) : Infinity,
+  );
+  const x1 = sx + dx * sourceEdge;
+  const y1 = sy + dy * sourceEdge;
+  const x2 = tx - dx * targetEdge;
+  const y2 = ty - dy * targetEdge;
+  const bend = Math.min(64, Math.max(28, distance * 0.12));
+  const cx = (x1 + x2) / 2 - uy * bend;
+  const cy = (y1 + y2) / 2 + ux * bend;
+  return {
+    d: `M${f(x1)} ${f(y1)}Q${f(cx)} ${f(cy)} ${f(x2)} ${f(y2)}`,
+    // Middle of a quadratic curve: a quarter of each end plus half the control point.
+    mid: { x: (x1 + 2 * cx + x2) / 4, y: (y1 + 2 * cy + y2) / 4 },
+  };
+}
+
+export const referencePath = (source: Box, target: Box): string =>
+  referenceGeometry(source, target).d;

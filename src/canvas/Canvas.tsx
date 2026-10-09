@@ -22,6 +22,7 @@ import {
   edgeBadgeSize,
   edgeGap,
   edgeMidpoint,
+  referenceGeometry,
   type ChipItem,
   type LayoutOptions,
 } from '../layout';
@@ -42,7 +43,7 @@ import { canopyStore, useCanopy } from '../store';
 import { useAppearanceEpoch, useThemeVersion } from '../theme';
 import { useActiveFilter } from '../ui/filter';
 import { useTrail } from '../ui/trail';
-import { openContextMenu } from '../ui/ContextMenu';
+import { openContextMenu, openReferenceMenu } from '../ui/ContextMenu';
 import { isMac } from '../editor/shortcuts';
 import { effectiveTool, notePanned, toolStore, useEffectiveTool, useZoomsOut } from './toolStore';
 import { useCanvasTools } from './useCanvasTools';
@@ -51,6 +52,7 @@ import {
   pointAtEdge,
   setEdgeFocus,
   setFocusBranch,
+  setReferenceFocus,
   startEdgeEdit,
   useUi,
 } from '../ui/uiStore';
@@ -77,6 +79,8 @@ import { createRegionStore } from './region';
 import { TopicNode, type Detail, type NodeKind } from './TopicNode';
 import { useTopicDrag } from './useTopicDrag';
 import { intersectsRect } from './viewport';
+import { removeReference } from './navigation';
+import { ReferenceDelete } from './ReferenceDelete';
 import { panelObstacles } from './panelInsets';
 import { useSettings } from '../settings';
 import { viewportStore } from './viewportStore';
@@ -126,6 +130,13 @@ const edgeIdOf = (target: EventTarget) =>
 
 const topicIdOf = (target: EventTarget) =>
   (target as Element).closest('[data-topic-id]')?.getAttribute('data-topic-id') ?? null;
+
+const referenceFromOf = (target: EventTarget) =>
+  (target as Element).closest('[data-reference-from]')?.getAttribute('data-reference-from') ?? null;
+
+const referenceDeleteOf = (target: EventTarget) =>
+  (target as Element).closest('[data-reference-delete]')?.getAttribute('data-reference-delete') ??
+  null;
 
 export function Canvas() {
   const doc = useCanopy((s) => s.doc);
@@ -378,6 +389,9 @@ export function Canvas() {
   const inspectorOpen = useUi((s) => s.inspectorOpen);
   const zen = useUi((s) => s.zen);
   const edgeFocus = useUi((s) => s.edgeFocus);
+  const referenceFocusRaw = useUi((s) => s.referenceFocus);
+  const referenceFocus =
+    referenceFocusRaw && doc.topics[referenceFocusRaw]?.referenceTo ? referenceFocusRaw : null;
   useEffect(() => {
     if (!autoPan || !hasSize || fittedFor.current !== mapId) return;
     const box = layout.boxes.get(focus);
@@ -413,6 +427,17 @@ export function Canvas() {
       setFocusBranch(null);
       return;
     }
+    const deleting = referenceDeleteOf(e.target);
+    if (deleting) {
+      removeReference(deleting);
+      return;
+    }
+    const referenceFrom = referenceFromOf(e.target);
+    if (referenceFrom && !topicIdOf(e.target)) {
+      setReferenceFocus(referenceFrom);
+      return;
+    }
+    setReferenceFocus(null);
     const id = topicIdOf(e.target);
     const edgeId = id ? null : edgeIdOf(e.target);
     if (edgeId) {
@@ -571,6 +596,12 @@ export function Canvas() {
     e.preventDefault();
     // The browser also sends this event after the menu key, which has already opened the menu.
     if (Date.now() - keyboardMenuAt.current < 400) return;
+    const referenceFrom = topicIdOf(e.target) ? null : referenceFromOf(e.target);
+    if (referenceFrom) {
+      setReferenceFocus(referenceFrom);
+      openReferenceMenu(e.clientX, e.clientY, referenceFrom);
+      return;
+    }
     openMenuFor(topicIdOf(e.target) ?? edgeIdOf(e.target), e.clientX, e.clientY);
   };
 
@@ -660,6 +691,43 @@ export function Canvas() {
       >
         {look === 'playful' && <PlayfulDefs />}
         <g ref={worldRef}>
+          <defs>
+            <marker
+              id="reference-arrow"
+              viewBox="0 0 8 8"
+              refX="7"
+              refY="4"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto"
+            >
+              <path className="reference-arrow" d="M0 0L8 4L0 8Z" />
+            </marker>
+          </defs>
+          <g className="references">
+            {view.layout.order.map((source) => {
+              const targetId = doc.topics[source.id]?.referenceTo;
+              const target = targetId ? view.layout.boxes.get(targetId) : undefined;
+              if (!target || !targetId) return null;
+              const sourceTitle = doc.topics[source.id]?.title.trim() || 'Empty topic';
+              const targetTitle = doc.topics[targetId]?.title.trim() || 'Empty topic';
+              const d = referenceGeometry(source, target).d;
+              return (
+                <g
+                  key={`${source.id}-${targetId}`}
+                  className="reference-link"
+                  data-reference-from={source.id}
+                  data-reference-to={targetId}
+                  data-selected={referenceFocus === source.id || undefined}
+                  opacity={view.fade.get(source.id)}
+                >
+                  <title>{`Reference from ${sourceTitle} to ${targetTitle}`}</title>
+                  <path className="reference-connector" d={d} markerEnd="url(#reference-arrow)" />
+                  <path className="reference-hit" d={d} />
+                </g>
+              );
+            })}
+          </g>
           <g className="links">
             {scene.links.map((link) => {
               const dim = (dimmed !== null && !dimmed.has(link.id)) || undefined;
@@ -728,6 +796,13 @@ export function Canvas() {
               );
             })}
           </g>
+          {referenceFocus && (
+            <ReferenceDelete
+              source={view.layout.boxes.get(referenceFocus)}
+              target={view.layout.boxes.get(doc.topics[referenceFocus]?.referenceTo ?? '')}
+              from={referenceFocus}
+            />
+          )}
           {branch && <ContextNodeView node={branch.context} />}
           <DropIndicator layout={layout} flow={flow} />
         </g>

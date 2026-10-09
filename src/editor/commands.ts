@@ -15,6 +15,7 @@ import {
   moveSibling,
   movableRoots,
   setFolded,
+  setTopicReference,
   siblingsOf,
   subtreeOf,
   unfoldAll,
@@ -49,6 +50,10 @@ export interface CommandContext {
     filter: (action: 'next' | 'prev' | 'off') => void;
     /** Opens the Filter panel with the cursor in its search box. */
     searchFilter: () => void;
+    /** Opens fuzzy topic search. With a source ID, choosing a result creates a reference. */
+    topicSearch: (sourceId?: string) => void;
+    /** Opens the advanced Filter panel and focuses its text search. */
+    advancedFilters: () => void;
     /** Brings back everything above a single-branch view. */
     unfoldParents: () => void;
     /** Shows or hides everything but the map. */
@@ -187,6 +192,15 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
       state.setEditing(focus);
       return true;
     }
+
+    case 'topic.reference':
+      ctx.app?.topicSearch(focus);
+      return true;
+
+    case 'topic.referenceRemove':
+      state.commit(setTopicReference(doc, focus, null));
+      announce(`Removed reference from ${nameOf(doc, focus)}`);
+      return true;
 
     case 'topic.delete': {
       const count = removeSelection(ctx);
@@ -429,11 +443,11 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
       return true;
 
     case 'filter.open':
-      ctx.app?.openDialog('filter');
+      ctx.app?.advancedFilters();
       return true;
 
     case 'filter.search':
-      ctx.app?.searchFilter();
+      ctx.app?.topicSearch();
       return true;
 
     case 'filter.next':

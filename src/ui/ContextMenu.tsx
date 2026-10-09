@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, type KeyboardEvent } from 'react';
 import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
 import { focusCanvas } from '../canvas/layoutState';
+import { navigateToTopic, removeReference } from '../canvas/navigation';
 import { copyFromMenu, pasteFromMenu } from '../editor/clipboard';
 import { executeCommand } from '../editor/commands';
 import { appContext } from '../editor/context';
@@ -12,7 +13,7 @@ import { Icon, type IconName } from './icons';
 import { uiStore } from './uiStore';
 import './context-menu.css';
 
-type Where = 'topic' | 'canvas';
+type Where = 'topic' | 'canvas' | 'reference';
 
 interface Open {
   x: number;
@@ -29,6 +30,43 @@ export const openContextMenu = (x: number, y: number, where: Where) =>
     at: { x, y, where, entries: where === 'topic' ? topicEntries() : canvasEntries() },
   });
 export const closeContextMenu = () => menuStore.setState({ at: null });
+
+/** The menu for a reference line, opened by right-clicking it. */
+export function openReferenceMenu(x: number, y: number, from: string): void {
+  menuStore.setState({
+    at: {
+      x,
+      y,
+      where: 'reference',
+      entries: [
+        head('Reference'),
+        {
+          kind: 'item',
+          label: 'Go to referenced topic',
+          icon: 'arrow-right',
+          run: () => {
+            const to = canopyStore.getState().doc.topics[from]?.referenceTo;
+            if (to) navigateToTopic(to);
+          },
+        },
+        {
+          kind: 'item',
+          label: 'Change reference…',
+          icon: 'link',
+          run: () => appContext.app?.topicSearch(from),
+        },
+        { kind: 'separator' },
+        {
+          kind: 'item',
+          label: 'Remove reference',
+          icon: 'trash',
+          danger: true,
+          run: () => removeReference(from),
+        },
+      ],
+    },
+  });
+}
 
 type Entry =
   | {
@@ -88,6 +126,12 @@ function topicEntries(): Entry[] {
   return [
     head('Add'),
     cmd('Add sub-topic', 'topic.addChild', 'sub-topic', { disabled: many }),
+    cmd(
+      doc.topics[focus]?.referenceTo ? 'Change reference…' : 'Reference to…',
+      'topic.reference',
+      'link',
+      { disabled: many },
+    ),
     ...(core
       ? []
       : [
@@ -195,7 +239,7 @@ function canvasEntries(): Entry[] {
     cmd('Unfold everything', 'view.unfoldAll', 'braces'),
 
     head('More'),
-    cmd('Choose a Filter…', 'filter.open', 'filter'),
+    cmd('Advanced filters…', 'filter.open', 'filter'),
     cmd('Export…', 'export.open', 'export'),
     cmd('Keyboard shortcuts', 'help.shortcuts', 'keyboard'),
   ];

@@ -6,7 +6,7 @@ export type DialogName =
   | 'shortcuts'
   | 'palette'
   | 'quickadd'
-  | 'filter'
+  | 'topicSearch'
   // These two used to be dialogs. They now open in the left panel.
   | 'preferences'
   | 'export';
@@ -24,6 +24,8 @@ export type TrailMode = 'none' | 'highlight' | 'isolate';
 
 interface UiState {
   dialog: DialogName | null;
+  /** Source topic when topic search is being used to create a reference. */
+  topicSearchFrom: string | null;
   /** What is ticked in the Filter panel. Nothing ticked means no Filter. */
   filterSel: FilterSelection;
   filterMode: FilterMode;
@@ -46,6 +48,8 @@ interface UiState {
   trailMode: TrailMode;
   /** The topic whose branch is shown alone, with everything above it collapsed into one node. */
   focusBranch: string | null;
+  /** The topic whose reference line is picked, so it shows its delete icon. */
+  referenceFocus: string | null;
   /** Counts each request to put the cursor in the Filter's search box. */
   searchNudge: number;
 }
@@ -83,6 +87,7 @@ function loadPanels(): Pick<UiState, 'sections' | 'leftOpen' | 'leftTab'> {
 
 export const uiStore = createStore<UiState>(() => ({
   dialog: null,
+  topicSearchFrom: null,
   filterSel: NO_FILTER,
   filterMode: 'dim',
   zen: false,
@@ -93,6 +98,7 @@ export const uiStore = createStore<UiState>(() => ({
   edgeNudge: 0,
   trailMode: 'highlight',
   focusBranch: null,
+  referenceFocus: null,
   searchNudge: 0,
   ...loadPanels(),
 }));
@@ -142,7 +148,11 @@ export function openDialog(dialog: DialogName): void {
   else if (dialog === 'export') openLeft('export');
   else uiStore.setState({ dialog });
 }
-export const closeDialog = () => uiStore.setState({ dialog: null });
+export const closeDialog = () => uiStore.setState({ dialog: null, topicSearchFrom: null });
+
+export function openTopicSearch(from: string | null = null): void {
+  uiStore.setState({ dialog: 'topicSearch', topicSearchFrom: from });
+}
 
 export function useDialog(): DialogName | null {
   return useStore(uiStore, (s) => s.dialog);
@@ -196,6 +206,10 @@ export const pointAtEdge = (id: string) =>
 
 export const setTrailMode = (trailMode: TrailMode) => uiStore.setState({ trailMode });
 export const setFocusBranch = (focusBranch: string | null) => uiStore.setState({ focusBranch });
+
+/** Picks the reference line leaving a topic (or lets go of it). */
+export const setReferenceFocus = (referenceFocus: string | null) =>
+  uiStore.setState((s) => (s.referenceFocus === referenceFocus ? s : { referenceFocus }));
 
 /** Opens the Filter panel with the cursor in its search box. */
 export function focusFilterSearch(): void {

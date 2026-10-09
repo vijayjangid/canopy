@@ -143,6 +143,12 @@ export function readExtras(node: Record<string, unknown>, path: string, fail: Fa
     }
   }
 
+  if (node['referenceTo'] !== undefined) {
+    if (isString(node['referenceTo']) && node['referenceTo'].length > 0) {
+      out.referenceTo = node['referenceTo'];
+    } else fail(`${path}.referenceTo must be a non-empty topic id`);
+  }
+
   const props = readProps(node['props'], `${path}.props`, fail);
   if (props) out.props = props;
   return out;

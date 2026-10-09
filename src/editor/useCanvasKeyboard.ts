@@ -12,7 +12,8 @@ export function useCanvasKeyboard(host: RefObject<HTMLElement | null>) {
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.isComposing) return;
       const target = e.target instanceof Element ? e.target : null;
-      if (target?.closest(TEXT_FIELDS)) return;
+      const inTextField = target !== null && target.closest(TEXT_FIELDS) !== null;
+      if (inTextField && !(e.metaKey || e.ctrlKey)) return;
 
       // Plain keys act only while the map itself has focus, so buttons keep Enter and Space.
       // Command shortcuts (Cmd/Ctrl) work anywhere on the page.
@@ -22,6 +23,7 @@ export function useCanvasKeyboard(host: RefObject<HTMLElement | null>) {
 
       const command = findCommand(e);
       if (!command) return;
+      if (inTextField && command.id !== 'filter.search') return;
       // A tap on Space edits, but Space is also how the view is panned, so the tool hook decides.
       if (command.id === 'topic.edit' && e.key === ' ') return;
       const handled = executeCommand(command.id, appContext, { key: e.key, shiftKey: e.shiftKey });

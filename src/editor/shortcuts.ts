@@ -19,6 +19,8 @@ export type CommandId =
   | 'topic.duplicate'
   | 'topic.toggleFold'
   | 'topic.reorder'
+  | 'topic.reference'
+  | 'topic.referenceRemove'
   | 'nav.arrow'
   | 'select.all'
   | 'select.escape'
@@ -156,10 +158,12 @@ export const COMMANDS: readonly CommandDef[] = [
   { id: 'props.status', label: 'Set status', shortcuts: [{ key: 't' }] },
   { id: 'props.due', label: 'Set a due date', shortcuts: [{ key: 'd' }] },
   { id: 'props.tag', label: 'Add a tag', shortcuts: [{ key: 'g' }] },
-  { id: 'filter.open', label: 'Choose a Filter', shortcuts: [{ key: '/' }, { key: 'f' }] },
+  { id: 'topic.reference', label: 'Reference another topic', shortcuts: [{ key: 'x' }] },
+  { id: 'topic.referenceRemove', label: 'Remove topic reference', shortcuts: [] },
+  { id: 'filter.open', label: 'Advanced filters', shortcuts: [{ key: '/' }, { key: 'f' }] },
   {
     id: 'filter.search',
-    label: 'Search topics and lines by text',
+    label: 'Find a topic',
     shortcuts: [{ key: 'f', mod: true }],
   },
   { id: 'filter.next', label: 'Next match in the Filter', shortcuts: [{ key: '.' }] },
@@ -182,6 +186,8 @@ export const COMMAND_GROUPS: Record<CommandId, string> = {
   'topic.addPeerBefore': 'Create',
   'topic.wrap': 'Create',
   'topic.insertBelow': 'Create',
+  'topic.reference': 'Create',
+  'topic.referenceRemove': 'Create',
   'topic.duplicate': 'Create',
   'topic.edit': 'Edit',
   'topic.delete': 'Edit',

@@ -151,10 +151,7 @@ test('5000 topics with Properties: paint, Filter and an edit stay responsive', a
   await page.getByRole('tree', { name: 'Mind map' }).focus();
   const filterStart = Date.now();
   await page.keyboard.press('/');
-  await page
-    .getByRole('dialog', { name: 'Filter' })
-    .getByRole('option', { name: /^Blocked/ })
-    .click();
+  await page.getByRole('list', { name: 'Status' }).getByRole('button', { name: 'Blocked' }).click();
   await page.waitForSelector('.topic[data-dim]');
   const filter = Date.now() - filterStart;
 

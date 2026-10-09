@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 const topic = (page: Page, name: string) =>
   page.locator('.topic[data-kind="topic"]', { hasText: name }).first();
-const handle = (page: Page, kind: 'child' | 'before' | 'after') =>
+const handle = (page: Page, kind: 'child' | 'reference' | 'after') =>
   page.locator(`.growth-handle[data-kind="${kind}"]`);
 
 /** Core with Alpha and Beta. */
@@ -32,7 +32,8 @@ test('shows handles around a hovered topic and a ghost for the one under the poi
   await page.mouse.move(0, 0);
   await topic(page, 'Alpha').hover();
   await expect(handle(page, 'child')).toBeVisible();
-  await expect(handle(page, 'before')).toBeVisible();
+  await expect(handle(page, 'reference')).toBeVisible();
+  await expect(page.locator('.growth-handle[data-kind="before"]')).toHaveCount(0);
   await expect(handle(page, 'after')).toBeVisible();
 
   await handle(page, 'after').hover();
@@ -48,7 +49,7 @@ test('the Core only offers sub-topics', async ({ page }) => {
   await page.goto('/');
   await topic(page, 'Central topic').hover();
   await expect(handle(page, 'child')).toBeVisible();
-  await expect(handle(page, 'before')).toHaveCount(0);
+  await expect(handle(page, 'reference')).toHaveCount(0);
   await expect(handle(page, 'after')).toHaveCount(0);
 });
 
