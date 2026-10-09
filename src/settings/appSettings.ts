@@ -1,6 +1,5 @@
 import { createStore } from 'zustand/vanilla';
 import { useStore } from 'zustand';
-import { setMotionPreference, type MotionPreference } from '../motion';
 
 export type ModeSetting = 'auto' | 'light' | 'dark';
 export type HandleVisibility = 'hover' | 'always' | 'never';
@@ -8,7 +7,6 @@ export type HandleVisibility = 'hover' | 'always' | 'never';
 /** Settings that belong to this device and browser, not to a map. */
 export interface AppSettings {
   mode: ModeSetting;
-  motion: MotionPreference;
   handles: HandleVisibility;
   /** Show the topic a + button would add, as a ghost, while it is pointed at. Off unless asked for. */
   handlePreview: boolean;
@@ -25,7 +23,6 @@ export interface AppSettings {
 
 export const DEFAULT_SETTINGS: AppSettings = {
   mode: 'auto',
-  motion: 'auto',
   handles: 'hover',
   handlePreview: false,
   hints: true,
@@ -37,7 +34,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
 
 const KEY = 'canopy.settings';
 const MODES: readonly ModeSetting[] = ['auto', 'light', 'dark'];
-const MOTIONS: readonly MotionPreference[] = ['auto', 'full', 'reduced'];
 const HANDLES: readonly HandleVisibility[] = ['hover', 'always', 'never'];
 
 /** Keeps only valid values, so an old or edited entry cannot break the app. */
@@ -47,9 +43,6 @@ export function parseSettings(raw: string | null): AppSettings {
   try {
     const value = JSON.parse(raw) as Record<string, unknown>;
     if (MODES.includes(value['mode'] as ModeSetting)) out.mode = value['mode'] as ModeSetting;
-    if (MOTIONS.includes(value['motion'] as MotionPreference)) {
-      out.motion = value['motion'] as MotionPreference;
-    }
     if (HANDLES.includes(value['handles'] as HandleVisibility)) {
       out.handles = value['handles'] as HandleVisibility;
     }
@@ -68,7 +61,6 @@ export function parseSettings(raw: string | null): AppSettings {
 function pick(state: AppSettings): AppSettings {
   return {
     mode: state.mode,
-    motion: state.motion,
     handles: state.handles,
     handlePreview: state.handlePreview,
     hints: state.hints,
@@ -94,10 +86,7 @@ function apply(settings: AppSettings) {
     if (settings.mode === 'auto') root.removeAttribute('data-mode');
     else root.setAttribute('data-mode', settings.mode);
     root.setAttribute('data-scheme', effectiveScheme(settings.mode));
-    if (settings.motion === 'reduced') root.setAttribute('data-motion', 'reduced');
-    else root.removeAttribute('data-motion');
   }
-  setMotionPreference(settings.motion);
 }
 
 // In Auto mode, follow the system when it changes.

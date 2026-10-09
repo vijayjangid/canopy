@@ -46,9 +46,8 @@
 .connector {
   fill: none;
   stroke: var(--color-connector);
-  stroke-width: 1.5;
+  stroke-width: 2;
   stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
 }
 
 .reference-connector {
@@ -57,7 +56,6 @@
   stroke-width: 2.5;
   stroke-dasharray: 7 5;
   stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
 
@@ -607,24 +605,12 @@
 /* Pointing at a line tints it with a faded interactive colour; picking it uses the full colour. */
 .link:hover .connector {
   stroke: color-mix(in srgb, var(--color-accent) 60%, transparent);
-  stroke-width: 3;
-}
-
-.link:hover .connector[data-style='tapered'] {
-  fill: color-mix(in srgb, var(--color-accent) 60%, transparent);
-  stroke: color-mix(in srgb, var(--color-accent) 60%, transparent);
-  stroke-width: 1.4px;
+  stroke-width: 3.5;
 }
 
 .link[data-selected] .connector {
   stroke: var(--color-accent);
-  stroke-width: 3;
-}
-
-.link[data-selected] .connector[data-style='tapered'] {
-  fill: var(--color-accent);
-  stroke: var(--color-accent);
-  stroke-width: 1.4px;
+  stroke-width: 3.5;
 }
 
 .edge-hit {
@@ -752,33 +738,21 @@
 
 .link[data-trail] .connector {
   stroke: color-mix(in srgb, var(--color-accent) 58%, var(--color-connector));
-  stroke-width: 3.5;
+  stroke-width: 4;
 }
 
-.link[data-trail] .connector[data-style='tapered'] {
-  fill: color-mix(in srgb, var(--color-accent) 58%, var(--color-connector));
-  stroke: color-mix(in srgb, var(--color-accent) 58%, var(--color-connector));
-  stroke-width: 1.4px;
+/* A topic on the Trail keeps its normal border and sets its text in the interactive colour. */
+.topic[data-trail]:not([data-depth='0']) .topic-text:not([data-empty]) {
+  fill: var(--color-accent);
 }
 
-.topic[data-trail] .topic-box {
-  stroke: color-mix(in srgb, var(--color-accent) 62%, var(--color-topic-border));
-  stroke-width: 2.5;
+.topic[data-trail]:not([data-depth='0']) .topic-glyph {
+  color: var(--color-accent);
 }
 
-:root[data-look='playful'] .link[data-trail] .connector {
-  stroke: var(--hue);
-  stroke-width: 5;
-}
-
-:root[data-look='playful'] .link[data-trail] .connector[data-style='tapered'] {
-  fill: var(--hue);
-  stroke: var(--hue);
-  stroke-width: 1.4px;
-}
-
-:root[data-look='playful'] .topic[data-trail] .topic-box {
-  stroke-width: 3.5;
+/* Playful sets text from its level's ink, so the Trail swaps the ink. */
+:root[data-look='playful'] .topic[data-trail][data-level]:not([data-depth='0']) {
+  --ink: var(--color-accent);
 }
 
 :root[data-look='contrast'] .link[data-trail] .connector {
@@ -792,17 +766,11 @@
   }
 }
 
-:root:not([data-motion='reduced']) .link[data-trail] .connector:not([data-style='tapered']) {
-  stroke-linecap: butt;
-  stroke-dasharray: 9 6;
-  animation: trail-march 700ms linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :root:not([data-motion='full']) .link[data-trail] .connector:not([data-style='tapered']) {
-    stroke-linecap: round;
-    stroke-dasharray: none;
-    animation: none;
+@media (prefers-reduced-motion: no-preference) {
+  .link[data-trail] .connector {
+    stroke-linecap: butt;
+    stroke-dasharray: 9 6;
+    animation: trail-march 700ms linear infinite;
   }
 }
 

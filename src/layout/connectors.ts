@@ -36,7 +36,7 @@ function hangPath(parent: Box, child: Box, attach: Attach, style: ConnectorStyle
   const dir = left ? -1 : 1;
   const r = Math.max(0, Math.min(10, ey - sy, Math.abs(ex - sx)));
   if (style === 'tapered') {
-    const t = 1.6;
+    const t = 1.8;
     return (
       `M${f(sx - t)} ${f(sy)}L${f(sx - t)} ${f(ey - r)}` +
       `Q${f(sx - t)} ${f(ey + t)} ${f(sx + dir * r)} ${f(ey + t)}L${f(ex)} ${f(ey + t * 0.5)}` +
@@ -94,7 +94,7 @@ export function connectorPath(
   const c1v = v1 + noise(seed, 1) * wobble;
   const c2v = v2 + noise(seed, 2) * wobble;
   if (style === 'tapered') {
-    const a = 3.2;
+    const a = 3.6;
     const b = 0.9;
     return (
       `M${at(u1, v1 - a)}C${at(mid, c1v - a)} ${at(mid, c2v - b)} ${at(u2, v2 - b)}` +

@@ -15,7 +15,7 @@ Local-first, private by default, accessible to the core, and a pleasure to look 
 
 <br />
 
-<img src="docs/screenshots/hero.png" alt="Canopy showing a product launch plan as a mind map with status chips, due dates and stickers" width="920" />
+<img src="docs/screenshots/hero.png" alt="Canopy showing a product launch plan as a mind map, with the Settings panel on the left and the details panel on the right" width="920" />
 
 </div>
 
@@ -28,8 +28,8 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 |                                         |                                                                                                                            |
 | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | ⌨️ **Keyboard-first, mouse-delightful** | Every action has a shortcut. The mouse gets rich affordances (ghost previews, magnetic drops), not a separate feature set. |
-| 🎨 **Structure and style are separate** | Look, Font and Mode never touch your data. Restyle a whole map in one click.                                               |
-| 🎬 **Motion explains, never decorates** | New topics grow out of their parent and removed ones fold back. Reduced-motion is respected everywhere.                    |
+| 🎨 **Structure and style are separate** | Theme and colour mode never touch your data. Restyle a whole map in one click.                                             |
+| 🎬 **Motion explains, never decorates** | New topics grow out of their parent and removed ones fold back. Your system's reduced-motion setting is respected.         |
 | ♿ **Accessible by default**            | The map is a real ARIA tree, not just pixels on a canvas. Automated axe checks run in the test suite.                      |
 | 🔒 **Local-first and private**          | Works offline, autosaves to your browser, and needs no account. Your map is a plain `.canopy.json` file.                   |
 | 📋 **A map is also a plan**             | Give any topic a status, due date and tags, then filter, roll up and export it without leaving the map.                    |
@@ -41,6 +41,7 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 ### 🌱 Grow ideas at the speed of thought
 
 - **Growth handles** appear on hover. Click to add, or drag to drop with a magnetic snap and a **ghost preview** of exactly where the new topic will land. Turn on **Preview on hover** in Settings to see the ghost while merely pointing at a `+` (off by default).
+- **New map** (File menu) opens with its central topic ready to name, so you can start typing at once.
 - `Tab` adds a sub-topic, `Enter` a peer, `W` inserts a topic **between** a topic and its parent. No dragging needed.
 - **Text expansion:** type `!!Research>Interviews>Synthesis` for a chain, or `!!A, B, C` for peers. One undo puts the text back.
 - **Paste an outline** (indented text or Markdown bullets) onto any topic and it unfurls into a branch.
@@ -48,7 +49,7 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 
 ### 🧭 Never lose your place in a big map
 
-- **Trail** highlights (or isolates) the path from the focused topic up to the Core, with a clickable breadcrumb and **Copy path**.
+- **Trail** highlights (or isolates) the path from the focused topic up to the Core, with a clickable breadcrumb and **Copy path**. The lines march toward the Core and the topics on the way set their text in the interactive colour.
 - **Branch view** (`[`) shows only one branch and collapses everything above it into a single dotted node.
 - **References** link one topic to another existing topic without duplicating its branch; dashed arrows distinguish references from parent-child lines. Drag from the link handle above a selected topic onto any topic to connect them, or click the handle (or press `X`) to search by name or path. Click an arrow to show its delete icon, or right-click it to go to, change or remove the reference.
 - **Search** (`⌘F`, `⌘K`, `F` or `/`) is one box for topics, commands and filters. Type to find a topic by title or path, run a command, or filter the map by status, tag, sticker or due date. Empty, it shows quick filters, your recent searches and common commands.
@@ -59,11 +60,11 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/inspector.png" alt="Selecting a topic highlights its trail to the Core and opens the inspector with status, due date, tags and stickers" /></td>
+    <td width="50%"><img src="docs/screenshots/inspector.png" alt="Selecting a topic marks its trail to the Core in the interactive colour and opens the details panel with status, due date, tags and stickers" /></td>
     <td width="50%"><img src="docs/screenshots/palette.png" alt="The search dialog with quick filters and common commands" /></td>
   </tr>
   <tr>
-    <td align="center"><sub><b>Trail and Inspector</b>: follow the path to the Core while you edit properties.</sub></td>
+    <td align="center"><sub><b>Trail and details panel</b>: follow the path to the Core while you edit properties.</sub></td>
     <td align="center"><sub><b>Search</b> (<code>⌘F</code>): quick filters, recent searches and common commands.</sub></td>
   </tr>
 </table>
@@ -75,29 +76,31 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 - **Roll-ups:** a folded branch shows its hidden count plus a status summary such as `12 · 3/7`.
 - **Filters** pick out topics by property, text or sticker, and step through matches with `.` and `,`. Exports can respect the active Filter.
 
-### 🎭 Make it yours: Looks, Voices and Modes
+### 🎭 Make it yours: Themes and colour modes
 
-Three **Looks**, four **Voices**, Light, Dark or Auto. Colour, type and connectors change. Your data never does.
+Three **Themes**, each a ready-made preset of colour, shape and font, in Light, Dark or Auto. Your data never changes.
 
 <table>
   <tr>
-    <td width="33%"><img src="docs/screenshots/look-playful.png" alt="Playful look: saturated colour by level, gradient cards and bold rounded connectors" /></td>
-    <td width="33%"><img src="docs/screenshots/look-contrast.png" alt="High Contrast look: black on white, thicker strokes and a different corner shape per level" /></td>
-    <td width="33%"><img src="docs/screenshots/look-sketch-dark.png" alt="Minimal look in Dark mode with the handwritten Sketch voice and tapered connectors" /></td>
+    <td width="33%"><img src="docs/screenshots/look-playful.png" alt="Playful theme: every topic is a die-cut sticker with a wavy white rim, a flat shadow and text coloured by level" /></td>
+    <td width="33%"><img src="docs/screenshots/look-contrast.png" alt="High Contrast theme: black on white, thicker strokes, a serif font and a different corner shape per level" /></td>
+    <td width="33%"><img src="docs/screenshots/look-playful-dark.png" alt="Playful theme in Dark mode: charcoal stickers with a dark rim and coloured text on the darkest canvas" /></td>
   </tr>
   <tr>
-    <td align="center"><sub><b>Playful</b><br />colour by level</sub></td>
+    <td align="center"><sub><b>Playful</b><br />sticker topics, colour by level</sub></td>
     <td align="center"><sub><b>High Contrast</b><br />level by shape, not just colour</sub></td>
-    <td align="center"><sub><b>Minimal + Sketch</b> in Dark<br />tapered connectors</sub></td>
+    <td align="center"><sub><b>Playful</b> in Dark<br />charcoal stickers</sub></td>
   </tr>
 </table>
 
-- **Looks:** Minimal, High Contrast, Playful.
-- **Voices:** Clean, Editorial (serif), Mono, Sketch (handwritten, with hand-drawn wobbly lines).
-- **Connectors:** curved, elbow, straight or tapered. **Layout:** Right or Down, in Compact, Comfortable or Airy spacing.
+- **Minimal:** the default. A clean system font, soft borders and the interactive colour for emphasis.
+- **High Contrast:** black on white, thick strokes, a serif font and a different corner shape per level, so level is never carried by colour alone.
+- **Playful:** every topic is a **sticker**. The title is set in a handwritten font, in its level's colour, on a tinted face inside a wavy white rim with a flat shadow. In Dark mode the stickers turn charcoal on the darkest canvas. Lines are drawn slightly wobbly, like a hand-drawn map.
+- **Colour mode:** Auto, Light or Dark, one click from the top bar. It belongs to your device, not to the map.
+- **Layout:** Right or Down, in Compact, Comfortable or Airy spacing. Connectors are always curved.
 - **Pictures:** paste any image from the clipboard (a screenshot, a copied image) onto the selected topic. The topic grows to fit it, up to a maximum size, and larger pictures are scaled down and stored inside the map file. Pasting works while you are typing the title too. Point at the picture for an **Alt** button (describe it for screen readers) and a **✕** button (remove it), or use the right-click menu. Pictures appear in SVG, PNG and PDF exports.
 - **Drag and drop:** drop a picture on the canvas to add it as a new topic under the Core, or on a topic to put it on that topic. Drop a Canopy map file (`.canopy.json`) on a topic, or on the canvas for the Core, to add the whole map as a new branch, so explored maps can be combined into a bigger one. The topic it will land on is outlined while you drag. File ▸ **Add a map as a branch…** does the same from the keyboard.
-- **Stickers:** original die-cut artwork on the corners of topics, and on the **lines** between them. Each sticker is a switch: click it to put it on, click it again to take it off, and a sticker goes on a topic or line only once. Lines can carry a label such as _depends on_, and the bar beside a picked line has a pencil that jumps to the label field.
+- **Stickers:** original die-cut artwork on the corners of topics, and on the **lines** between them. Each sticker is a switch: click it to put it on, click it again to take it off, and a sticker goes on a topic or line only once. Lines can carry a label such as _depends on_, and the bar beside a picked line has a pencil that jumps to the label field. The sticker sheet sits in the details panel under its own heading.
 - **Delete with care:** deleting a topic that has sub-topics asks whether to remove **the whole branch** or **only the topic**, in which case its sub-topics move up to its parent, in its place.
 - **Notes:** a Markdown note on any topic, with a Write and Preview switch.
 
@@ -135,7 +138,7 @@ The top topic can also split its branches onto **both sides**, and the layout tr
 | Format       | What you get                                                                                         |
 | ------------ | ---------------------------------------------------------------------------------------------------- |
 | **PNG**      | 1×, 2× or 4×, optional transparent background. The scale lowers itself if a canvas would be too big. |
-| **SVG**      | Vector, follows Look, Voice, connectors, level numbers and folds, with the map's font embedded.      |
+| **SVG**      | Vector, follows the Theme, level numbers and folds, with the map's font embedded.                    |
 | **PDF**      | One page, vector, selectable text, through the browser's print dialog.                               |
 | **Markdown** | A nested outline with optional notes, and properties written as the inline shorthand.                |
 | **CSV**      | One row per topic with its path and properties. Spreadsheet formulas are defused.                    |
@@ -204,10 +207,10 @@ Canopy renders its own canvas instead of using a diagramming library, so layout,
 | Layout      | `src/layout`                | Tidy-tree layout for variable-size topics, connectors, and the compact A4 packer.                |
 | Canvas      | `src/canvas`                | Pan and zoom, culling, drag and drop, Growth Handles, layout animator.                           |
 | Editor      | `src/editor`                | Commands, keyboard, clipboard and one shortcut registry that also builds the cheat sheet.        |
-| Interface   | `src/ui`                    | Panels, inspector, search, export dialog.                                                        |
+| Interface   | `src/ui`                    | Panels, details panel, search, export dialog.                                                    |
 | Export      | `src/io`                    | SVG built straight from the layout, PNG rasteriser, print, Markdown and CSV writers.             |
 | Persistence | `src/persistence`           | Autosave to IndexedDB (Dexie) and `.canopy.json` files.                                          |
-| Theme       | `src/theme`, `src/stickers` | Look and Voice tokens and the original sticker artwork.                                          |
+| Theme       | `src/theme`, `src/stickers` | Theme presets (colour, shape and font) and the original sticker artwork.                         |
 
 **Stack:** React 19, TypeScript, Vite, Zustand, Immer, Dexie. Tested with Vitest, Testing Library, fast-check and Playwright with axe.
 
@@ -217,7 +220,7 @@ Canopy renders its own canvas instead of using a diagramming library, so layout,
 
 ## 🗺️ Status and roadmap
 
-Canopy is under active development. The core editor, planning properties, Looks and Voices, navigation aids and all export formats are built. Still ahead:
+Canopy is under active development. The core editor, planning properties, Themes, navigation aids and all export formats are built. Still ahead:
 
 - 🧩 more Flows (Left, Both, Radial) and a per-branch Flow override
 - 🗃️ Board, Table and Timeline views over the same map
@@ -230,7 +233,7 @@ The full picture lives in [`spec.md`](spec.md) (what the product is and how it b
 
 ## 🙏 Credits
 
-Fonts are bundled through [Fontsource](https://fontsource.org) under the SIL Open Font License: Patrick Hand, Source Serif 4, JetBrains Mono and Bricolage Grotesque. The stickers and interface icons are original artwork drawn for Canopy. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for details.
+Fonts are bundled through [Fontsource](https://fontsource.org) under the SIL Open Font License: Kalam, Source Serif 4, JetBrains Mono and Bricolage Grotesque. The stickers and interface icons are original artwork drawn for Canopy. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for details.
 
 <div align="center">
 <br />

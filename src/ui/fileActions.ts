@@ -5,11 +5,17 @@ import { announce } from '../a11y';
 import { canopyStore } from '../store';
 import { showToast } from './toast';
 
-/** Starts an empty map. Autosave stores it once it is edited, and the old map stays in the list. */
+/**
+ * Starts an empty map with its Core already open for naming. Autosave stores it once it is
+ * edited, and the old map stays in the list.
+ */
 export function startNewMap(): void {
-  const mapId = canopyStore.getState().newMap();
+  const state = canopyStore.getState();
+  const mapId = state.newMap();
   rememberOpenedMap(mapId);
-  announce('New map');
+  const { setEditing, doc } = canopyStore.getState();
+  setEditing(doc.coreId);
+  announce('New map. Type a name for the central topic');
 }
 
 export async function openMapFromFile(): Promise<void> {

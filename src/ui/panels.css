@@ -74,8 +74,7 @@
 
 .stripe button:focus-visible,
 .panel-tabs button:focus-visible,
-.panel-collapse:focus-visible,
-.panel-section-head:focus-visible {
+.panel-collapse:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: -2px;
 }
@@ -172,14 +171,6 @@
 .panel-title {
   margin: 0 0 var(--space-3);
   font-size: 14px;
-}
-
-.panel-section {
-  border-bottom: 1px solid var(--color-border);
-}
-
-.panel-section-head:hover {
-  background: var(--color-hover);
 }
 
 /* The filter, in the panel and as a pill over the map */
@@ -629,34 +620,24 @@
   color: var(--color-text-muted);
 }
 
-/* Collapsible sections of the details panel. */
-.panel-section-head {
+/* A section of the details panel: a caption with a line running after it, like the group titles in
+   Settings. */
+.panel-section-heading {
   display: flex;
   align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 14px var(--space-5);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-  text-align: left;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5) var(--space-2);
 }
 
-.panel-section-head .icon {
-  width: 16px;
-  height: 16px;
-  color: var(--color-text-muted);
+.panel-section-heading h3 {
+  flex: none;
+  margin: 0;
 }
 
-.panel-section-summary {
-  margin-left: auto;
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--color-text-muted);
+.panel-section-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
 }
 
 .panel-section-body {

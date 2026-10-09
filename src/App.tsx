@@ -38,8 +38,6 @@ function demoFromUrl() {
 export function App() {
   const ready = useCanopy((s) => s.ready);
   const look = useCanopy((s) => s.doc.prefs.look);
-  const voice = useCanopy((s) => s.doc.prefs.voice);
-  const fontSize = useCanopy((s) => s.doc.prefs.fontSize);
   const chips = useCanopy((s) => s.doc.prefs.chips);
   const showLevels = useCanopy((s) => s.doc.prefs.showLevels);
 
@@ -60,8 +58,8 @@ export function App() {
 
   // Layout effect, so a map never shows once in the wrong Look.
   useLayoutEffect(() => {
-    applyAppearance({ look, voice, fontSize, chips, showLevels });
-  }, [look, voice, fontSize, chips, showLevels]);
+    applyAppearance({ look, chips, showLevels });
+  }, [look, chips, showLevels]);
 
   useEffect(() => {
     const demo = demoFromUrl();

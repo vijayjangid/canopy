@@ -538,29 +538,6 @@
 
 /* ---------- Tabs, and a tighter panel ---------- */
 
-.inspector-tabs button:hover {
-  color: var(--color-text);
-}
-
-.inspector-tabs button[aria-selected='true'] {
-  font-weight: 600;
-  color: var(--color-accent);
-}
-
-.inspector-tabs button[aria-selected='true']::after {
-  position: absolute;
-  inset: auto 6px 0;
-  height: 2px;
-  content: '';
-  background: var(--color-accent);
-  border-radius: 2px 2px 0 0;
-}
-
-.inspector-tabs button:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: -2px;
-}
-
 .tab-mark {
   width: 6px;
   height: 6px;
@@ -602,20 +579,21 @@
 
 .inspector-tabs {
   display: flex;
-  gap: var(--space-1);
-  padding: 0 var(--space-4);
+  gap: 0;
+  padding: 0 6px 0 0;
   border-bottom: 1px solid var(--color-border);
 }
 
+/* The same tabs as the left panel: a bar on the header line that slides in under the open one. */
 .inspector-tabs button {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 42px;
-  padding: 0 var(--space-3);
+  height: 44px;
+  padding: 0 9px;
   font: inherit;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -626,25 +604,31 @@
 
 .inspector-tabs button:hover {
   color: var(--color-text);
+  background: var(--color-hover);
 }
 
-.inspector-tabs button[aria-selected='true'] {
-  font-weight: 600;
-  color: var(--color-accent);
-}
-
-.inspector-tabs button[aria-selected='true']::after {
+.inspector-tabs button::after {
   position: absolute;
-  inset: auto var(--space-2) 0;
+  inset: auto 0 -1px;
   height: 2px;
   content: '';
   background: var(--color-accent);
-  border-radius: 2px 2px 0 0;
+  transform: scaleX(0);
+  transition: transform var(--motion-quick) var(--ease-standard);
+}
+
+.inspector-tabs button[aria-selected='true'] {
+  color: var(--color-accent);
+  background: transparent;
+}
+
+.inspector-tabs button[aria-selected='true']::after {
+  transform: scaleX(1);
 }
 
 .inspector-tabs button:focus-visible {
   outline: 2px solid var(--color-focus);
-  outline-offset: -2px;
+  outline-offset: -3px;
 }
 
 .props-tab {

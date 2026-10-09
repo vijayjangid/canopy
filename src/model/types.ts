@@ -6,7 +6,6 @@ export type TopicId = string;
 export type Flow = 'right' | 'down';
 export type Density = 'compact' | 'comfortable' | 'airy';
 export type Look = 'minimal' | 'contrast' | 'playful';
-export type Voice = 'clean' | 'editorial' | 'mono' | 'sketch';
 export type ConnectorStyle = 'curved' | 'elbow' | 'straight' | 'tapered';
 
 /** A sticker stuck to a topic. `key` names one of the built-in stickers. */
@@ -131,16 +130,11 @@ export interface MapMeta {
   modified: string;
 }
 
-export type FontSize = 'small' | 'medium' | 'large';
-
 export interface MapPrefs {
   flow: Flow;
   density: Density;
   showLevels: boolean;
   look: Look;
-  voice: Voice;
-  fontSize: FontSize;
-  connector: ConnectorStyle;
   /** How many chips a topic shows. */
   chips: 'off' | 'compact' | 'full';
 }

@@ -80,11 +80,11 @@ import { levelOf } from '../theme/levels';
 import { branchLayout } from './branchLayout';
 import { ContextNodeView } from './ContextNodeView';
 import { EdgeBadge } from './EdgeBadge';
-import { PlayfulDefs } from './PlayfulDefs';
 import { EdgeEditor } from './EdgeEditor';
 import { EdgeQuickBar } from './EdgeQuickBar';
 import { ImageAltEditor } from './ImageAltEditor';
 import { createRegionStore } from './region';
+import { StickerDefs } from './StickerDefs';
 import { TopicNode, type Detail, type NodeKind } from './TopicNode';
 import { useTopicDrag } from './useTopicDrag';
 import { intersectsRect } from './viewport';
@@ -189,7 +189,7 @@ export function Canvas() {
   } | null>(null);
   const shownMap = useRef<string | null>(null);
 
-  const { flow, density, look, voice, connector, showLevels, chips: chipMode } = doc.prefs;
+  const { flow, density, look, showLevels, chips: chipMode } = doc.prefs;
   const filter = useActiveFilter();
   const trail = useTrail();
   const dimmed = filter ? filter.paths : null;
@@ -281,10 +281,9 @@ export function Canvas() {
   const scene = useMemo(
     () =>
       cullLayout(view.layout, flow, region.rect, {
-        style: connector,
-        wobble: voice === 'sketch' ? 4 : 0,
+        wobble: look === 'playful' ? 4 : 0,
       }),
-    [view.layout, flow, region.rect, connector, voice],
+    [view.layout, flow, region.rect, look],
   );
   // Zoomed out far enough that text cannot be read, topics show icons for what they hold.
   const detail: Detail = region.detail;
@@ -726,7 +725,7 @@ export function Canvas() {
         onFocus={() => growthStore.getState().setCanvasFocused(true)}
         onBlur={() => growthStore.getState().setCanvasFocused(false)}
       >
-        {look === 'playful' && <PlayfulDefs />}
+        {look === 'playful' && <StickerDefs />}
         <g ref={worldRef}>
           <defs>
             <marker
@@ -759,7 +758,7 @@ export function Canvas() {
                   data-level={child ? levelOf(child.depth - 1) : undefined}
                   opacity={view.fade.get(link.id)}
                 >
-                  <path className="connector" data-style={connector} data-dim={dim} d={link.d} />
+                  <path className="connector" data-dim={dim} d={link.d} />
                   <path className="connector-hit" d={link.d} />
                   {edge && size && mid && edgeEditing !== link.id && (
                     <g data-dim={dim} className="edge-badge-wrap">

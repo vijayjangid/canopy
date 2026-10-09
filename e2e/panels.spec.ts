@@ -21,18 +21,13 @@ test('clicking a topic opens its details, and the close button hides them', asyn
   await expect(details).toBeVisible();
 });
 
-test('sections fold, and the layout is remembered', async ({ page }) => {
+test('Stickers is a plain section with a heading, not a fold', async ({ page }) => {
   await page.goto('/?demo=14');
   await page.locator('.topic[data-depth="1"]').first().click();
-  const stickers = page.getByRole('button', { name: /^Stickers/ });
-  await stickers.click();
-  await expect(stickers).toHaveAttribute('aria-expanded', 'false');
-  await page.reload();
-  await page.locator('.topic[data-depth="1"]').first().click();
-  await expect(page.getByRole('button', { name: /^Stickers/ })).toHaveAttribute(
-    'aria-expanded',
-    'false',
-  );
+  const region = page.getByRole('region', { name: 'Stickers' });
+  await expect(region.getByRole('heading', { name: 'Stickers' })).toBeVisible();
+  await expect(region.getByRole('searchbox', { name: 'Search stickers' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Stickers/ })).toHaveCount(0);
 });
 
 test('the left panel opens from its stripe, switches tabs and collapses', async ({ page }) => {
@@ -64,7 +59,10 @@ test('the left panel opens from its stripe, switches tabs and collapses', async 
 test('the top bar stays short', async ({ page }) => {
   await page.goto('/');
   const bar = page.locator('.app-bar');
-  expect(await bar.getByRole('button').count()).toBeLessThanOrEqual(5);
+  // The colour mode switch is one control with three options, so it counts once.
+  const buttons = await bar.getByRole('button').count();
+  const modes = await bar.getByRole('group', { name: 'Colour mode' }).getByRole('button').count();
+  expect(buttons - modes + 1).toBeLessThanOrEqual(6);
 });
 
 test('the selected topic is marked apart from its own border colour', async ({ page }) => {

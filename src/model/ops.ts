@@ -16,9 +16,6 @@ export const DEFAULT_PREFS: MapPrefs = {
   density: 'comfortable',
   showLevels: false,
   look: 'minimal',
-  voice: 'clean',
-  fontSize: 'medium',
-  connector: 'curved',
   chips: 'compact',
 };
 

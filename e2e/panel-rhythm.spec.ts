@@ -105,7 +105,7 @@ test('the details panel starts straight with status, due date and tags, with no 
 
   // The fields are there, directly under the tabs, and there is nothing to open or close.
   await expect(panel.getByRole('button', { name: /^Properties/ })).toHaveCount(0);
-  await expect(panel.locator('.panel-section-head', { hasText: 'Properties' })).toHaveCount(0);
+  await expect(panel.getByRole('heading', { name: 'Properties' })).toHaveCount(0);
   for (const name of ['Status', 'Due date', 'Tags']) {
     await expect(panel.locator('.prop-label', { hasText: new RegExp(`^${name}$`) })).toBeVisible();
   }
@@ -119,10 +119,9 @@ test('the details panel starts straight with status, due date and tags, with no 
   if (!tabs || !status) throw new Error('missing');
   expect(status.y - (tabs.y + tabs.height)).toBeLessThan(40);
 
-  // Stickers is still a section that opens and closes.
-  const stickers = panel.getByRole('button', { name: /^Stickers/ });
-  await stickers.click();
-  await expect(stickers).toHaveAttribute('aria-expanded', 'false');
+  // Stickers is a section with a heading, and always open.
+  await expect(panel.getByRole('region', { name: 'Stickers' })).toBeVisible();
+  await expect(panel.getByRole('button', { name: /^Stickers/ })).toHaveCount(0);
   await expect(panel.getByRole('group', { name: 'Status' })).toBeVisible();
   await tree(page).focus();
 });
@@ -140,7 +139,7 @@ test('several topics selected show the same fields directly, and no sticker sect
   const panel = page.locator('.panel-right');
   await expect(panel.getByRole('group', { name: 'Status' })).toBeVisible();
   await expect(panel.getByRole('button', { name: /^Properties/ })).toHaveCount(0);
-  await expect(panel.getByRole('button', { name: /^Stickers/ })).toHaveCount(0);
+  await expect(panel.getByRole('region', { name: 'Stickers' })).toHaveCount(0);
 });
 
 test('Settings groups keep switches apart from segmented choices, and fit without scrolling', async ({
@@ -156,8 +155,8 @@ test('Settings groups keep switches apart from segmented choices, and fit withou
     const rows = await group.locator('.pref').count();
     expect(switches === 0 || switches === rows).toBe(true);
   }
-  // A line follows each title.
-  await expect(page.locator('.prefs-rule')).toHaveCount(3);
+  // The theme sits at the top with no title, and a line follows each of the other titles.
+  await expect(page.locator('.prefs-rule')).toHaveCount(2);
   const fits = await page.locator('.prefs').evaluate((el) => {
     let node: HTMLElement | null = el.parentElement;
     while (node && node.scrollHeight <= node.clientHeight) node = node.parentElement;

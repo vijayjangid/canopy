@@ -24,18 +24,8 @@ export function setPlayfulMotion(playful: boolean): void {
 
 export const easeLayout = (t: number) => layoutEase(t);
 
-/** `auto` follows the system setting. */
-export type MotionPreference = 'auto' | 'full' | 'reduced';
-
-let preference: MotionPreference = 'auto';
-
-export function setMotionPreference(next: MotionPreference): void {
-  preference = next;
-}
-
-/** True when motion should jump to its end: the person chose it here, or asked their system for it. */
+/** True when motion should jump to its end: the person asked their system for that. */
 export function prefersReducedMotion(): boolean {
-  if (preference !== 'auto') return preference === 'reduced';
   return (
     typeof window !== 'undefined' &&
     typeof window.matchMedia === 'function' &&

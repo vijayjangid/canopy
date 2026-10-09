@@ -4,7 +4,7 @@ import { settingsStore, useSettings, type AppSettings } from '../settings';
 import { Icon, type IconName } from './icons';
 import { InfoTip } from './InfoTip';
 import { canopyStore, useCanopy } from '../store';
-import { FONT_SIZE_LABELS, VOICES } from '../theme';
+import { LOOK_VOICE, VOICES } from '../theme';
 import './preferences.css';
 
 interface Option<T extends string> {
@@ -58,16 +58,16 @@ function Choice<T extends string>({
   );
 }
 
+/** A theme is a preset: colours, shapes and a font. Each name is set in its own font. */
+const lookOption = (value: MapPrefs['look'], label: string): Option<MapPrefs['look']> => ({
+  value,
+  label,
+  font: VOICES[LOOK_VOICE[value]].stack,
+});
 const LOOKS: Array<Option<MapPrefs['look']>> = [
-  { value: 'minimal', label: 'Minimal' },
-  { value: 'contrast', label: 'High contrast' },
-  { value: 'playful', label: 'Playful' },
-];
-const CONNECTORS: Array<Option<MapPrefs['connector']>> = [
-  { value: 'curved', label: 'Curved', icon: 'curve', iconOnly: true },
-  { value: 'elbow', label: 'Elbow', icon: 'elbow', iconOnly: true },
-  { value: 'straight', label: 'Straight', icon: 'line', iconOnly: true },
-  { value: 'tapered', label: 'Tapered', icon: 'taper', iconOnly: true },
+  lookOption('minimal', 'Minimal'),
+  lookOption('contrast', 'High contrast'),
+  lookOption('playful', 'Playful'),
 ];
 const DENSITIES: Array<Option<MapPrefs['density']>> = [
   { value: 'compact', label: 'Compact', icon: 'density-compact', iconOnly: true },
@@ -78,18 +78,6 @@ const FLOWS: Array<Option<MapPrefs['flow']>> = [
   { value: 'right', label: 'Right', icon: 'arrow-right', iconOnly: true },
   { value: 'down', label: 'Down', icon: 'arrow-down', iconOnly: true },
 ];
-const FONT_SIZE_OPTIONS = (Object.keys(FONT_SIZE_LABELS) as Array<MapPrefs['fontSize']>).map(
-  (value): Option<MapPrefs['fontSize']> => ({ value, label: FONT_SIZE_LABELS[value] }),
-);
-
-const VOICE_OPTIONS = (Object.keys(VOICES) as Array<MapPrefs['voice']>).map(
-  (value): Option<MapPrefs['voice']> => ({
-    value,
-    label: VOICES[value].label,
-    font: VOICES[value].stack,
-  }),
-);
-
 /** A yes or no setting, as a switch. Its explanation sits behind the "i" beside its name. */
 function Toggle({
   legend,
@@ -128,21 +116,29 @@ const DEVICE_NOTE = 'Most of these are kept in this browser, not saved with the 
 function Group({
   id,
   title,
+  label,
   note,
   children,
 }: {
   id: string;
-  title: string;
+  /** Shown above the group. A group without one is named for assistive technology only. */
+  title?: string;
+  label?: string;
   note?: string;
   children: ReactNode;
 }) {
   return (
-    <section aria-labelledby={`prefs-${id}`}>
-      <div className="prefs-heading">
-        <h3 id={`prefs-${id}`}>{title}</h3>
-        {note && <InfoTip text={note} about={`${title} settings`} />}
-        <span className="prefs-rule" aria-hidden="true" />
-      </div>
+    <section
+      aria-labelledby={title ? `prefs-${id}` : undefined}
+      aria-label={title ? undefined : label}
+    >
+      {title && (
+        <div className="prefs-heading">
+          <h3 id={`prefs-${id}`}>{title}</h3>
+          {note && <InfoTip text={note} about={`${title} settings`} />}
+          <span className="prefs-rule" aria-hidden="true" />
+        </div>
+      )}
       {children}
     </section>
   );
@@ -151,11 +147,9 @@ function Group({
 /** Colour, theme and font, then how the map is laid out, then how the app behaves. */
 export function AppearanceBody() {
   const prefs = useCanopy((s) => s.doc.prefs);
-  const mode = useSettings((s) => s.mode);
   const handles = useSettings((s) => s.handles);
   const handlePreview = useSettings((s) => s.handlePreview);
   const hints = useSettings((s) => s.hints);
-  const motion = useSettings((s) => s.motion);
   const autoPan = useSettings((s) => s.autoPan);
   const discardBlank = useSettings((s) => s.discardBlank);
   const textExpansion = useSettings((s) => s.textExpansion);
@@ -168,45 +162,12 @@ export function AppearanceBody() {
 
   return (
     <div className="prefs">
-      <Group id="appearance" title="Appearance">
-        <Choice
-          legend="Colour mode"
-          options={[
-            { value: 'auto', label: 'Auto', icon: 'auto', iconOnly: true },
-            { value: 'light', label: 'Light', icon: 'sun', iconOnly: true },
-            { value: 'dark', label: 'Dark', icon: 'moon', iconOnly: true },
-          ]}
-          value={mode}
-          onChange={(v) => setDevice({ mode: v })}
-        />
+      <Group id="appearance" label="Appearance">
         <Choice
           legend="Theme"
           options={LOOKS}
           value={prefs.look}
           onChange={(look) => setMap({ look })}
-        />
-        <Choice
-          legend="Font"
-          options={VOICE_OPTIONS}
-          value={prefs.voice}
-          onChange={(voice) => setMap({ voice })}
-        />
-        <Choice
-          legend="Font size"
-          options={FONT_SIZE_OPTIONS}
-          value={prefs.fontSize}
-          onChange={(fontSize) => setMap({ fontSize })}
-        />
-        <Choice
-          legend="Motion"
-          hint="Animation. System follows your device's reduced motion setting."
-          options={[
-            { value: 'auto', label: 'System' },
-            { value: 'full', label: 'Full' },
-            { value: 'reduced', label: 'Reduced' },
-          ]}
-          value={motion}
-          onChange={(v) => setDevice({ motion: v })}
         />
       </Group>
 
@@ -222,12 +183,6 @@ export function AppearanceBody() {
           options={DENSITIES}
           value={prefs.density}
           onChange={(density) => setMap({ density })}
-        />
-        <Choice
-          legend="Connectors"
-          options={CONNECTORS}
-          value={prefs.connector}
-          onChange={(connector) => setMap({ connector })}
         />
         <Choice
           legend="Property chips"

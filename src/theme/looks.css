@@ -61,185 +61,145 @@
 }
 
 :root[data-look='contrast'] .connector {
-  stroke-width: 2;
-}
-
-:root[data-look='contrast'] .topic-text {
-  font-weight: 600;
+  stroke-width: 2.5;
 }
 
 /* ---------- Playful ----------
-   Colour follows the level: the Core, then five colours that repeat. Each topic is a soft
-   gradient with a bright edge, and a line takes the colour of the topic it leaves. */
+   Colour follows the level: the Core, then five colours that repeat. Every title is sticker
+   lettering: a tinted face inside a white rim, with a flat shadow, in its level's ink. */
 
 :root[data-look='playful'] {
-  --color-bg: #f4effc;
-  --color-grid: #c3b2e6;
   --color-accent: #7c3aed;
   --color-selection: #2a1a55;
   --color-focus: #2a1a55;
   --color-core-bg: #7c3aed;
   --color-core-text: #ffffff;
-  --color-connector: #cdbff0;
-  --glow-a: rgb(124 58 237 / 9%);
-  --glow-b: rgb(244 63 94 / 8%);
+  --sticker-edge: #ffffff;
+  --sticker-shadow: #1e143c;
+  --sticker-shadow-opacity: 0.3;
+  --sticker-face-base: #ffffff;
+  --sticker-tint: 12%;
   --lv0: #7c3aed;
-  --lv0-a: #7c3aed;
-  --lv0-b: #db2777;
+  --lv0-ink: #6d28d9;
   --lv1: #f43f5e;
-  --lv1-a: #ffe0e6;
-  --lv1-b: #fff4f6;
+  --lv1-ink: #e11d48;
   --lv2: #f97316;
-  --lv2-a: #ffe6cd;
-  --lv2-b: #fff6ec;
+  --lv2-ink: #c2410c;
   --lv3: #10b981;
-  --lv3-a: #cff7e6;
-  --lv3-b: #effcf7;
+  --lv3-ink: #047857;
   --lv4: #0ea5e9;
-  --lv4-a: #d2eafd;
-  --lv4-b: #f0f8ff;
+  --lv4-ink: #0369a1;
   --lv5: #6366f1;
-  --lv5-a: #dfe3ff;
-  --lv5-b: #f4f5ff;
+  --lv5-ink: #4f46e5;
 }
 
 :root[data-look='playful'][data-scheme='dark'] {
-  --color-bg: #130f1b;
-  --color-grid: #2f2745;
   --color-accent: #b794ff;
   --color-selection: #f5f0ff;
   --color-focus: #f5f0ff;
   --color-core-bg: #7c3aed;
   --color-core-text: #ffffff;
-  --color-connector: #4b4262;
-  --color-topic-bg: #201c2b;
-  --color-topic-border: #3d3552;
-  --glow-a: rgb(124 58 237 / 16%);
-  --glow-b: rgb(244 63 94 / 10%);
+  /* Dark stickers: the white rim becomes charcoal and the face a dark tint, both lighter than
+     the canvas. The ink is each level's bright colour. */
+  --sticker-edge: #343c48;
+  --sticker-shadow: #000000;
+  --sticker-shadow-opacity: 0.6;
+  --sticker-face-base: #1f252c;
+  --sticker-tint: 18%;
   --lv0: #a78bfa;
-  --lv0-a: #7c3aed;
-  --lv0-b: #db2777;
+  --lv0-ink: #a78bfa;
   --lv1: #fb7185;
-  --lv1-a: #44202f;
-  --lv1-b: #2c1722;
+  --lv1-ink: #fb7185;
   --lv2: #fb923c;
-  --lv2-a: #402716;
-  --lv2-b: #2b1c12;
+  --lv2-ink: #fb923c;
   --lv3: #34d399;
-  --lv3-a: #12403a;
-  --lv3-b: #0f2a26;
+  --lv3-ink: #34d399;
   --lv4: #38bdf8;
-  --lv4-a: #12344f;
-  --lv4-b: #0e2438;
+  --lv4-ink: #38bdf8;
   --lv5: #818cf8;
-  --lv5-a: #282c63;
-  --lv5-b: #1b1e46;
+  --lv5-ink: #818cf8;
 }
 
-:root[data-look='playful'] .canvas-host {
-  background:
-    radial-gradient(circle at 1px 1px, var(--color-grid) 1.4px, transparent 0) 0 0 / 24px 24px,
-    radial-gradient(60% 55% at 0% 0%, var(--glow-a), transparent),
-    radial-gradient(55% 55% at 100% 100%, var(--glow-b), transparent),
-    var(--color-bg);
-}
-
-.pg stop:first-child {
-  stop-color: var(--lv0-a);
-}
-.pg stop:last-child {
-  stop-color: var(--lv0-b);
-}
-.pg[data-level='1'] stop:first-child {
-  stop-color: var(--lv1-a);
-}
-.pg[data-level='1'] stop:last-child {
-  stop-color: var(--lv1-b);
-}
-.pg[data-level='2'] stop:first-child {
-  stop-color: var(--lv2-a);
-}
-.pg[data-level='2'] stop:last-child {
-  stop-color: var(--lv2-b);
-}
-.pg[data-level='3'] stop:first-child {
-  stop-color: var(--lv3-a);
-}
-.pg[data-level='3'] stop:last-child {
-  stop-color: var(--lv3-b);
-}
-.pg[data-level='4'] stop:first-child {
-  stop-color: var(--lv4-a);
-}
-.pg[data-level='4'] stop:last-child {
-  stop-color: var(--lv4-b);
-}
-.pg[data-level='5'] stop:first-child {
-  stop-color: var(--lv5-a);
-}
-.pg[data-level='5'] stop:last-child {
-  stop-color: var(--lv5-b);
-}
-
-/* Each level sets the colour its topics and the lines leaving them use. */
-:root[data-look='playful'] .topic[data-level='0'],
-:root[data-look='playful'] .link[data-level='0'] {
+/* Each level sets the colour of its topic's selection ring and the ink of its text. */
+:root[data-look='playful'] .topic[data-level='0'] {
   --hue: var(--lv0);
+  --ink: var(--lv0-ink);
 }
-:root[data-look='playful'] .topic[data-level='1'],
-:root[data-look='playful'] .link[data-level='1'] {
+:root[data-look='playful'] .topic[data-level='1'] {
   --hue: var(--lv1);
+  --ink: var(--lv1-ink);
 }
-:root[data-look='playful'] .topic[data-level='2'],
-:root[data-look='playful'] .link[data-level='2'] {
+:root[data-look='playful'] .topic[data-level='2'] {
   --hue: var(--lv2);
+  --ink: var(--lv2-ink);
 }
-:root[data-look='playful'] .topic[data-level='3'],
-:root[data-look='playful'] .link[data-level='3'] {
+:root[data-look='playful'] .topic[data-level='3'] {
   --hue: var(--lv3);
+  --ink: var(--lv3-ink);
 }
-:root[data-look='playful'] .topic[data-level='4'],
-:root[data-look='playful'] .link[data-level='4'] {
+:root[data-look='playful'] .topic[data-level='4'] {
   --hue: var(--lv4);
+  --ink: var(--lv4-ink);
 }
-:root[data-look='playful'] .topic[data-level='5'],
-:root[data-look='playful'] .link[data-level='5'] {
+:root[data-look='playful'] .topic[data-level='5'] {
   --hue: var(--lv5);
+  --ink: var(--lv5-ink);
 }
 
-:root[data-look='playful'] .topic-box {
-  stroke-width: 2.5;
+/* The selected topic leaves its level colour for the interactive colour: its outline, its tinted
+   face and its text. */
+:root[data-look='playful'] .topic[data-selected][data-level] {
+  --hue: var(--color-accent);
+  --ink: var(--color-accent);
 }
 
-:root[data-look='playful'] .topic-shadow {
-  fill: color-mix(in srgb, var(--hue, var(--lv0)) 38%, transparent);
-  transform: translateY(2px);
-}
-
-:root[data-look='playful'] .topic[data-level='0'] .topic-box {
-  fill: url(#pg-0);
+/* The box only catches the pointer and anchors the lines. The title is the sticker. */
+:root[data-look='playful'] .topic[data-level]:not([data-kind='ghost']) .topic-box {
+  fill: transparent;
   stroke: none;
 }
 
-:root[data-look='playful'] .topic[data-level='1'] .topic-box {
-  fill: url(#pg-1);
-  stroke: var(--hue);
+:root[data-look='playful'] .topic:not([data-kind='ghost']) .topic-shadow {
+  display: none;
 }
-:root[data-look='playful'] .topic[data-level='2'] .topic-box {
-  fill: url(#pg-2);
-  stroke: var(--hue);
+
+/* Sticker lettering: a tinted face inside a white rim, both following the shape of the text with
+   a wavy edge, over a flat offset shadow like the one under the sticker set. The ink sits above. */
+.sticker-blob {
+  display: none;
 }
-:root[data-look='playful'] .topic[data-level='3'] .topic-box {
-  fill: url(#pg-3);
-  stroke: var(--hue);
+
+:root[data-look='playful'] .topic[data-level]:not([data-kind='ghost']) .sticker-blob {
+  display: inline;
+  pointer-events: none;
 }
-:root[data-look='playful'] .topic[data-level='4'] .topic-box {
-  fill: url(#pg-4);
-  stroke: var(--hue);
+
+:root[data-look='playful'] .sticker-shadow {
+  fill: var(--sticker-shadow);
+  opacity: var(--sticker-shadow-opacity);
+  filter: url(#sticker-wiggle);
 }
-:root[data-look='playful'] .topic[data-level='5'] .topic-box {
-  fill: url(#pg-5);
-  stroke: var(--hue);
+
+:root[data-look='playful'] .sticker-rim {
+  fill: var(--sticker-edge);
+  filter: url(#sticker-wiggle);
+}
+
+:root[data-look='playful'] .sticker-face {
+  fill: color-mix(in srgb, var(--ink) var(--sticker-tint), var(--sticker-face-base));
+  filter: url(#sticker-wiggle);
+}
+
+:root[data-look='playful'] .topic[data-level]:not([data-kind='ghost']) .topic-text {
+  fill: var(--ink);
+}
+
+:root[data-look='playful'] .topic[data-level]:not([data-kind='ghost']) .topic-text[data-empty] {
+  fill: var(--color-text-muted);
+}
+
+:root[data-look='playful'] .topic[data-level] .topic-glyph {
+  color: var(--ink);
 }
 
 :root[data-look='playful'] .topic .topic-ring {
@@ -250,45 +210,6 @@
 :root[data-look='playful'] .topic .topic-wash {
   fill: var(--hue);
   opacity: 0.1;
-}
-
-:root[data-look='playful'] .topic[data-level='0'] .topic-text {
-  font-weight: 700;
-}
-
-:root[data-look='playful'] .topic[data-depth='1'] .topic-text {
-  font-weight: 600;
-}
-
-:root[data-look='playful'] .connector {
-  stroke-width: 3;
-}
-
-:root[data-look='playful'] .link[data-level] .connector {
-  stroke: var(--hue);
-}
-
-:root[data-look='playful'] .link[data-level] .connector[data-style='tapered'] {
-  fill: var(--hue);
-  stroke: var(--hue);
-  stroke-width: 1.4px;
-}
-
-/* Pointing at a line makes it bolder and keeps its colour. */
-:root[data-look='playful'] .link[data-level]:hover .connector:not([data-style='tapered']),
-:root[data-look='playful'] .link[data-level][data-selected] .connector:not([data-style='tapered']) {
-  stroke: var(--hue);
-  stroke-width: 4.5;
-}
-
-/* ---------- Connector styles (any Look) ---------- */
-
-/* A hairline outline keeps the thin end of a taper visible when zoomed out. */
-.connector[data-style='tapered'] {
-  fill: var(--color-connector);
-  stroke: var(--color-connector);
-  stroke-width: 1.4px;
-  stroke-linejoin: round;
 }
 
 /* ---------- Level numbers ---------- */

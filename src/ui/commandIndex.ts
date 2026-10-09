@@ -4,7 +4,6 @@ import { COMMANDS, COMMAND_GROUPS, type CommandDef, type CommandId } from '../ed
 import { fuzzyScore, setPrefs, type MapPrefs } from '../model';
 import { settingsStore, type ModeSetting } from '../settings';
 import { canopyStore } from '../store';
-import { FONT_SIZE_LABELS, VOICES } from '../theme';
 import { describeKeys } from './CheatSheet';
 
 export interface PaletteEntry {
@@ -95,30 +94,6 @@ export function buildPalette(): PaletteEntry[] {
   }
   for (const value of Object.keys(LOOK_NAMES) as Array<MapPrefs['look']>) {
     add(`prefs.look.${value}`, `Theme: ${LOOK_NAMES[value]}`, 'This map', mapPref('look', value));
-  }
-  for (const value of Object.keys(VOICES) as Array<MapPrefs['voice']>) {
-    add(
-      `prefs.voice.${value}`,
-      `Font: ${VOICES[value].label}`,
-      'This map',
-      mapPref('voice', value),
-    );
-  }
-  for (const value of Object.keys(FONT_SIZE_LABELS) as Array<MapPrefs['fontSize']>) {
-    add(
-      `prefs.fontSize.${value}`,
-      `Font size: ${FONT_SIZE_LABELS[value]}`,
-      'This map',
-      mapPref('fontSize', value),
-    );
-  }
-  for (const value of ['curved', 'elbow', 'straight', 'tapered'] as const) {
-    add(
-      `prefs.connector.${value}`,
-      `Connectors: ${value[0]?.toUpperCase()}${value.slice(1)}`,
-      'This map',
-      mapPref('connector', value),
-    );
   }
   add('prefs.levels', 'Show or hide level numbers', 'This map', () => {
     const { doc, commit } = canopyStore.getState();

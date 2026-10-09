@@ -15,7 +15,7 @@ Everything below is what is left, in the order proposed. Each item points at its
 ### R0. Housekeeping before more features (small)
 
 - [ ] **Re-run the benchmarks** (`npm run bench`, 500 and 5,000 topics). The last numbers are from the end of Phase 3. Since then every topic gained a shadow rect and a parent-side fold button, and the panels and Filter changed, so check pan and zoom (60 fps), create, fold (99 ms last time) and unfold (154 ms, already over the 100 ms budget). Record the numbers in the log.
-- [ ] **Visual-regression baselines** for the Looks × Modes, the panels and the exports. Several recent changes (flat shadows, level numbers, braces, dotted node) were checked by eye only.
+- [ ] **Visual-regression baselines** for the themes × colour modes, the panels and the exports. Several recent changes (flat shadows, level numbers, braces, dotted node, sticker topics) were checked by eye only.
 - [ ] **Manual screen-reader smoke test and bug bash** by a person. Automated axe checks pass, but nobody has listened to the map yet.
 - [ ] **Unit tests for the Branch view layout** (`canvas/branchLayout.ts`: real depths, dotted node left of the root for Right and above it for Down, bounds include it). It has e2e coverage only.
 - [ ] Save repo memory notes. The conventions and gotchas to record are listed in section 11, and `/memories/repo` is still empty.
@@ -75,7 +75,7 @@ A milestone is sized to fit one working session. If one runs long, split it and 
 - [ ] Type check, lint and unit tests pass in CI mode.
 - [ ] New logic has unit tests, and new user flows have an end-to-end test.
 - [ ] Keyboard-only operation works for everything added.
-- [ ] Works in Light and Dark Mode, and in every Look that exists so far.
+- [ ] Works in Light and Dark mode, and in every theme that exists so far.
 - [ ] Reduced-motion behavior implemented for every animation added.
 - [ ] No new axe-core violations.
 - [ ] Spec-referenced behavior matches the spec, or the spec is updated.
@@ -102,9 +102,9 @@ canopy/
     layout/       tidy-tree engines per Flow, layout worker
     canvas/       viewport, renderer, topic, connector, handles, selection, minimap
     editor/       inline editing, keyboard map, clipboard
-    ui/           top bar, inspector, command palette, toasts, preferences
+    ui/           top bar, details panel, command palette, toasts, settings
     views/        outline, board, table, timeline
-    theme/        design tokens (Mode x Look x Voice)
+    theme/        design tokens (colour mode x theme; each theme brings its font)
     motion/       tokens, springs, reduced-motion gate
     io/           json, markdown, opml, csv, export (png, svg, pdf)
     persistence/  IndexedDB, File System Access, autosave
@@ -259,19 +259,19 @@ Done when: Phase 1 acceptance criteria in section 5.1 pass.
 
 Goal: make maps rich and beautiful, and shareable as images and documents.
 
-### M2.1 Looks, Voices and Settings (done, with gaps)
-- [x] Token sets for Looks (Minimal, High Contrast, Playful) and Voices (Clean, Editorial, Mono, Sketch) with self-hosted fonts (`theme/looks.css`, `theme/voices.ts`). The Voice applies to the map only; the app chrome stays in the system font.
-- [x] Connector styles (curved, elbow, straight, tapered) and the Sketch wobble (stable per connector, so it does not shimmer).
-- [x] Colour in Playful follows the level (the Core, then five colours that repeat). **Changed** from eight hues by top-level branch. Overriding a branch colour by hand is not built.
-- [x] Settings (`⌘,`, or the Settings tab of the left panel) with map-level and device-level choices: Theme, Font, Font size, Layout, Spacing, Connectors, Property chips, Level numbers; Auto-pan, Trail, Text expansion, empty-topic removal, hints, handles, motion. This replaced the Preferences dialog in the interface rework (7A).
-- [x] High Contrast: black on white and white on black, 2.5 px borders, and a different corner shape per level so level is not carried by colour. axe colour contrast passes in both Modes. A strict 7:1 measurement is not automated.
+### M2.1 Themes and Settings (done, with gaps)
+- [x] Token sets for the themes (Minimal, High Contrast, Playful), each a preset of colour, shape and font: Minimal uses the system sans-serif, High Contrast Source Serif 4 and Playful Kalam, self-hosted (`theme/looks.css`, `theme/voices.ts`). The font applies to the map only; the app chrome stays in the system font.
+- [x] Curved connectors in every theme, and the Playful wobble (stable per connector, so it does not shimmer).
+- [x] Colour in Playful follows the level (the Core, then five colours that repeat), and Minimal and High Contrast stay neutral. Overriding a branch colour by hand is not built.
+- [x] Settings (`⌘,`, or the Settings tab of the left panel) with map-level and device-level choices: Theme, Layout, Spacing, Property chips, Level numbers; Auto-pan, Trail, Text expansion, empty-topic removal, hints, handles. The colour mode sits in the top bar, and animation follows the system's reduced-motion setting. This replaced the Preferences dialog in the interface rework (7A).
+- [x] High Contrast: black on white and white on black, 2.5 px borders, and a different corner shape per level so level is not carried by colour. axe colour contrast passes in both colour modes. A strict 7:1 measurement is not automated.
 - [x] Playful motion: layout changes settle with a small overshoot.
 
-Done when: every Look × Mode × Voice combination renders correctly and passes contrast checks.
+Done when: every theme × colour mode combination renders correctly and passes contrast checks.
 
 ### M2.2 Command palette and shortcut system (done)
 - [x] Command palette (`⌘K`, or the ⌘K button) with fuzzy search (`ui/commandIndex.ts`), shortcuts shown, and recent commands (remembered on this device).
-- [x] Every registry action is in the palette, plus map preferences (Look, Font, Connectors, Layout, Spacing, levels) and colour mode. A unit test fails if a new command is not reachable. Copy, cut and paste are browser events, so they are not palette entries.
+- [x] Every registry action is in the palette, plus map preferences (Theme, Layout, Spacing, levels) and colour mode. A unit test fails if a new command is not reachable. Copy, cut and paste are browser events, so they are not palette entries.
 - [x] `?` cheat sheet is generated from the registry (done in M1.10) and now includes the Topic content group.
 
 Done when: every action in the app is reachable from the palette.
@@ -291,7 +291,7 @@ Done when: Notes round-trip through JSON and Markdown export and render safely. 
 Done when: nothing in the app refers to attachments. (Done.)
 
 ### M2.5 Stickers (done, redesigned)
-- [x] Sticker picker (`s`) in the Stickers tab of the Inspector with search, up to four stickers per topic (one per corner), and removal. **Redesigned in the scope cut (7A):** the first pass used 71 system emoji and custom SVG upload. It is now 23 original die-cut stickers drawn in code (`stickers/art.tsx`), so they look the same everywhere and in exports, and nothing third-party is bundled. Custom upload was dropped.
+- [x] Sticker picker (`s`) in the Stickers section of the details panel with search, up to four stickers per topic (one per corner), and removal. **Redesigned in the scope cut (7A):** the first pass used 71 system emoji and custom SVG upload. It is now 23 original die-cut stickers drawn in code (`stickers/art.tsx`), so they look the same everywhere and in exports, and nothing third-party is bundled. Custom upload was dropped.
 - [x] Stickers land with a short stamp animation (`canvas/stampStore.ts`), and can also stick to lines (7A).
 - [x] The Filter can pick topics out by sticker (7A).
 - [x] **Deviation:** the plan said vendored Fluent Emoji. That is dropped (spec 9.3).
@@ -301,17 +301,17 @@ Done when: nothing in the app refers to attachments. (Done.)
 Done when: stickers render consistently in all Looks and survive export and import. (Survive export and import: yes. Consistent across platforms: no, see above.)
 
 ### M2.6 Image, SVG and PDF export (done, simplified)
-- [x] Standalone SVG built from the layout (`io/svg.ts`), following the Look, Voice, connector style, level numbers and folds, with the map's font embedded.
+- [x] Standalone SVG built from the layout (`io/svg.ts`), following the theme, level numbers and folds, with the map's font embedded.
 - [x] PNG at 1×, 2× and 4× with an optional transparent background. The scale drops automatically when a map would be too large for a canvas.
 - [x] PDF through the browser's print dialog: one page sized to the map, vector, with selectable text. **Deviation:** no multi-page tiling and no bundled PDF writer.
 - [x] Export tab in the left panel (`⌘E`, or File > Export) with live preview, stickers and notes toggle, and "only the selected branches" or "only what the Filter picks out". CSV is the Table data.
 - [x] Markdown outline with optional notes and links.
 - [ ] Not built: frame export, and visual-regression baselines for exports (checked by eye and by unit and e2e tests of the files instead).
 
-Done when: exports match the on-screen map in each Look, and text stays selectable in PDF.
+Done when: exports match the on-screen map in each theme, and text stays selectable in PDF.
 
 ### M2.7 Phase 2 hardening and release candidate (done, with gaps)
-- [x] End-to-end tests cover every Look × Mode × Voice for accessibility (24 combinations) plus the dialogs, Inspector and export.
+- [x] End-to-end tests cover every theme × colour mode for accessibility plus the dialogs, details panel and export.
 - [x] Accessibility and performance re-run. 5,000 topics: first paint 258 ms, 60 fps pan and zoom, create to editor 87 ms, fold 68 ms, unfold 141 ms.
 - [ ] Not done: visual-regression screenshots, a performance run with Notes and Stickers on thousands of topics (the layout only adds a cached lookup per topic), and a manual bug bash by a person.
 
@@ -391,12 +391,12 @@ This work was not in the original plan. It came from using the app and was done 
 **Scope cut.** Planning was reduced to Status, Due date, Tags and Stickers. Removed: attachments, people, roles, approval, priority, progress, the roster, custom Properties and workflow rules. Old files still open and ignore those fields.
 
 **Interface**
-- [x] A slim top bar (File menu, title with a save indicator, undo and redo buttons, command palette) and floating panels: Settings, Filter, Tags and Export on the left, and an Inspector (Properties, Stickers, Note) on the right that opens when a topic is clicked.
+- [x] A slim top bar (File menu, title with a save indicator, undo and redo buttons, colour mode, command palette) and floating panels: Settings, Filter, Tags and Export on the left, and a details panel (Properties, Stickers, Note) on the right that opens when a topic is clicked. Both use the same tabs and the same captions with a line after them.
 - [x] Undo and Redo as explicit icon buttons in the top bar that dim when there is nothing to step through, with the shortcut in the tooltip.
 - [x] A context menu for topics, lines and empty canvas, also from the keyboard (menu key, `Shift+F10`).
 - [x] Tooltips with shortcuts, a searchable cheat sheet, and the hint strip fed from the registry.
-- [x] Looks refined: Minimal has very subtle card borders and a flat shadow, Playful has flat level-coloured shadows (no glow), the Dark canvas dots are faint, lines are slightly thinner, and level numbers are small, faded and monospace.
-- [x] Font size (Small, Medium, Large) and level numbers in Settings.
+- [x] Themes refined: Minimal has very subtle card borders and a flat shadow, Playful draws every topic as a die-cut sticker with a flat shadow (no glow), the Dark canvas is the darkest surface with faint dots, and level numbers are small, faded and monospace.
+- [x] Level numbers in Settings.
 
 **Navigation aids**
 - [x] **Trail**: highlight or isolate the way up to the Core, a pill to switch modes, `R` to toggle, and a status bar showing the path with Copy path inline after it. Copy path writes `!!A>B>C`, so pasting it into a new topic rebuilds the chain with text expansion.

@@ -10,6 +10,9 @@ import {
   LEVEL_FONT_STACK,
   LEVEL_PREFIX_SCALE,
   levelPrefix,
+  STICKER_RIM,
+  STICKER_SHADOW_OFFSET,
+  stickerBlob,
   seedOf,
   textLines,
   typeForDepth,
@@ -20,8 +23,8 @@ import {
 import type { ChipContext } from '../canvas/Chips';
 import { descendantCounts, planningOf, today, type CanopyMap, type TopicId } from '../model';
 import { chipsMarkup, edgeMarkup, stickersMarkup } from './chipsMarkup';
+import { mixHex, type ExportTheme } from './exportTheme';
 import { levelOf } from '../theme/levels';
-import type { ExportTheme } from './exportTheme';
 
 export interface SvgOptions {
   theme: ExportTheme;
@@ -66,18 +69,20 @@ interface Paint {
   strokeWidth: number;
   text: string;
   weight: number;
+  /** Playful titles are lettered like stickers, with no box behind them. */
+  sticker: boolean;
 }
 
-/** The same rules as the screen: Look and level decide how a topic is drawn. */
+/** The same rules as the screen: the Look and the level decide how a topic is drawn. */
 function paintFor(theme: ExportTheme, depth: number, baseWeight: number): Paint {
   if (theme.look === 'playful') {
-    const level = levelOf(depth);
     return {
-      fill: `url(#pg-${level})`,
-      stroke: theme.levels[level]?.hue ?? theme.topicBorder,
-      strokeWidth: depth === 0 ? 0 : 2.5,
-      text: depth === 0 ? theme.coreText : theme.topicText,
-      weight: depth <= 1 ? 600 : baseWeight,
+      fill: 'none',
+      stroke: 'none',
+      strokeWidth: 0,
+      text: theme.levels[levelOf(depth)]?.ink ?? theme.topicText,
+      weight: baseWeight,
+      sticker: true,
     };
   }
   if (depth === 0) {
@@ -87,6 +92,7 @@ function paintFor(theme: ExportTheme, depth: number, baseWeight: number): Paint 
       strokeWidth: theme.look === 'contrast' ? 2.5 : 1.5,
       text: theme.coreText,
       weight: baseWeight,
+      sticker: false,
     };
   }
   return {
@@ -94,23 +100,19 @@ function paintFor(theme: ExportTheme, depth: number, baseWeight: number): Paint 
     stroke: depth === 1 && theme.look === 'minimal' ? theme.level1 : theme.topicBorder,
     strokeWidth: theme.look === 'contrast' ? 2.5 : 1.5,
     text: theme.topicText,
-    weight: theme.look === 'contrast' ? 600 : baseWeight,
+    weight: baseWeight,
+    sticker: false,
   };
 }
 
-/** The gradients Playful topics are filled with. */
-function playfulDefs(theme: ExportTheme): string {
-  const stops = theme.levels
-    .map(
-      (l, i) =>
-        `<linearGradient id="pg-${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${l.a}"/><stop offset="1" stop-color="${l.b}"/></linearGradient>`,
-    )
-    .join('');
-  return `<defs>${stops}</defs>`;
+/** Sticker lettering: a tinted face and a white rim, both wavy, over a flat shadow. */
+function playfulDefs(): string {
+  const wiggle = `<feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="1" seed="7" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G"/>`;
+  return `<defs><filter id="sticker-wiggle" x="-20%" y="-60%" width="140%" height="220%">${wiggle}</filter></defs>`;
 }
 
 function cornerRadius(look: ExportTheme['look'], depth: number, height: number): number {
-  if (look === 'playful') return Math.min(height / 2, depth === 0 ? 24 : 20);
+  if (look === 'playful') return Math.min(height * 0.4, depth === 0 ? 18 : 16);
   if (look === 'contrast') return depth === 0 ? 16 : depth === 1 ? 10 : 2;
   return depth === 0 ? 14 : 10;
 }
@@ -196,31 +198,22 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
   const included = new Set(boxes.map((b) => b.id));
   const hidden = descendantCounts(doc);
   const out: string[] = [];
-  if (theme.look === 'playful') out.push(playfulDefs(theme));
+  if (theme.look === 'playful') out.push(playfulDefs());
   const font = escapeXml(theme.fontStack);
 
-  const wobble = doc.prefs.voice === 'sketch' ? 4 : 0;
+  const wobble = doc.prefs.look === 'playful' ? 4 : 0;
   out.push(`<g fill="none" stroke-linecap="round" transform="translate(${f(ox)} ${f(oy)})">`);
   for (const b of boxes) {
     const parent = b.parentId ? layout.boxes.get(b.parentId) : undefined;
     if (!parent || !included.has(parent.id)) continue;
     const d = connectorPath(parent, b, doc.prefs.flow, {
       attach: b.attach,
-      style: doc.prefs.connector,
       wobble,
       seed: seedOf(b.id),
     });
-    // Playful lines take the colour of the topic they leave.
-    const hue =
-      theme.look === 'playful'
-        ? (theme.levels[levelOf(parent.depth)]?.hue ?? theme.connector)
-        : theme.connector;
-    const width = theme.look === 'minimal' ? 1.5 : theme.look === 'contrast' ? 2 : 3;
-    out.push(
-      doc.prefs.connector === 'tapered'
-        ? `<path d="${d}" fill="${hue}" stroke="none"/>`
-        : `<path d="${d}" stroke="${hue}" stroke-width="${width}"/>`,
-    );
+    const hue = theme.connector;
+    const width = theme.look === 'contrast' ? 2.5 : 2;
+    out.push(`<path d="${d}" stroke="${hue}" stroke-width="${width}"/>`);
   }
   out.push('</g>');
 
@@ -259,9 +252,11 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
     const radius = cornerRadius(theme.look, b.depth, b.h);
 
     out.push(`<g transform="translate(${f(b.x + ox)} ${f(b.y + oy)})">`);
-    out.push(
-      `<rect width="${f(b.w)}" height="${f(b.h)}" rx="${f(radius)}" fill="${paint.fill}" stroke="${paint.stroke}" stroke-width="${paint.strokeWidth}"/>`,
-    );
+    if (!paint.sticker) {
+      out.push(
+        `<rect width="${f(b.w)}" height="${f(b.h)}" rx="${f(radius)}" fill="${paint.fill}" stroke="${paint.stroke}" stroke-width="${paint.strokeWidth}"/>`,
+      );
+    }
     if (picture && topic.image) {
       const px = (b.w - picture.w) / 2;
       const clip = `img-${b.id.replace(/[^A-Za-z0-9_-]/g, '_')}`;
@@ -271,18 +266,46 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
       );
     }
     const textLinesShown = picture && empty ? [] : lines;
-    const tspans = textLinesShown
-      .map(
-        (l, i) =>
-          `<tspan x="${f(b.w / 2)}" y="${f(first + i * style.lineHeight)}">${
-            i === 0 && doc.prefs.showLevels && b.depth > 0
-              ? `<tspan fill="${theme.muted}" fill-opacity="0.75" font-family="${escapeXml(LEVEL_FONT_STACK)}" font-size="${f(style.size * LEVEL_PREFIX_SCALE)}" font-weight="400">${levelPrefix(b.depth, b.position)}</tspan>`
-              : ''
-          }${escapeXml(l)}</tspan>`,
-      )
-      .join('');
+    const spans = (prefixFill: string, prefixOpacity: string) =>
+      textLinesShown
+        .map(
+          (l, i) =>
+            `<tspan x="${f(b.w / 2)}" y="${f(first + i * style.lineHeight)}">${
+              i === 0 && doc.prefs.showLevels && b.depth > 0
+                ? `<tspan fill="${prefixFill}" fill-opacity="${prefixOpacity}" font-family="${escapeXml(LEVEL_FONT_STACK)}" font-size="${f(style.size * LEVEL_PREFIX_SCALE)}" font-weight="400">${levelPrefix(b.depth, b.position)}</tspan>`
+                : ''
+            }${escapeXml(l)}</tspan>`,
+        )
+        .join('');
+    const box = `text-anchor="middle" dominant-baseline="central" font-size="${f(style.size)}" font-weight="${paint.weight}"`;
+    if (paint.sticker && textLinesShown.length > 0) {
+      const blobOf = (grow: number) =>
+        stickerBlob(
+          textLinesShown,
+          b.w / 2,
+          first,
+          style,
+          doc.prefs.showLevels && b.depth > 0 ? levelPrefix(b.depth, b.position) : '',
+          options.textWidth,
+          grow,
+          options.chips !== false && rows.chips.length > 0
+            ? { width: chipRowWidth(rows.chips), top: b.h - rows.total, height: rows.total }
+            : undefined,
+        )
+          .map(
+            (r) =>
+              `<rect x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}" rx="${f(r.r)}"/>`,
+          )
+          .join('');
+      const face = mixHex(paint.text, theme.stickerFaceBase, theme.stickerTint);
+      out.push(
+        `<g transform="translate(${STICKER_SHADOW_OFFSET.x} ${STICKER_SHADOW_OFFSET.y})" fill="${theme.stickerShadow}" opacity="${theme.stickerShadowOpacity}" filter="url(#sticker-wiggle)">${blobOf(STICKER_RIM)}</g>` +
+          `<g fill="${theme.stickerEdge}" filter="url(#sticker-wiggle)">${blobOf(STICKER_RIM)}</g>` +
+          `<g fill="${face}" filter="url(#sticker-wiggle)">${blobOf(0)}</g>`,
+      );
+    }
     out.push(
-      `<text text-anchor="middle" dominant-baseline="central" font-size="${f(style.size)}" font-weight="${paint.weight}" fill="${empty ? theme.muted : paint.text}"${empty ? ' font-style="italic"' : ''}>${tspans}</text>`,
+      `<text ${box} fill="${empty ? theme.muted : paint.text}"${empty ? ' font-style="italic"' : ''}>${spans(theme.muted, '0.75')}</text>`,
     );
     if (options.chips !== false && rows.chips.length > 0) {
       out.push(

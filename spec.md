@@ -17,11 +17,11 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 ## 1. Product principles
 
 1. **Keyboard-first, mouse-delightful.** Every action works from the keyboard. The mouse gets rich affordances and hints, not a separate feature set.
-2. **Structure and expression are separate.** *Look* (theme, font, stickers) never changes the data. The same map can be restyled in one click.
+2. **Structure and expression are separate.** The *Theme* (colour, shape and font) and the stickers never change the data. The same map can be restyled in one click.
 3. **Motion explains, never decorates.** Every animation shows cause and effect, such as where a node came from or where it went.
 4. **Accessible by default.** The map is a real tree for assistive tech, not just pixels on a canvas.
 5. **Local-first and private.** It works offline and autosaves. No account is needed to be productive.
-6. **Progressive depth.** The first-run view is a blank map with a cursor. Power features (Properties, Filters, Tour) appear through hints and the command palette.
+6. **Progressive depth.** The first-run view is a blank map whose central topic is already open for naming, so typing starts straight away. Power features (Properties, Filters, Tour) appear through hints and the command palette.
 7. **A map is also a plan.** Ideas become work without leaving the map or converting to another tool.
 
 ## 2. Terminology and taxonomy
@@ -46,9 +46,8 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 | The way from a topic up to the Core | **Trail** | Highlighted, or isolated, with a status bar that shows it as a path |
 | One branch with everything above it folded | **Branch view** | The rest of the map becomes one dotted node |
 | Horizontal / Vertical / Radial | **Flow** (Right, Down built. Left, Both, Radial planned) | Settable per map. Per-branch override is planned |
-| Light / dark | **Mode** | Light, Dark, Auto |
-| Minimal / High-contrast / Playful | **Look** | Independent of Mode |
-| Font choice | **Voice** | Sketch, Editorial, Mono, Clean |
+| Light / dark | **Colour mode** | Light, Dark, Auto. A device setting, in the top bar |
+| Minimal / High contrast / Playful | **Theme** | A preset of colour, shape and font. Independent of the colour mode |
 | Global settings | **Settings** | Map-level (saved in the file) and device-level (kept in this browser) |
 | Plain-text alternate view | **Outline** | Live-synced with the canvas |
 | Pick out topics by Property or sticker | **Filter** | Dims non-matching topics (for example "Blocked", "Due this week", the Star sticker) |
@@ -58,10 +57,10 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 
 ### Information architecture
 
-- **Top bar [Built]:** a File menu (New, Open, Save a copy, recent maps), the map title with a save indicator, and the Search (⌘F) and shortcut sheet buttons. Look, Mode and Flow live in the left panel instead.
+- **Top bar [Built]:** a File menu (New, Open, Save a copy, recent maps), the map title with a save indicator, undo and redo as icon buttons, the colour mode switch (Auto, Light, Dark), and the Search (⌘F) and shortcut sheet buttons. Theme and Flow live in the left panel.
 - **Canvas [Built]:** the infinite map.
-- **Left panel [Built]:** a strip of four tabs that opens into a floating panel: Settings (appearance, layout and behaviour), Filter, Tags and Export. The Outline is planned to join it.
-- **Right inspector [Built]:** floating details panel that opens when a topic is clicked and closes with its own button. Tabs: Details and Note. The Details tab starts directly with the Properties fields (Status, Due date and Tags, with no heading to open or close), followed by a collapsible Stickers section. When a line is picked, the Stickers tab edits the line.
+- **Left panel [Built]:** a strip of four tabs that opens into a floating panel: Settings (theme, layout and behaviour), Filter, Tags and Export. Its tabs sit on the header line, each with its icon and name, and a bar under the open one slides in. The Outline is planned to join it.
+- **Right inspector [Built]:** floating details panel that opens when a topic is clicked and closes with its own button. Tabs: Details and Note, set and animated like the left panel's. The Details tab starts directly with the Properties fields (Status, Due date and Tags, with no heading), followed by the Stickers section, which has a small caption heading with a line after it, like the group titles in Settings, and is always open. When a line is picked, the Stickers section edits the line.
 - **Bottom-left toolbar [Built]:** pointer tools (Select, Pan, Zoom), unfold everything (which also fits the whole map in view), Zen. There is no separate fit button or shortcut. A minimap is planned.
 - **Bottom-center [Built]:** a transient shortcut hint strip that adapts to the current selection, and a Trail pill.
 - **Readable panels [Built]:** both side panels follow one rhythm: content 20px from the edge, groups 20px apart, related things 8px apart, names 13 to 13.5px, labels and small print 12px, and panels 372px wide. Explanations are not printed under every control. They sit behind a small **"i"** beside the name (shown on hover or keyboard focus, and read out as the button's name), so a panel reads as names and controls first and needs less scrolling. This covers every Settings row, the Behaviour note, the Filter's search hint and the sticker hint.
@@ -125,7 +124,7 @@ Every topic can carry Properties. They are optional and invisible until used, so
 **Adding Properties**
 - `P` opens the **Property Quick-Add** popover on the selected topic. Type to filter, with fuzzy matching and keyboard-only operation. `T` goes straight to Status, `D` to Due date and `G` to Tags. `Shift+P` opens the Properties tab.
 - Inline shorthand while editing a title: `#launch` adds a tag, `/blocked` sets status and `^fri` sets a due date (`today`, `tomorrow`, weekdays, `+3d`, `eow`, `nov1`, `11/1`, `2026-11-01`). A preview shows under the topic while typing, and finishing the title turns it into Properties and removes it from the text. Undo brings the shorthand back. Words that only look like shorthand (emails, `C#`, paths, bad dates) stay in the title. Conversion happens when the title is finished, not on every key.
-- The Properties tab in the inspector is the full editor, including bulk edit when several topics are selected. Mixed values show as "Mixed" and are left alone until changed.
+- The Properties fields in the details panel are the full editor, including bulk edit when several topics are selected. Mixed values show as "Mixed" and are left alone until changed.
 - The Markdown outline export can write Properties as the same shorthand. Recognising shorthand while pasting is **[Planned]** with Brain-dump.
 
 **Chips (how Properties show on the canvas)**
@@ -202,47 +201,43 @@ Every topic can carry Properties. They are optional and invisible until used, so
 - **Attachments [Cut]**
   - Files and unfurled links were removed from v1 (see 12.1). Old files that contain attachments still open, and the attachments are ignored. Pasted pictures (above) are the one exception.
 - **Stickers (expressive) [Built, redesigned]**
-  - A picker opens with `S`, or from the Stickers tab. It has a search box and a sheet of original, die-cut artwork (23 stickers such as Star, Heart, Launch, Done, Alert, Flag, Coffee). **Deviation:** v0.2 planned vendored open-licence packs (Fluent Emoji) and custom upload. The set is original SVG art instead, so it looks identical on every platform and in exports, and needs no third-party licence. Custom upload was dropped.
+  - A picker opens with `S`, or from the Stickers section of the details panel. It has a search box and a sheet of original, die-cut artwork (23 stickers such as Star, Heart, Launch, Done, Alert, Flag, Coffee). **Deviation:** v0.2 planned vendored open-licence packs (Fluent Emoji) and custom upload. The set is original SVG art instead, so it looks identical on every platform and in exports, and needs no third-party licence. Custom upload was dropped.
   - Stickers stick to the four corners of a topic (up to four per topic), and land with a short stamp animation (instant under reduced motion).
-  - **Each sticker is on a topic or line at most once.** The sheet in the Stickers tab shows every sticker as a switch: one that is on is ringed and tinted with a tick, and pressing a sticker puts it on, or takes it off when it is already on. There is no separate list of what is on the topic. When the topic or line is full (four, or three), the stickers that are off wait, and the ones that are on can still be pressed to take off. Files and the clipboard that repeat a sticker are read with one of each kind, keeping the first.
+  - **Each sticker is on a topic or line at most once.** The sheet in the Stickers section shows every sticker as a switch: one that is on is ringed and tinted with a tick, and pressing a sticker puts it on, or takes it off when it is already on. There is no separate list of what is on the topic. When the topic or line is full (four, or three), the stickers that are off wait, and the ones that are on can still be pressed to take off. Files and the clipboard that repeat a sticker are read with one of each kind, keeping the first.
   - Stickers can also stick to a **Line** (see 3.10), up to three per line.
   - Stickers are decorative, but the Filter can pick topics out by sticker (3.4), so a sticker can serve as a quick personal marker. Anything that needs status or a date is a Property.
   - Dragging and rotating stickers, a Fluent-style 3D set for Playful and a high-contrast set are not planned for v1.
 
-### 3.6 Looks, Modes, Voices [Built]
+### 3.6 Themes and colour modes [Built]
 
-- **Mode:** Light, Dark, Auto (follows the OS).
-- **Looks** (shown as "Theme" in Settings)
-  - *Minimal:* neutral palette, very subtle card borders and a flat, hard-edged shadow under each card for elevation, one accent. In Dark Mode the canvas dots are very faint.
-  - *High Contrast:* black on white or white on black, thicker strokes, and a different corner shape per level, so level is not carried by colour. Colour contrast passes the automated check in both Modes. A strict 7:1 measurement is not automated.
-  - *Playful:* saturated colour by level (the Core, then five colours that repeat), soft gradient cards with a bright edge, a flat offset shadow in the level's colour (no glow), and a small overshoot when the layout settles.
-- **Voices** (shown as "Font")
-  - *Sketch:* handwritten font plus wobbly hand-drawn connectors, stable per connector so they do not shimmer.
-  - *Editorial:* serif, "bookish."
-  - *Mono:* monospace.
-  - *Clean:* sans-serif.
-  - The Voice applies to the map. The app chrome stays in the system font.
-- **Font size:** Small, Medium or Large for the map text.
+- **Colour mode:** Light, Dark, Auto (follows the OS). It is a device setting, kept in this browser and set from the top bar. In Dark mode the canvas is the darkest surface, so topics and panels read as lighter layers on it.
+- **Themes** (set in Settings). Each theme is a preset of colour, shape and font. The font, text size and line style are not separate settings.
+  - *Minimal:* a clean system sans-serif, a neutral palette, very subtle card borders and a flat, hard-edged shadow under each card for elevation, one accent. The Core is a solid block in the accent colour with light text (inverted in Dark mode). In Dark mode the canvas dots are very faint.
+  - *High Contrast:* a serif font (Source Serif 4), black on white or white on black, thicker strokes, and a different corner shape per level, so level is not carried by colour. Colour contrast passes the automated check in both modes. A strict 7:1 measurement is not automated.
+  - *Playful:* a handwritten font (Kalam). Every topic is a **sticker** rather than a card: a light face tinted with the level's colour, inside a wavy white rim, over a flat offset shadow like the one under the sticker set. The title is set in the level's colour, which follows the level (the Core, then five colours that repeat). In Dark mode the rim becomes charcoal and the face a dark tint, both lighter than the canvas. Lines are drawn with a slight hand-drawn wobble, stable per line so they do not shimmer, and the layout settles with a small overshoot. The sticker covers the title and the chip row under it as one blob.
+- **Text:** one weight for every level, with the level shown by size (18, 15 and 14 px). The Playful theme sets its text a little larger. The app chrome stays in the system font.
+- **Lines:** always curved, in every theme, drawn at the same thickness in all of them and unchanged by zoom.
 - **Level numbers:** an optional number such as `2.3` before each title, set small, faded and in a monospace face so it reads as a label.
-- **Branch colour [Changed]:** colour follows the level in Playful. A manual per-branch colour override is **[Planned, low priority]**.
-- **Connector styles:** curved, elbow, straight, tapered.
-- Chips adopt the active Look: soft and flat in Minimal, bordered with shapes in High Contrast, rounded and tactile in Playful.
+- **Colour by level:** only Playful colours by level. A manual per-branch colour override is **[Planned, low priority]**.
+- **Selection:** the selected topic is marked with the interactive colour. In Playful its outline, tinted face and text all switch to the interactive colour instead of keeping the level colour.
+- **Trail:** the topics on the way up to the Core keep their normal borders and set their text in the interactive colour, and the lines on the way march toward the Core.
+- Chips adopt the active theme: soft and flat in Minimal, bordered with shapes in High Contrast, rounded and tactile in Playful.
 
 ### 3.7 Settings (global settings) [Built, reduced]
 
-Settings live in the Settings tab of the left panel, in three groups. The map-level choices are saved in the file, and the device-level ones are kept in this browser and labelled as such.
+Settings live in the Settings tab of the left panel, in a theme choice and two groups. The map-level choices are saved in the file, and the device-level ones are kept in this browser and labelled as such.
 
-- **Appearance:** Colour mode (device), Theme, Font, Font size (map), Motion (System, Full, Reduced; device).
-- **Map:** Layout (Flow), Spacing, Connectors, Property chips (Off, Compact, Full) (map), Handles (on hover, always, never; the add and reference buttons around a topic; device).
+- **Theme** (map), at the top with no title of its own, each name set in its own font.
+- **Map:** Layout (Flow), Spacing, Property chips (Off, Compact, Full) (map), Handles (on hover, always, never; the add and reference buttons around a topic; device).
 - **Behaviour:** switches. Level numbers (map), then on this device: Trail, Shortcut hints, Preview on hover, Auto-pan, Text expansion, Remove empty new topics.
-- Each group title is followed by a line, the first two groups hold only segmented choices and the last only switches, and each setting is one line with its explanation behind a small "i" beside its name. On a tall window the tab fits without scrolling, and on a shorter one it scrolls.
+- Each group title is followed by a line, the first group holds only segmented choices and the last only switches, and each setting is one line with its name set in semi-bold, dimmed text and its explanation behind a small "i" beside it. Animation follows the system's reduced-motion setting, and there is no separate setting for it. On a tall window the tab fits without scrolling, and on a shorter one it scrolls.
 - **[Cut or deferred]:** typography scale per level, topic shape, snap and grid, larger hit targets, screen-reader verbosity, date format and first day of the week, overdue behaviour, default export settings and anything about attachments or Roles. **[Planned]:** shortcut customisation (M5.6).
 
 ### 3.8 Import / Export [Built, simplified]
 
 - **Export** (the Export tab of the left panel, or `⌘E`, with a live preview)
   - **PNG** at 1×, 2× and 4×, with an optional transparent background. The scale drops on its own when a map would be too large for a canvas.
-  - **SVG**, vector, built from the layout and following the Look, Voice, connector style, level numbers and folds, with the map's font embedded.
+  - **SVG**, vector, built from the layout and following the Theme, level numbers and folds, with the map's font embedded.
   - **PDF** through the browser's print dialog: one page sized to the map, vector, with selectable text. **Deviation:** no multi-page tiling and no bundled PDF writer.
   - **Compact layout for A4** (PNG, SVG and PDF): moves topics so the map fills one A4 page, portrait, landscape or best fit. Each branch picks the arrangement that wastes least room (a column beside its parent, a row under it, or indented under it like an outline), and the top topic can split its branches onto both sides. The picture takes the page's size and is shrunk only as far as needed. A map that already fits at full size is left as drawn. The map on screen is not changed.
   - **JSON**, versioned (`canopy/1`), round-trippable. Saved with File > Save a copy as a file.
@@ -257,14 +252,14 @@ Settings live in the Settings tab of the left panel, in three groups. The map-le
 
 These were not in v0.2. They exist to help someone work inside a big map without losing their place.
 
-- **Trail:** the way up from the focused topic to the Core. It is either highlighted (topics and lines on the way, the rest left alone) or isolated (everything else hidden). A pill at the bottom chooses None, Highlight or Isolate, `R` turns it on or off, and a setting makes it the default. A status bar at the bottom shows the Trail as a path of topic names, each one clickable, with **Copy path** just after it. The path is shown **in full while the bar has room for it**, however many levels it has. Only when it does not fit are the middle levels folded into an ellipsis (hovering it names them), and as few as possible, keeping the first level and the most recent ones. Names are shortened only after that, the earlier levels before the topic you are on. Copy path writes the path as `!!A>B>C` (separators inside a name are turned into spaces), so pasting it into a new topic rebuilds the same chain through text expansion (3.1).
+- **Trail:** the way up from the focused topic to the Core. It is either highlighted (topics and lines on the way, the rest left alone) or isolated (everything else hidden). The topics on it set their text in the interactive colour, and its lines march toward the Core. A pill at the bottom chooses None, Highlight or Isolate, `R` turns it on or off, and a setting makes it the default. A status bar at the bottom shows the Trail as a path of topic names, each one clickable, with **Copy path** just after it. The path is shown **in full while the bar has room for it**, however many levels it has. Only when it does not fit are the middle levels folded into an ellipsis (hovering it names them), and as few as possible, keeping the first level and the most recent ones. Names are shortened only after that, the earlier levels before the topic you are on. Copy path writes the path as `!!A>B>C` (separators inside a name are turned into spaces), so pasting it into a new topic rebuilds the same chain through text expansion (3.1).
 - **Branch view:** `[`, the Fold everything above item in the context menu, or the brace button on the parent side of any topic shows only that branch. Everything above it, all the parents and their peers, becomes one dotted node ("12 topics above", with the path) at the root, so a subtree can be worked on without panning and zooming back and forth. Clicking the dotted node, pressing `[` again, or choosing Unfold everything (the status bar button, the toolbar button or `0`) returns to the whole map, so Unfold everything opens folded children and the parents together. The view fits itself when it starts and ends, and it is dropped when another map opens.
 - **Zen (`Z`):** hides every panel and bar, leaving only the map, until you press `Esc` or the Exit Zen button. The button sits in the bottom left, in the corner the toolbar (and its Zen button) occupies when it is shown.
 - **Pointer tools:** see 3.1.
 
 ### 3.10 Lines (edge labels and stickers) [Built, new]
 
-- The line from a topic to its parent can be picked (click it, or press `L` on the topic). A small bar offers quick stickers, and the Stickers tab then edits the line instead of the topic. The bar's stickers are switches, like the sheet's: each is ringed while it is on the line, and a press puts it on or takes it off. Stickers that are on the line but not among the usual few are listed after them, so every one can be taken off from the bar. A **pencil** at the start of the bar opens the details panel and puts the cursor in its Label field.
+- The line from a topic to its parent can be picked (click it, or press `L` on the topic). A small bar offers quick stickers, and the Stickers section then edits the line instead of the topic. The bar's stickers are switches, like the sheet's: each is ringed while it is on the line, and a press puts it on or takes it off. Stickers that are on the line but not among the usual few are listed after them, so every one can be taken off from the bar. A **pencil** at the start of the bar opens the details panel and puts the cursor in its Label field.
 - A line can carry a short label (up to 80 characters), such as "depends on", shown on the line, and up to three stickers.
 - Lines are drawn with their label and stickers in exports.
 
@@ -324,7 +319,7 @@ Tokens live in `motion/`. A layout animator (`canvas/animator.ts`) tweens every 
 | `quick` | 160 ms | ease-out |
 | `standard` | 240 ms | cubic-bezier(.2,.8,.2,1) |
 | `layout` | 420 ms | spring (stiffness 260, damping 28) |
-| `playful` | 520 ms | spring with overshoot, Playful Look only |
+| `playful` | 520 ms | spring with overshoot, Playful theme only |
 
 **Choreographed moments**
 - **Create topic [Built]:** grows out of its parent along the connector, then peers ease aside (layout spring) and the caret lands in inline edit. The ghost preview becomes the real topic in place.
@@ -342,9 +337,9 @@ Tokens live in `motion/`. A layout animator (`canvas/animator.ts`) tweens every 
 
 ## 6. Accessibility requirements
 
-- WCAG 2.2 AA minimum, and AAA in the High Contrast Look. Automated axe-core checks run in Light and Dark, in every Look × Mode × Voice combination, while editing, and in every panel and dialog. A manual screen-reader pass by a person is still to do, as is a measured 7:1 check for High Contrast.
+- WCAG 2.2 AA minimum, and AAA in the High Contrast theme. Automated axe-core checks run in Light and Dark, in every theme, while editing, and in every panel and dialog. A manual screen-reader pass by a person is still to do, as is a measured 7:1 check for High Contrast.
 - **Tree semantics [Built]:** the map is one tab stop exposed as `role="tree"` with `aria-activedescendant`, and each topic is a `treeitem` with `aria-level`, `aria-expanded`, `aria-posinset`, `aria-setsize` and `aria-selected`. Nothing needs DOM focus to move, which also works with viewport culling. **Deviation:** v0.2 said roving tabindex. The **Outline** view, as the canonical accessible representation, is **[Planned]** (M4.1).
-- Visible focus ring in every Look (at least 3:1 contrast). Selection has its own colour, an offset halo and a light wash, and editing shows one selection mark.
+- Visible focus ring in every theme (at least 3:1 contrast). Selection has its own colour, an offset halo and a light wash, and editing shows one selection mark.
 - Never rely on color alone: Status uses a shape per kind, overdue dates are bold and underlined, and High Contrast carries Level in corner shape.
 - Topics have accessible names that include their Properties, for example "Draft launch plan, status In progress, due Oct 9".
 - Property Quick-Add, the Filter and every panel are fully keyboard and screen-reader operable.
@@ -408,8 +403,8 @@ The file keeps schema `canopy/1`. Every change since v0.2 only removed fields or
   "schema": "canopy/1",
   "meta": { "title": "", "created": "", "modified": "" },
   "prefs": {
-    "flow": "right", "density": "comfortable", "look": "minimal", "voice": "clean",
-    "fontSize": "medium", "connector": "curved", "showLevels": false, "chips": "compact"
+    "flow": "right", "density": "comfortable", "look": "minimal",
+    "showLevels": false, "chips": "compact"
   },
   "planning": {
     "statusSet": [
@@ -440,7 +435,7 @@ The file keeps schema `canopy/1`. Every change since v0.2 only removed fields or
 ```
 
 Notes:
-- The colour Mode is a device setting and is not saved in the file.
+- The colour mode is a device setting and is not saved in the file. The theme's font and line style come from the theme, so the file does not store them.
 - `props`, `note`, `stickers`, `edge`, `referenceTo` and `image` are omitted on topics without them, keeping plain maps small.
 - `referenceTo` holds the ID of the topic a Reference points to. It must name another topic in the same file. A missing or self-pointing target makes the file fail to open with a clear message.
 - Roll-ups are computed, never stored. Fold state is stored. Children are written in order, and their fractional ordering keys are rebuilt on load.
@@ -462,8 +457,8 @@ Notes:
 - **Notes [Built, deviation]:** Markdown in a text field with a safe preview renderer, not TipTap.
 - **Export [Built, deviation]:** SVG built from the layout, PNG through a canvas, PDF through the print dialog, CSV from the table data.
 - **Persistence [Built]:** IndexedDB (Dexie) written after edits (3.12), plus files in and out with the File System Access API and a download fallback. Patch-based autosave is planned.
-- **Theming [Built]:** design tokens (CSS variables) for Mode × Look × Voice, so combinations don't multiply code. Fonts are bundled (`@fontsource`), so the app works offline.
-- **Quality [Built, partly]:** unit tests (Vitest, 263 including property-based tree tests), end-to-end tests (Playwright, 173, with axe in every Look × Mode × Voice) and a benchmark script. The visual-regression suite is not set up.
+- **Theming [Built]:** design tokens (CSS variables) for colour mode × theme, so combinations don't multiply code. Fonts are bundled (`@fontsource`), so the app works offline.
+- **Quality [Built, partly]:** unit tests (Vitest, 263 including property-based tree tests), end-to-end tests (Playwright, with axe in every theme and colour mode) and a benchmark script. The visual-regression suite is not set up.
 
 ### 9.1 Decision: React Flow vs custom renderer
 
@@ -502,13 +497,13 @@ v0.2 planned vendored open-licence packs (Fluent Emoji, Noto Emoji, Phosphor). T
 
 - **Stickers:** 23 original die-cut SVG stickers drawn in code (`stickers/art.tsx`), with names in `stickers/catalog.ts`. They look the same on every platform and in every export, and need no licence. A larger or themed pack can be added later by extending the catalog.
 - **Interface icons:** a small set of icons drawn for the app (`ui/icons.tsx`).
-- **Fonts:** bundled through `@fontsource`, so the app works offline: Patrick Hand (Sketch), Source Serif 4 (Editorial), JetBrains Mono (Mono, and the level numbers) and Bricolage Grotesque (the app name). Clean uses the system sans-serif. All are under open licences listed in `THIRD_PARTY_NOTICES.md`.
+- **Fonts:** bundled through `@fontsource`, so the app works offline: Kalam (Playful), Source Serif 4 (High Contrast), JetBrains Mono (the level numbers) and Bricolage Grotesque (the app name). Minimal uses the system sans-serif. All are Google Fonts under the SIL Open Font License, listed with their copyright holders in `THIRD_PARTY_NOTICES.md`.
 - **Still to do:** an About screen with the credits list (M5.9). Custom sticker upload, which v0.2 kept in scope, is dropped.
 
 ## 10. Delivery phases
 
-1. **Foundation [Done]:** Map data model, Core/Topic CRUD, the Right and Down Flows, full keyboard model, Growth Handles with ghost preview, fold/unfold, copy/paste, autosave, undo/redo, Mode and Minimal Look, JSON import and export.
-2. **Expression [Done, simplified]:** Notes, Stickers, all Looks and Voices, Settings, PNG/SVG/PDF export, Command Palette. Attachments were cut.
+1. **Foundation [Done]:** Map data model, Core/Topic CRUD, the Right and Down Flows, full keyboard model, Growth Handles with ghost preview, fold/unfold, copy/paste, autosave, undo/redo, colour mode and the Minimal theme, JSON import and export.
+2. **Expression [Done, simplified]:** Notes, Stickers, all Themes, Settings, PNG/SVG/PDF export, Command Palette. Attachments were cut.
 3. **Planning [Done, reduced]:** Properties (Status, Due date, Tags), Chips, Quick-Add and inline shorthand, roll-ups, Filters, CSV export. People, Roster, Approval, Priority and Progress were cut.
 4. **Interface rework and navigation aids [Done, unplanned]:** floating panels, inspector, Trail, Branch view, Zen, pointer tools, lines, insert between, context menu, status bar, text expansion (section 12).
 5. **Delight and depth [Not started]:** Outline view, semantic zoom, Flow morph and per-branch Flow, Brain-dump import, Focus, Tour, minimap.
@@ -525,7 +520,7 @@ The plan numbers these as Phases 1 to 5, with the interface rework recorded as u
 5. **Scale target:** 5,000 topics (see 9.2).
 6. **Planning depth:** Board, Table and Timeline are enough for v1. Dependencies between topics are out of scope.
 7. **Approval model:** **[Cut]** with People. Approval is not part of v1.
-8. **Sticker style:** one original flat die-cut style in all Looks. The Fluent 3D idea for Playful is dropped.
+8. **Sticker style:** one original flat die-cut style in every theme. The Playful theme sets its topics in the same sticker style.
 9. **Planning scope:** v1 planning is Status, Due date and Tags, plus roll-ups and Filters. People, Roles, Approval, Priority, Progress, custom Properties and workflow rules are out of v1.
 10. **Attachments:** out of v1.
 11. **Saving:** a map is stored only after it is edited, so opening or creating an untouched map leaves nothing behind.
@@ -559,17 +554,17 @@ A scope cut on 2026-10-08 kept planning to Status, Due date, Tags and Stickers. 
 | Undo history | Immer patches | Snapshots with structural sharing |
 | Motion | Spring library | Hand-written layout animator |
 | Accessibility tree | Roving tabindex | One tab stop with `aria-activedescendant` |
-| Looks | Playful colours by top-level branch | Playful colours by level |
+| Themes | Playful colours by top-level branch | Playful colours by level, with sticker topics |
 | Settings | A Preferences dialog with a Planning section | A Settings tab in the left panel. No Status Set editor for now |
 | Filter | Saved presets, AND/OR | Ticked groups (AND between groups, OR within), plus saved Filters read from files |
 | Fold key | `.` | `]` |
 | Filter match keys | `]` and `[` | `.` and `,` |
-| Top bar | Flow, Look/Mode, Filter, Share | A slim bar: File menu, title, save indicator, palette. The rest moved to panels |
+| Top bar | Flow, Look/Mode, Filter, Share | A slim bar: File menu, title, save indicator, undo and redo, colour mode, search. The rest moved to panels |
 | Saving | Autosave | Autosave after the first edit only |
 
 ### 12.3 Added since v0.2
 
-- Floating left panel (Settings, Filter, Tags, Export) and right inspector with tabs.
+- Floating left panel (Settings, Filter, Tags, Export) and right details panel with tabs.
 - Trail (highlight or isolate) with a status bar path and Copy path.
 - Branch view (fold everything above into one dotted node), with a brace button on every topic.
 - Zen mode, pointer tools (Select, Pan, Zoom), unfold-everything button.
@@ -577,7 +572,7 @@ A scope cut on 2026-10-08 kept planning to Status, Due date, Tags and Stickers. 
 - Insert a topic between levels (`W`, `Shift+W`, the in-line handle).
 - Text expansion with `!!`, and removal of empty new topics.
 - Auto-pan, context menu, tooltips, searchable cheat sheet, save indicator.
-- Font size, level numbers in small faded monospace, and refreshed Minimal (subtle borders, flat shadows) and Playful (flat shadows) Looks.
+- Level numbers in small faded monospace, and the three themes (Minimal with subtle borders and flat shadows, High Contrast, and Playful with sticker topics).
 - Filter by sticker, and the date-range Filter.
 - Delete asks whether to remove a branch or only the topic; stickers are one-per-kind switches with a pencil on the line bar; topics become icons when zoomed out; Exit Zen moved to the bottom left; handles follow their topic while it moves; the pointer tool keys (Space, Cmd, Alt) are tracked reliably.
 - Pictures pasted from the clipboard onto topics, and drag and drop of pictures and whole map files onto the canvas or a topic (3.5).

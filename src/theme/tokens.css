@@ -87,17 +87,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root:not([data-motion='full']) {
+  :root {
     --motion-instant: 0ms;
     --motion-quick: 0ms;
     --motion-standard: 0ms;
     --motion-layout: 0ms;
   }
-}
-
-:root[data-motion='reduced'] {
-  --motion-instant: 0ms;
-  --motion-quick: 0ms;
-  --motion-standard: 0ms;
-  --motion-layout: 0ms;
 }

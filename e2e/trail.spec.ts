@@ -71,20 +71,25 @@ test('Trail lines march, and stay solid with reduced motion', async ({ page }) =
   await expect(line).toHaveCSS('animation-name', 'trail-march');
   await expect(line).toHaveCSS('stroke-dasharray', /9/);
 
-  await page.evaluate(() => document.documentElement.setAttribute('data-motion', 'reduced'));
-  await expect(line).toHaveCSS('animation-name', 'none');
-  await expect(line).toHaveCSS('stroke-dasharray', 'none');
-
-  await page.evaluate(() => document.documentElement.removeAttribute('data-motion'));
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(line).toHaveCSS('animation-name', 'none');
+  await expect(line).toHaveCSS('stroke-dasharray', 'none');
 });
 
 test('a line fades to the interactive colour when pointed at', async ({ page }) => {
   await page.goto('/?demo=14');
   const link = page.locator('.link:not([data-trail])').first();
   const before = await link.locator('.connector').evaluate((el) => getComputedStyle(el).stroke);
-  await link.locator('.connector-hit').hover({ force: true });
+  // Elbows share a trunk and bend, so point at the straight run that enters the child instead.
+  const spot = await link.locator('.connector').evaluate((el: SVGPathElement) => {
+    const point = el.getPointAtLength(el.getTotalLength() - 6);
+    const m = el.getScreenCTM();
+    return m
+      ? { x: m.a * point.x + m.c * point.y + m.e, y: m.b * point.x + m.d * point.y + m.f }
+      : null;
+  });
+  expect(spot).not.toBeNull();
+  await page.mouse.move(spot?.x ?? 0, spot?.y ?? 0);
   await expect(link.locator('.connector')).not.toHaveCSS('stroke', before);
   await expect(link.locator('.connector')).toHaveCSS('stroke', /0\.6/);
 });
@@ -119,4 +124,48 @@ test('a status bar at the bottom shows the path of the Trail', async ({ page }) 
   await page.getByRole('button', { name: 'Settings' }).click();
   await page.getByRole('switch', { name: 'Trail' }).click();
   await expect(bar).toHaveCount(0);
+});
+
+test('topics on the Trail keep their border and set their text in the interactive colour', async ({
+  page,
+}) => {
+  await page.goto('/?demo=14');
+  await page.getByRole('treeitem', { name: 'Research' }).click();
+  const onTrail = page.locator('.topic[data-trail]:not([data-depth="0"])');
+  expect(await onTrail.count()).toBeGreaterThan(1);
+  const read = (topic: ReturnType<typeof page.locator>) =>
+    topic.evaluate((el) => {
+      const box = getComputedStyle(el.querySelector('.topic-box') as Element);
+      const text = getComputedStyle(el.querySelector('.topic-text') as Element);
+      return {
+        text: text.fill,
+        fill: box.fill,
+        stroke: box.stroke,
+        width: box.strokeWidth,
+        dash: box.strokeDasharray,
+      };
+    });
+  const accent = await page.evaluate(() => {
+    const probe = document.createElement('i');
+    probe.style.color = 'var(--color-accent)';
+    document.body.append(probe);
+    const colour = getComputedStyle(probe).color;
+    probe.remove();
+    return colour;
+  });
+  let plainText = '';
+  for (const topic of await onTrail.all()) {
+    const depth = await topic.getAttribute('data-depth');
+    // Compare with an untouched topic of the same level, since levels have their own borders.
+    const off = page.locator(`.topic[data-depth="${depth}"]:not([data-trail])`).first();
+    const plain = await read(off);
+    plainText = plain.text;
+    const mark = await read(topic);
+    expect(mark.text).toBe(accent);
+    expect(mark.fill).toBe(plain.fill);
+    expect(mark.stroke).toBe(plain.stroke);
+    expect(mark.width).toBe(plain.width);
+    expect(mark.dash).toBe('none');
+  }
+  expect(plainText).not.toBe(accent);
 });

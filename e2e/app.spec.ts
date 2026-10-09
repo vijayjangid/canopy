@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
-import { mapPanel, openMapPanel } from './panels';
 
 const tree = (page: Page) => page.getByRole('tree', { name: 'Mind map' });
 
@@ -17,19 +16,18 @@ async function renameMap(page: import('@playwright/test').Page, name: string) {
 test('switches colour mode and remembers it', async ({ page }) => {
   await page.goto('/');
   const root = page.locator('html');
-  await openMapPanel(page, 'Settings');
-  await page.getByRole('button', { name: 'Dark', exact: true }).click();
+  const modes = page.getByRole('banner').getByRole('group', { name: 'Colour mode' });
+  await modes.getByRole('button', { name: 'Dark', exact: true }).click();
   await expect(root).toHaveAttribute('data-mode', 'dark');
-  await expect(page.getByRole('button', { name: 'Dark', exact: true })).toHaveAttribute(
+  await expect(modes.getByRole('button', { name: 'Dark', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true',
   );
   await page.reload();
   await expect(root).toHaveAttribute('data-mode', 'dark');
-  await expect(mapPanel(page)).toBeVisible();
-  await page.getByRole('button', { name: 'Light', exact: true }).click();
+  await modes.getByRole('button', { name: 'Light', exact: true }).click();
   await expect(root).toHaveAttribute('data-mode', 'light');
-  await page.getByRole('button', { name: 'Auto', exact: true }).click();
+  await modes.getByRole('button', { name: 'Auto', exact: true }).click();
   await expect(root).not.toHaveAttribute('data-mode');
 });
 
@@ -55,7 +53,12 @@ test('starts a new map and shows a first-run hint until the first idea', async (
 
   await fileMenu(page, 'New map');
   await expect(page.getByRole('treeitem')).toHaveCount(1);
-  await expect(page.locator('.first-run')).toBeVisible();
+  // The central topic opens for naming straight away.
+  await expect(page.locator('.title-editor')).toBeFocused();
+  await page.keyboard.type('Fresh start');
+  await expect(page.locator('.title-editor')).toHaveValue('Fresh start');
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('treeitem')).toHaveCount(2);
 });
 
 test('saves a map to a file and opens it again', async ({ page }) => {

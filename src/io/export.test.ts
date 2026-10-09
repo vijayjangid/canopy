@@ -32,6 +32,11 @@ const theme: ExportTheme = {
   topicText: '#1b1b1f',
   coreBg: '#5b4bdb',
   coreText: '#ffffff',
+  stickerEdge: '#ffffff',
+  stickerShadow: '#00000066',
+  stickerShadowOpacity: 0.3,
+  stickerFaceBase: '#ffffff',
+  stickerTint: 0.12,
   connector: '#b4b5c3',
   muted: '#5f6068',
   surface: '#ffffff',
@@ -40,7 +45,7 @@ const theme: ExportTheme = {
   info: '#1c7ed6',
   pending: '#7048e8',
   fontStack: "'Source Serif 4', serif",
-  levels: Array.from({ length: 6 }, (_, i) => ({ hue: `#00${i}000`, a: '#eeeeee', b: '#dddddd' })),
+  levels: Array.from({ length: 6 }, (_, i) => ({ hue: `#00${i}000`, ink: `#00${i}000` })),
 };
 
 function sample(): CanopyMap {
@@ -122,19 +127,34 @@ describe('SVG export', () => {
     expect(built.svg).toContain('>1</text>');
   });
 
-  it('follows the map styles: connector style, level numbers and Look colours', () => {
-    const base = setPrefs(sample(), { connector: 'tapered', showLevels: true });
+  it('follows the map styles: level numbers and Look colours', () => {
+    const base = setPrefs(sample(), { showLevels: true });
     const built = draw(base);
-    expect(built.svg).toMatch(/Z"\s+fill=/);
     expect(built.svg).toContain('font-weight="400">1.1\u2005</tspan>');
     expect(built.svg).not.toContain('>0.');
     const playful = draw(setPrefs(sample(), { look: 'playful' }), {
       theme: { ...theme, look: 'playful' },
     });
-    expect(playful.svg).toContain('url(#pg-1)');
-    expect(playful.svg).toContain('stop-color="#eeeeee"');
-    // Lines leaving the Core take the Core's colour.
-    expect(playful.svg).toContain('stroke="#000000"');
+    // Titles are lettered like stickers: a wavy light blob behind level-coloured ink.
+    expect(playful.svg).toContain('filter="url(#sticker-wiggle)"');
+    expect(playful.svg).toContain('<filter id="sticker-wiggle"');
+    // A flat shadow: the same blob, nudged and faded.
+    expect(playful.svg).toContain('opacity="0.3"');
+    expect(playful.svg).toContain('<feDisplacementMap');
+    expect(playful.svg).toContain('fill="#001000"');
+  });
+
+  it('colours only Playful by level, and draws the other themes in neutral colours', () => {
+    for (const look of ['minimal', 'contrast'] as const) {
+      const svg = draw(setPrefs(sample(), { look }), { theme: { ...theme, look } }).svg;
+      expect(svg).not.toContain('#001000');
+      expect(svg).toContain('stroke="#b4b5c3"');
+    }
+    const playful = draw(setPrefs(sample(), { look: 'playful' }), {
+      theme: { ...theme, look: 'playful' },
+    }).svg;
+    expect(playful).toContain('fill="#001000"');
+    expect(playful).toContain('stroke="#b4b5c3"');
   });
 
   it('embeds font rules when given, and sizes the picture to the map', () => {

@@ -8,6 +8,9 @@ import {
   imageOffset,
   imageSize,
   levelPrefix,
+  STICKER_RIM,
+  STICKER_SHADOW_OFFSET,
+  stickerBlob,
   textLines,
   typeForDepth,
   type ChipItem,
@@ -26,9 +29,9 @@ export type Detail = 'full' | 'low';
 const BRACE =
   'M2.5 -5.5Q-0.5 -5.5 -0.5 -2.5V-1.5Q-0.5 0 -2.5 0Q-0.5 0 -0.5 1.5V2.5Q-0.5 5.5 2.5 5.5';
 
-/** Playful topics are pills. High Contrast gives each level its own corner, so shape carries meaning. */
+/** Playful topics are softly rounded stickers. High Contrast gives each level its own corner, so shape carries meaning. */
 export function cornerRadius(look: Look, depth: number, height: number): number {
-  if (look === 'playful') return Math.min(height / 2, depth === 0 ? 24 : 20);
+  if (look === 'playful') return Math.min(height * 0.4, depth === 0 ? 18 : 16);
   if (look === 'contrast') return depth === 0 ? 16 : depth === 1 ? 10 : 2;
   return depth === 0 ? 14 : 10;
 }
@@ -203,6 +206,14 @@ export const TopicNode = memo(function TopicNode({
   const badgeW = 14 + badgeText.length * 7.5;
   const badge =
     flow === 'right' ? { x: w + 6, y: h / 2 - 10 } : { x: w / 2 - badgeW / 2, y: h + 6 };
+  const titleLines = lines.map((line, i) => (
+    <tspan key={i} x={w / 2} y={firstBaseline + i * style.lineHeight}>
+      {i === 0 && showLevel && depth > 0 && (
+        <tspan className="level-prefix">{levelPrefix(depth, position)}</tspan>
+      )}
+      {line}
+    </tspan>
+  ));
 
   return (
     <g
@@ -260,6 +271,36 @@ export const TopicNode = memo(function TopicNode({
       {real && detail === 'low' && topic && chipContext && (
         <TopicGlyph topic={topic} depth={depth} w={w} h={h} ctx={chipContext} />
       )}
+      {lines.length > 0 && look === 'playful' && (
+        <g className="sticker-blob" aria-hidden="true">
+          {(['shadow', 'rim', 'face'] as const).map((layer) => (
+            <g
+              key={layer}
+              className={`sticker-${layer}`}
+              transform={
+                layer === 'shadow'
+                  ? `translate(${STICKER_SHADOW_OFFSET.x} ${STICKER_SHADOW_OFFSET.y})`
+                  : undefined
+              }
+            >
+              {stickerBlob(
+                lines,
+                w / 2,
+                firstBaseline,
+                style,
+                showLevel && depth > 0 ? levelPrefix(depth, position) : '',
+                textWidth,
+                layer === 'face' ? 0 : STICKER_RIM,
+                chipsH > 0
+                  ? { width: chipRowWidth(chips), top: h - chipsH, height: chipsH }
+                  : undefined,
+              ).map((r, i) => (
+                <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h} rx={r.r} />
+              ))}
+            </g>
+          ))}
+        </g>
+      )}
       {lines.length > 0 && (
         <text
           className="topic-text"
@@ -269,14 +310,7 @@ export const TopicNode = memo(function TopicNode({
           fontSize={style.size}
           fontWeight={style.weight}
         >
-          {lines.map((line, i) => (
-            <tspan key={i} x={w / 2} y={firstBaseline + i * style.lineHeight}>
-              {i === 0 && showLevel && depth > 0 && (
-                <tspan className="level-prefix">{levelPrefix(depth, position)}</tspan>
-              )}
-              {line}
-            </tspan>
-          ))}
+          {titleLines}
         </text>
       )}
       {detail === 'full' && chips.length > 0 && topic && chipContext && (

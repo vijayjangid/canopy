@@ -9,6 +9,9 @@ export interface TypeStyle {
   lineHeight: number;
 }
 
+/** Every topic title uses one weight; level is shown by size, not boldness. */
+const TOPIC_WEIGHT = 500;
+
 /** Handwritten faces run small, so a Voice can scale all type. Set before measuring. */
 let typeScale = 1;
 
@@ -16,19 +19,29 @@ export function setTypeScale(scale: number): void {
   typeScale = scale;
 }
 
+/** Playful titles are sticker lettering: a little larger. Set before measuring. */
+const STICKER_SCALE = 1.05;
+let stickerType = false;
+
+export function setStickerType(on: boolean): void {
+  stickerType = on;
+}
+
 /** Type by level. The renderer reads the same values so text always fits its box. */
 export function typeForDepth(depth: number): TypeStyle {
+  const weight = TOPIC_WEIGHT;
   const base =
     depth === 0
-      ? { size: 18, weight: 600, lineHeight: 24 }
+      ? { size: 18, weight, lineHeight: 24 }
       : depth === 1
-        ? { size: 15, weight: 500, lineHeight: 20 }
-        : { size: 14, weight: 400, lineHeight: 20 };
-  if (typeScale === 1) return base;
+        ? { size: 15, weight, lineHeight: 20 }
+        : { size: 14, weight, lineHeight: 20 };
+  const scale = stickerType ? typeScale * STICKER_SCALE : typeScale;
+  if (scale === 1) return base;
   return {
     ...base,
-    size: base.size * typeScale,
-    lineHeight: Math.round(base.lineHeight * typeScale),
+    size: base.size * scale,
+    lineHeight: Math.round(base.lineHeight * scale),
   };
 }
 
@@ -51,6 +64,69 @@ export const LEVEL_FONT_STACK = "'JetBrains Mono', ui-monospace, 'SF Mono', Menl
 
 function prefixWidth(prefix: string, style: TypeStyle): number {
   return prefix.length * style.size * LEVEL_PREFIX_SCALE * MONO_ADVANCE;
+}
+
+/** How far the tinted rim of a sticker reaches past its white face, in px. */
+export const STICKER_RIM = 3.5;
+
+/** The flat shadow under a sticker, like the sticker set's: the same shape, nudged down and right. */
+export const STICKER_SHADOW_OFFSET = { x: 0.8, y: 1.6 };
+
+export interface BlobRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  r: number;
+}
+
+/** The row of chips under a title, which the sticker has to cover as well. */
+export interface ChipRowSpan {
+  width: number;
+  top: number;
+  height: number;
+}
+
+/**
+ * The pills behind sticker lettering, one per line, and one more for the chip row when there is
+ * one. They overlap where they meet, so together they read as one blob that follows the shape of
+ * the content.
+ */
+export function stickerBlob(
+  lines: string[],
+  centreX: number,
+  firstBaseline: number,
+  style: TypeStyle,
+  prefix: string,
+  textWidth: TextWidth,
+  grow = 0,
+  chipRow?: ChipRowSpan,
+): BlobRect[] {
+  const padX = style.size * 0.55 + grow;
+  const padY = style.size * 0.4 + grow;
+  const rects = lines.map((line, i) => {
+    const width = textWidth(line, style) + (i === 0 ? prefixWidth(prefix, style) : 0) + padX * 2;
+    const h = style.lineHeight + padY * 2;
+    return {
+      x: centreX - width / 2,
+      y: firstBaseline + i * style.lineHeight - h / 2,
+      w: width,
+      h,
+      r: Math.min(h * 0.4, width / 2),
+    };
+  });
+  if (chipRow && chipRow.width > 0) {
+    const width = chipRow.width + (6 + grow) * 2;
+    const h = chipRow.height + (3 + grow) * 2;
+    rects.push({
+      x: centreX - width / 2,
+      y: chipRow.top - 3 - grow,
+      w: width,
+      h,
+      r: Math.min(h * 0.4, width / 2),
+    });
+  }
+  return rects;
 }
 
 export const TOPIC_PADDING = { x: 14, y: 9 };

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { cornerRadius } from '../canvas/TopicNode';
 import { createMap, createSubTopic, parseFile, setPrefs, toFile } from '../model';
 import { connectorPath, seedOf } from '../layout';
-import { VOICES } from './voices';
+import { LOOK_VOICE, VOICES } from './voices';
 
 const parent = { x: 0, y: 0, w: 100, h: 40 };
 const child = { x: 160, y: 80, w: 100, h: 40 };
@@ -51,27 +51,32 @@ describe('looks', () => {
     expect(new Set(radii).size).toBe(3);
   });
 
-  it('makes Playful topics pills', () => {
-    expect(cornerRadius('playful', 1, 30)).toBe(15);
+  it('softly rounds Playful topics', () => {
+    expect(cornerRadius('playful', 1, 30)).toBe(12);
+    expect(cornerRadius('playful', 1, 60)).toBe(16);
   });
 });
 
 describe('voices', () => {
-  it('has a stack, scale and sample for each', () => {
+  it('has a stack and scale for each', () => {
     for (const voice of Object.values(VOICES)) {
       expect(voice.stack.length).toBeGreaterThan(0);
       expect(voice.scale).toBeGreaterThan(0.5);
-      expect(voice.sample.length).toBeGreaterThan(0);
     }
+  });
+
+  it('gives each theme its own font', () => {
+    expect(LOOK_VOICE).toEqual({ minimal: 'clean', contrast: 'editorial', playful: 'sketch' });
+    expect(Object.values(LOOK_VOICE).every((v) => VOICES[v] !== undefined)).toBe(true);
   });
 });
 
 describe('map preferences', () => {
   it('setPrefs changes only the given preferences', () => {
     const map = createMap({ coreId: 'core' });
-    const next = setPrefs(map, { look: 'playful', connector: 'elbow' });
+    const next = setPrefs(map, { look: 'playful', density: 'airy' });
     expect(next.prefs.look).toBe('playful');
-    expect(next.prefs.connector).toBe('elbow');
+    expect(next.prefs.density).toBe('airy');
     expect(next.prefs.flow).toBe(map.prefs.flow);
     expect(map.prefs.look).toBe('minimal');
   });
@@ -81,9 +86,7 @@ describe('map preferences', () => {
     map = createSubTopic(map, 'core', { id: 'a', title: 'A' }).map;
     map = setPrefs(map, {
       look: 'contrast',
-      voice: 'sketch',
       showLevels: true,
-      connector: 'tapered',
     });
     const result = parseFile(JSON.parse(JSON.stringify(toFile(map))));
     expect(result.ok).toBe(true);

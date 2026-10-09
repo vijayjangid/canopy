@@ -36,8 +36,6 @@ interface UiState {
   inspectorOpen: boolean;
   /** The part of the details panel to show and focus. */
   inspectorTab: InspectorTab;
-  /** Which parts of the details panel are folded open. */
-  sections: Record<InspectorTab, boolean>;
   leftOpen: boolean;
   leftTab: LeftTab;
   /** The topic whose line to its parent is picked, so the Stickers tab targets the line. */
@@ -56,15 +54,8 @@ interface UiState {
 }
 
 const PANELS_KEY = 'canopy.panels.v2';
-const DEFAULT_SECTIONS: Record<InspectorTab, boolean> = {
-  properties: true,
-  stickers: true,
-  note: false,
-};
-
-function loadPanels(): Pick<UiState, 'sections' | 'leftOpen' | 'leftTab'> {
+function loadPanels(): Pick<UiState, 'leftOpen' | 'leftTab'> {
   const base = {
-    sections: { ...DEFAULT_SECTIONS },
     leftOpen: false,
     leftTab: 'settings' as LeftTab,
   };
@@ -73,13 +64,6 @@ function loadPanels(): Pick<UiState, 'sections' | 'leftOpen' | 'leftTab'> {
     if (typeof raw['leftOpen'] === 'boolean') base.leftOpen = raw['leftOpen'];
     const tabs: LeftTab[] = ['settings', 'tags', 'export'];
     if (tabs.includes(raw['leftTab'] as LeftTab)) base.leftTab = raw['leftTab'] as LeftTab;
-    const saved = raw['sections'];
-    if (typeof saved === 'object' && saved !== null) {
-      for (const key of Object.keys(base.sections) as InspectorTab[]) {
-        const value = (saved as Record<string, unknown>)[key];
-        if (typeof value === 'boolean') base.sections[key] = value;
-      }
-    }
   } catch {
     // Unreadable layout falls back to the defaults.
   }
@@ -106,14 +90,11 @@ export const uiStore = createStore<UiState>(() => ({
 
 // Remember how the panels were left, on this device.
 uiStore.subscribe((s, prev) => {
-  if (s.sections === prev.sections && s.leftOpen === prev.leftOpen && s.leftTab === prev.leftTab) {
-    return;
-  }
+  if (s.leftOpen === prev.leftOpen && s.leftTab === prev.leftTab) return;
   try {
     localStorage.setItem(
       PANELS_KEY,
       JSON.stringify({
-        sections: s.sections,
         leftOpen: s.leftOpen,
         leftTab: s.leftTab,
       }),
@@ -123,18 +104,12 @@ uiStore.subscribe((s, prev) => {
   }
 });
 
-/** Opens the details panel, and folds open `tab` when given. */
+/** Opens the details panel, and shows `tab` when given. */
 export const openInspector = (tab?: InspectorTab) =>
-  uiStore.setState((s) => ({
-    inspectorOpen: true,
-    inspectorTab: tab ?? s.inspectorTab,
-    sections: tab ? { ...s.sections, [tab]: true } : s.sections,
-  }));
+  uiStore.setState((s) => ({ inspectorOpen: true, inspectorTab: tab ?? s.inspectorTab }));
 export const closeInspector = () => uiStore.setState({ inspectorOpen: false });
 export const toggleInspector = () => uiStore.setState((s) => ({ inspectorOpen: !s.inspectorOpen }));
 export const setInspectorTab = (inspectorTab: InspectorTab) => uiStore.setState({ inspectorTab });
-export const toggleSection = (tab: InspectorTab) =>
-  uiStore.setState((s) => ({ sections: { ...s.sections, [tab]: !s.sections[tab] } }));
 
 export const openLeft = (leftTab?: LeftTab) =>
   uiStore.setState((s) => ({ leftOpen: true, leftTab: leftTab ?? s.leftTab }));
@@ -201,7 +176,6 @@ export const pointAtEdge = (id: string) =>
     edgeFocus: id,
     inspectorOpen: true,
     inspectorTab: 'stickers',
-    sections: { ...s.sections, stickers: true },
     edgeNudge: s.edgeNudge + 1,
   }));
 

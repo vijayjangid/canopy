@@ -14,6 +14,13 @@ export interface ExportTheme {
   topicText: string;
   coreBg: string;
   coreText: string;
+  /** Playful sticker lettering: the light edge around the ink, and its shadow. */
+  stickerEdge: string;
+  stickerShadow: string;
+  stickerShadowOpacity: number;
+  /** What a sticker face is tinted into, and how much of its ink it takes (0 to 1). */
+  stickerFaceBase: string;
+  stickerTint: number;
   connector: string;
   muted: string;
   surface: string;
@@ -25,8 +32,8 @@ export interface ExportTheme {
   /** Work waiting for approval. */
   pending: string;
   fontStack: string;
-  /** Hue and gradient ends for the Core and each Playful level colour. */
-  levels: Array<{ hue: string; a: string; b: string }>;
+  /** The colour and text ink of the Core and each level, used by Playful. */
+  levels: Array<{ hue: string; ink: string }>;
 }
 
 const FALLBACK: ExportTheme = {
@@ -40,6 +47,11 @@ const FALLBACK: ExportTheme = {
   topicText: '#1b1b1f',
   coreBg: '#5b4bdb',
   coreText: '#ffffff',
+  stickerEdge: '#ffffff',
+  stickerShadow: '#1e143c',
+  stickerShadowOpacity: 0.3,
+  stickerFaceBase: '#ffffff',
+  stickerTint: 0.12,
   connector: '#b4b5c3',
   muted: '#5f6068',
   surface: '#ffffff',
@@ -105,6 +117,20 @@ export function legibleOn(colour: string, background: string, toward: string, mi
 export const readableOn = (background: string): string =>
   luminance(background) > 0.35 ? '#111111' : '#ffffff';
 
+/** `a` blended over `b`; `amount` is how much of `a` shows. Falls back to `b` for non-hex colours. */
+export function mixHex(a: string, b: string, amount: number): string {
+  const from = rgbOf(a);
+  const to = rgbOf(b);
+  if (!from || !to) return b;
+  return `#${from
+    .map((c, i) =>
+      Math.round(c * amount + (to[i] ?? c) * (1 - amount))
+        .toString(16)
+        .padStart(2, '0'),
+    )
+    .join('')}`;
+}
+
 /** Reads the live design tokens, so an export matches what is on screen. */
 export function readExportTheme(root: HTMLElement = document.documentElement): ExportTheme {
   const css = getComputedStyle(root);
@@ -113,22 +139,29 @@ export function readExportTheme(root: HTMLElement = document.documentElement): E
   const accent = get('--color-accent', FALLBACK.accent);
   const bg = get('--color-bg', FALLBACK.bg);
   const dark = luminance(bg) < 0.35;
-  const levels = Array.from({ length: LEVEL_COUNT + 1 }, (_, i) => ({
-    hue: get(`--lv${i}`, accent),
-    a: get(`--lv${i}-a`, get('--color-topic-bg', FALLBACK.topicBg)),
-    b: get(`--lv${i}-b`, get('--color-topic-bg', FALLBACK.topicBg)),
-  }));
+  const levels = Array.from({ length: LEVEL_COUNT + 1 }, (_, i) => {
+    const hue = get(`--lv${i}`, accent);
+    return { hue, ink: get(`--lv${i}-ink`, hue) };
+  });
+  const topicBg = get('--color-topic-bg', FALLBACK.topicBg);
+  const coreBg = get('--color-core-bg', FALLBACK.coreBg);
   return {
     look,
     bg: get('--color-bg', FALLBACK.bg),
     accent,
     level1: get('--color-level1-border', accent),
     selection: get('--color-selection', FALLBACK.selection),
-    topicBg: get('--color-topic-bg', FALLBACK.topicBg),
+    topicBg,
     topicBorder: get('--color-topic-border', FALLBACK.topicBorder),
     topicText: get('--color-topic-text', FALLBACK.topicText),
-    coreBg: get('--color-core-bg', FALLBACK.coreBg),
+    coreBg,
     coreText: get('--color-core-text', FALLBACK.coreText),
+    stickerEdge: get('--sticker-edge', FALLBACK.stickerEdge),
+    stickerShadow: get('--sticker-shadow', FALLBACK.stickerShadow),
+    stickerShadowOpacity:
+      Number.parseFloat(get('--sticker-shadow-opacity', '')) || FALLBACK.stickerShadowOpacity,
+    stickerFaceBase: get('--sticker-face-base', FALLBACK.stickerFaceBase),
+    stickerTint: (Number.parseFloat(get('--sticker-tint', '')) || 12) / 100,
     connector: get('--color-connector', FALLBACK.connector),
     muted: get('--color-text-muted', FALLBACK.muted),
     surface: get('--color-surface', FALLBACK.surface),

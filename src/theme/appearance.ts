@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
 import { measureTopic, setFontFamily } from '../canvas/metrics';
-import { setChipMode, setLevelNumbers, setTypeScale } from '../layout';
+import { setChipMode, setLevelNumbers, setStickerType, setTypeScale } from '../layout';
 import type { MapPrefs } from '../model';
 import { setPlayfulMotion } from '../motion';
-import { FONT_SIZE_SCALE, VOICES } from './voices';
+import { LOOK_VOICE, VOICES } from './voices';
 
 /** Counts changes that alter text size, so layouts can be measured again. */
 export const appearanceEpoch = createStore<{ epoch: number }>(() => ({ epoch: 0 }));
@@ -29,20 +29,20 @@ export function useThemeVersion(): number {
 
 let applied = '';
 
-/** Puts a map's Look and Voice on the page. Safe to call often. */
-export function applyAppearance(
-  prefs: Pick<MapPrefs, 'look' | 'voice' | 'fontSize' | 'chips' | 'showLevels'>,
-): void {
-  const key = `${prefs.look}/${prefs.voice}/${prefs.fontSize}/${prefs.chips}/${prefs.showLevels}`;
+/** Puts a map's Theme on the page: its look and its font. Safe to call often. */
+export function applyAppearance(prefs: Pick<MapPrefs, 'look' | 'chips' | 'showLevels'>): void {
+  const key = `${prefs.look}/${prefs.chips}/${prefs.showLevels}`;
   if (key === applied) return;
   applied = key;
 
-  const voice = VOICES[prefs.voice];
+  const voiceName = LOOK_VOICE[prefs.look];
+  const voice = VOICES[voiceName];
   const root = document.documentElement;
   root.setAttribute('data-look', prefs.look);
-  root.setAttribute('data-voice', prefs.voice);
+  root.setAttribute('data-voice', voiceName);
   root.style.setProperty('--font-map', voice.stack);
-  setTypeScale(voice.scale * FONT_SIZE_SCALE[prefs.fontSize]);
+  setTypeScale(voice.scale);
+  setStickerType(prefs.look === 'playful');
   setPlayfulMotion(prefs.look === 'playful');
   setChipMode(prefs.chips);
   setLevelNumbers(prefs.showLevels);
@@ -52,7 +52,7 @@ export function applyAppearance(
 
   // Measuring needs the real font, so measure again once it has loaded.
   const family = voice.stack.split(',')[0]?.trim() ?? '';
-  if (prefs.voice !== 'clean' && typeof document.fonts?.load === 'function') {
+  if (voiceName !== 'clean' && typeof document.fonts?.load === 'function') {
     void Promise.all(
       [400, 500, 600].map((weight) => document.fonts.load(`${weight} 16px ${family}`)),
     ).then(() => {

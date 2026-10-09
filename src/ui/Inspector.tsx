@@ -17,19 +17,12 @@ import { markFresh } from '../canvas/stampStore';
 import { canopyStore, useCanopy } from '../store';
 import { StickerArt } from '../stickers/art';
 import { searchStickers } from '../stickers/catalog';
-import { Icon, type IconName } from './icons';
+import { Icon } from './icons';
 import { InfoTip } from './InfoTip';
 import { Markdown } from './Markdown';
 import { PropertiesTab } from './PropertiesTab';
 import { showToast } from './toast';
-import {
-  closeInspector,
-  setEdgeFocus,
-  setInspectorTab,
-  toggleSection,
-  useUi,
-  type InspectorTab,
-} from './uiStore';
+import { closeInspector, setEdgeFocus, setInspectorTab, useUi, type InspectorTab } from './uiStore';
 import './inspector.css';
 
 const CRUMB_CHARS = 22;
@@ -38,24 +31,16 @@ const CRUMB_CHARS = 22;
 const clamp = (text: string, max: number) =>
   text.length > max ? `${text.slice(0, max - 1).trimEnd()}\u2026` : text;
 
-const SECTIONS: Array<{ id: InspectorTab; label: string; icon: IconName }> = [
-  { id: 'properties', label: 'Properties', icon: 'status' },
-  { id: 'stickers', label: 'Stickers', icon: 'stickers' },
-  { id: 'note', label: 'Note', icon: 'note' },
+const SECTIONS: Array<{ id: InspectorTab; label: string }> = [
+  { id: 'properties', label: 'Properties' },
+  { id: 'stickers', label: 'Stickers' },
+  { id: 'note', label: 'Note' },
 ];
-
-/** Short text beside a section title, so a closed section still says what is in it. */
-function summaryOf(id: InspectorTab, topic: Topic): string {
-  if (id === 'note') return topic.note ? 'Has a note' : '';
-  if (id === 'stickers') return topic.stickers?.length ? String(topic.stickers.length) : '';
-  return '';
-}
 
 /** The details panel: it opens when a topic is clicked, and closes with its button. */
 export function Inspector() {
   const open = useUi((s) => s.inspectorOpen);
   const target = useUi((s) => s.inspectorTab);
-  const sections = useUi((s) => s.sections);
   const focus = useCanopy((s) => s.focus);
   const picked = useCanopy((s) => s.picked);
   const topic = useCanopy((s) => s.doc.topics[s.focus]);
@@ -208,7 +193,7 @@ export function Inspector() {
           </section>
         ) : (
           SECTIONS.filter((x) => x.id !== 'note' && (!many || x.id === 'properties')).map(
-            ({ id, label, icon }) => {
+            ({ id, label }) => {
               // Status, due date and tags are the heart of the panel, so they sit there directly,
               // with no heading to open or close. The region keeps its name for screen readers.
               if (id === 'properties') {
@@ -225,33 +210,20 @@ export function Inspector() {
                   </section>
                 );
               }
-              const isOpen = sections[id];
               return (
                 <section
                   key={id}
                   id={`inspector-section-${id}`}
                   className="panel-section"
-                  aria-label={label}
+                  aria-labelledby={`inspector-heading-${id}`}
                 >
-                  <button
-                    type="button"
-                    className="panel-section-head"
-                    aria-expanded={isOpen}
-                    aria-controls={`inspector-body-${id}`}
-                    onClick={() => toggleSection(id)}
-                  >
-                    <Icon name={icon} />
-                    <span>{label}</span>
-                    <span className="panel-section-summary">
-                      {many ? '' : summaryOf(id, topic)}
-                    </span>
-                    <Icon name={isOpen ? 'chevron-down' : 'chevron-right'} />
-                  </button>
-                  {isOpen && (
-                    <div id={`inspector-body-${id}`} className="panel-section-body">
-                      {id === 'stickers' && <StickersTab key={focus} topic={topic} />}
-                    </div>
-                  )}
+                  <div className="panel-section-heading">
+                    <h3 id={`inspector-heading-${id}`}>{label}</h3>
+                    <span className="panel-section-rule" aria-hidden="true" />
+                  </div>
+                  <div className="panel-section-body">
+                    {id === 'stickers' && <StickersTab key={focus} topic={topic} />}
+                  </div>
                 </section>
               );
             },

@@ -3,6 +3,7 @@ import { executeCommand } from '../editor/commands';
 import { appContext } from '../editor/context';
 import { COMMANDS, formatShortcut, type CommandId } from '../editor/shortcuts';
 import { renameMap } from '../model';
+import { settingsStore, useSettings, type ModeSetting } from '../settings';
 import { getRepository, type MapSummary } from '../persistence';
 import { canRedo, canUndo, canopyStore, useCanopy } from '../store';
 import { Brand } from './Logo';
@@ -173,6 +174,35 @@ function History() {
   );
 }
 
+const COLOUR_MODES: Array<{ value: ModeSetting; label: string; icon: 'auto' | 'sun' | 'moon' }> = [
+  { value: 'auto', label: 'Auto', icon: 'auto' },
+  { value: 'light', label: 'Light', icon: 'sun' },
+  { value: 'dark', label: 'Dark', icon: 'moon' },
+];
+
+/** Auto, Light or Dark, kept in the bar so it is one click away. It belongs to this device. */
+function ColourMode() {
+  const mode = useSettings((s) => s.mode);
+  return (
+    <div className="segmented" role="group" aria-label="Colour mode">
+      {COLOUR_MODES.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          aria-pressed={mode === o.value}
+          aria-label={o.label}
+          data-tip={o.label}
+          data-tip-side="bottom"
+          data-icon-only
+          onClick={() => settingsStore.getState().update({ mode: o.value })}
+        >
+          <Icon name={o.icon} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /** A slim bar: the file menu and map title as a pair, and one way into every command. */
 export function AppBar() {
   return (
@@ -184,6 +214,7 @@ export function AppBar() {
       </div>
       <History />
       <div className="app-actions">
+        <ColourMode />
         <button
           type="button"
           className="app-search"

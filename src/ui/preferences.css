@@ -51,7 +51,8 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
-  color: var(--color-text);
+  font-weight: 600;
+  color: var(--color-text-muted);
 }
 
 .pref .segmented {

@@ -4,13 +4,11 @@ import {
   MAX_IMAGE_CHARS,
   MAX_IMAGE_SIDE,
   MAX_EDGE_STICKERS,
-  type ConnectorStyle,
   type EdgeData,
   type Density,
   type Flow,
   type Filter,
   type FilterQuery,
-  type FontSize,
   type Look,
   type MapPrefs,
   type PlanningConfig,
@@ -21,7 +19,6 @@ import {
   type TopicExtras,
   type TopicImage,
   type TopicProps,
-  type Voice,
 } from './types';
 
 export type Fail = (message: string) => void;
@@ -29,9 +26,6 @@ export type Fail = (message: string) => void;
 const FLOWS: readonly Flow[] = ['right', 'down'];
 const DENSITIES: readonly Density[] = ['compact', 'comfortable', 'airy'];
 const LOOKS: readonly Look[] = ['minimal', 'contrast', 'playful'];
-const FONT_SIZES: readonly FontSize[] = ['small', 'medium', 'large'];
-const VOICES: readonly Voice[] = ['clean', 'editorial', 'mono', 'sketch'];
-const CONNECTORS: readonly ConnectorStyle[] = ['curved', 'elbow', 'straight', 'tapered'];
 const CHIPS: readonly MapPrefs['chips'][] = ['off', 'compact', 'full'];
 const CATEGORIES: readonly StatusCategory[] = ['todo', 'active', 'complete', 'canceled'];
 
@@ -92,9 +86,6 @@ export function readPrefs(raw: unknown, base: MapPrefs, fail: Fail): MapPrefs {
   pick('flow', FLOWS);
   pick('density', DENSITIES);
   pick('look', LOOKS);
-  pick('voice', VOICES);
-  pick('fontSize', FONT_SIZES);
-  pick('connector', CONNECTORS);
   pick('chips', CHIPS);
   if (raw['showLevels'] !== undefined) {
     if (typeof raw['showLevels'] === 'boolean') prefs.showLevels = raw['showLevels'];

@@ -23,24 +23,34 @@ test('Preferences changes the Look and the map redraws', async ({ page }) => {
   await expect(page.locator('.topic[data-level="1"]').first()).toBeVisible();
 });
 
-test('the Font choice changes the map text and sizes topics again', async ({ page }) => {
+test('each theme brings its own font', async ({ page }) => {
   await page.goto('/?demo=20');
   const first = page.locator('.topic[data-depth="1"] .topic-box').first();
-  const before = await first.getAttribute('width');
-  const dialog = await openPrefs(page);
-  await dialog.getByRole('group', { name: 'Font' }).getByRole('button', { name: 'Mono' }).click();
-  await expect(html(page)).toHaveAttribute('data-voice', 'mono');
-  await expect.poll(() => first.getAttribute('width')).not.toBe(before);
+  const widths: Record<string, string | null> = {};
+  for (const [theme, voice] of [
+    ['Minimal', 'clean'],
+    ['High contrast', 'editorial'],
+    ['Playful', 'sketch'],
+  ] as const) {
+    const dialog = await openPrefs(page);
+    await dialog.getByRole('group', { name: 'Theme' }).getByRole('button', { name: theme }).click();
+    await expect(html(page)).toHaveAttribute('data-voice', voice);
+    await page.keyboard.press('Escape');
+    await expect.poll(() => first.getAttribute('width')).not.toBeNull();
+    widths[theme] = await first.getAttribute('width');
+  }
+  // Topics are sized to their font, so the three themes do not all draw the same box.
+  expect(new Set(Object.values(widths)).size).toBeGreaterThan(1);
 });
 
-test('connector styles can be switched', async ({ page }) => {
-  await page.goto('/?demo=20');
+test('Settings offers a theme only, not its font, size, lines or motion', async ({ page }) => {
+  await page.goto('/?demo=10');
   const dialog = await openPrefs(page);
-  await dialog
-    .getByRole('group', { name: 'Connectors' })
-    .getByRole('button', { name: 'Tapered' })
-    .click();
-  await expect(page.locator('.connector[data-style="tapered"]').first()).toBeAttached();
+  await expect(dialog.getByRole('group', { name: 'Theme' })).toBeVisible();
+  for (const name of ['Font', 'Font size', 'Connectors', 'Motion', 'Colour mode']) {
+    await expect(dialog.getByRole('group', { name })).toHaveCount(0);
+  }
+  await expect(dialog.getByRole('switch', { name: 'Level colours' })).toHaveCount(0);
 });
 
 test('the Look follows Auto mode and the map', async ({ page }) => {
@@ -72,27 +82,38 @@ for (const look of ['Minimal', 'High contrast', 'Playful']) {
   }
 }
 
-// Every Look, Mode and Voice together: the map must stay free of accessibility violations.
-for (const look of ['Minimal', 'High contrast', 'Playful']) {
-  for (const voice of ['Clean', 'Editorial', 'Mono', 'Sketch']) {
-    for (const scheme of ['light', 'dark'] as const) {
-      test(`${look} + ${voice} (${scheme}) renders without violations`, async ({ page }) => {
-        await page.emulateMedia({ colorScheme: scheme });
-        await page.goto('/?demo=20');
-        const dialog = await openPrefs(page);
-        await dialog
-          .getByRole('group', { name: 'Theme' })
-          .getByRole('button', { name: look })
-          .click();
-        await dialog
-          .getByRole('group', { name: 'Font' })
-          .getByRole('button', { name: voice })
-          .click();
-        await page.keyboard.press('Escape');
-        await expect(page.getByRole('dialog')).toHaveCount(0);
-        const results = await new AxeBuilder({ page }).analyze();
-        expect(results.violations).toEqual([]);
-      });
-    }
-  }
-}
+test('in Playful the selected topic uses the interactive colour, not its level colour', async ({
+  page,
+}) => {
+  await page.goto('/?demo=14');
+  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.getByRole('group', { name: 'Theme' }).getByRole('button', { name: 'Playful' }).click();
+  await page.getByRole('button', { name: 'Close panel' }).click();
+  const accent = await page.evaluate(() => {
+    const probe = document.createElement('i');
+    probe.style.color = 'var(--color-accent)';
+    document.body.append(probe);
+    const colour = getComputedStyle(probe).color;
+    probe.remove();
+    return colour;
+  });
+  const picked = page.locator('.topic[data-depth="2"]').first();
+  const other = page.locator('.topic[data-depth="2"]').nth(1);
+  const read = (topic: typeof picked) =>
+    topic.evaluate((el) => ({
+      ring: el.querySelector('.topic-ring')
+        ? getComputedStyle(el.querySelector('.topic-ring') as Element).stroke
+        : null,
+      text: getComputedStyle(el.querySelector('.topic-text') as Element).fill,
+      face: getComputedStyle(el.querySelector('.sticker-face') as Element).fill,
+    }));
+  const before = await read(picked);
+  await picked.click();
+  const after = await read(picked);
+  expect(after.ring).toBe(accent);
+  expect(after.text).toBe(accent);
+  expect(after.face).not.toBe(before.face);
+  expect(before.text).not.toBe(accent);
+  // A topic that is not picked keeps its level colour.
+  expect((await read(other)).text).not.toBe(accent);
+});
