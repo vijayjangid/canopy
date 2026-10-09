@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Build and deploy
 
 on:
   push:
@@ -31,8 +31,10 @@ jobs:
         with:
           path: dist
 
+  # Run by hand once GitHub Pages is available for this repository.
   deploy:
     needs: build
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
