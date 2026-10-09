@@ -24,6 +24,13 @@
   caret-color: var(--color-core-text);
 }
 
+/* In Playful the topic being edited is a selected sticker, whose text is the interactive colour. The
+   editor sits outside the topic, so it sets that colour itself, Core included. */
+:root[data-look='playful'] .title-editor {
+  color: var(--color-accent);
+  caret-color: var(--color-accent);
+}
+
 .title-editor::placeholder {
   color: var(--color-text-muted);
 }

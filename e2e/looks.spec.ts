@@ -117,3 +117,29 @@ test('in Playful the selected topic uses the interactive colour, not its level c
   // A topic that is not picked keeps its level colour.
   expect((await read(other)).text).not.toBe(accent);
 });
+
+test('in Playful the title editor text matches the selected sticker, Core included', async ({
+  page,
+}) => {
+  await page.goto('/?demo=14');
+  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.getByRole('group', { name: 'Theme' }).getByRole('button', { name: 'Playful' }).click();
+  await page.getByRole('button', { name: 'Close panel' }).click();
+  const accent = await page.evaluate(() => {
+    const probe = document.createElement('i');
+    probe.style.color = 'var(--color-accent)';
+    document.body.append(probe);
+    const colour = getComputedStyle(probe).color;
+    probe.remove();
+    return colour;
+  });
+  for (const depth of [0, 1]) {
+    await page.locator(`.topic[data-depth="${depth}"]`).first().click();
+    await page.keyboard.press('Space');
+    const editor = page.locator('.title-editor');
+    await expect(editor).toBeFocused();
+    await expect(editor).toHaveCSS('color', accent);
+    await expect(editor).toHaveCSS('caret-color', accent);
+    await page.keyboard.press('Escape');
+  }
+});
