@@ -57,8 +57,8 @@ export type IconName =
   | 'redo'
   | 'zoom-in'
   | 'zoom-out'
-  | 'fit'
   | 'keyboard'
+  | 'info'
   | 'zen';
 
 const PATHS: Record<IconName, ReactNode> = {
@@ -86,6 +86,12 @@ const PATHS: Record<IconName, ReactNode> = {
   ),
   properties: <path d="M2.5 4h11M2.5 8h11M2.5 12h7" />,
   note: <path d="M4 2h5.5L13 5.5V14H4zM9 2v4h4M6 8.5h5M6 11h5" />,
+  info: (
+    <>
+      <circle cx="8" cy="8" r="6" />
+      <path d="M8 7.3v3.4M8 5.1v.1" />
+    </>
+  ),
   files: <path d="M11.5 7 7 11.5a2.4 2.4 0 0 1-3.4-3.4l5.3-5.3a1.6 1.6 0 0 1 2.3 2.3L6.2 10.2" />,
   link: (
     <path d="M6.5 10.5 4.8 12.2a2.3 2.3 0 0 1-3.2-3.2l3-3a2.3 2.3 0 0 1 3.2 0M9.5 5.5l1.7-1.7a2.3 2.3 0 0 1 3.2 3.2l-3 3a2.3 2.3 0 0 1-3.2 0M5.5 8.5h5" />
@@ -226,9 +232,6 @@ const PATHS: Record<IconName, ReactNode> = {
       <circle cx="7" cy="7" r="4.5" />
       <path d="M10.5 10.5 14 14M5.5 7h3" />
     </>
-  ),
-  fit: (
-    <path d="M2.5 6V3.5a1 1 0 0 1 1-1H6M10 2.5h2.5a1 1 0 0 1 1 1V6M13.5 10v2.5a1 1 0 0 1-1 1H10M6 13.5H3.5a1 1 0 0 1-1-1V10" />
   ),
   zen: <path d="M11.6 3.9A5.5 5.5 0 1 0 13.5 8.6" />,
   keyboard: (

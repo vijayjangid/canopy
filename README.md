@@ -40,7 +40,7 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 
 ### 🌱 Grow ideas at the speed of thought
 
-- **Growth handles** appear on hover with a **ghost preview** of exactly where the new topic will land. Click to add, or drag to drop with a magnetic snap.
+- **Growth handles** appear on hover. Click to add, or drag to drop with a magnetic snap and a **ghost preview** of exactly where the new topic will land. Turn on **Preview on hover** in Settings to see the ghost while merely pointing at a `+` (off by default).
 - `Tab` adds a sub-topic, `Enter` a peer, `W` inserts a topic **between** a topic and its parent. No dragging needed.
 - **Text expansion:** type `!!Research>Interviews>Synthesis` for a chain, or `!!A, B, C` for peers. One undo puts the text back.
 - **Paste an outline** (indented text or Markdown bullets) onto any topic and it unfurls into a branch.
@@ -51,20 +51,20 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 - **Trail** highlights (or isolates) the path from the focused topic up to the Core, with a clickable breadcrumb and **Copy path**.
 - **Branch view** (`[`) shows only one branch and collapses everything above it into a single dotted node.
 - **References** link one topic to another existing topic without duplicating its branch; dashed arrows distinguish references from parent-child lines. Drag from the link handle above a selected topic onto any topic to connect them, or click the handle (or press `X`) to search by name or path. Click an arrow to show its delete icon, or right-click it to go to, change or remove the reference.
-- **Find a topic** with `⌘F` by title or path. Choose **Advanced filters** for status, tags, dates and stickers.
+- **Search** (`⌘F`, `⌘K`, `F` or `/`) is one box for topics, commands and filters. Type to find a topic by title or path, run a command, or filter the map by status, tag, sticker or due date. Empty, it shows quick filters, your recent searches and common commands.
 - **Fold** with `]`, fold the whole map to **Level N** with `1`–`9`, and peek inside a folded branch from its badge.
 - **Zen** (`Z`) hides every panel until you press `Esc` or click **Exit Zen**, which sits in the bottom left where the toolbar was. **Auto-pan** keeps the topic you are working on in view.
 - **Zoomed out, topics become icons** so the map stays readable at a glance: a house for the Core, a **T** for text-only topics, the status mark for topics with a status, a picture mark for pictures, a page for notes, and small dots for tags and due dates.
-- A **Command Palette** (`⌘K`) searches every action, shows its shortcut, and covers settings too.
+- The same search runs **every action**, shows its shortcut, and covers settings too.
 
 <table>
   <tr>
     <td width="50%"><img src="docs/screenshots/inspector.png" alt="Selecting a topic highlights its trail to the Core and opens the inspector with status, due date, tags and stickers" /></td>
-    <td width="50%"><img src="docs/screenshots/palette.png" alt="The command palette listing create and edit actions with their shortcuts" /></td>
+    <td width="50%"><img src="docs/screenshots/palette.png" alt="The search dialog with quick filters and common commands" /></td>
   </tr>
   <tr>
     <td align="center"><sub><b>Trail and Inspector</b>: follow the path to the Core while you edit properties.</sub></td>
-    <td align="center"><sub><b>Command Palette</b> (<code>⌘K</code>): 64 commands, each with its shortcut.</sub></td>
+    <td align="center"><sub><b>Search</b> (<code>⌘F</code>): quick filters, recent searches and common commands.</sub></td>
   </tr>
 </table>
 
@@ -147,17 +147,17 @@ The top topic can also split its branches onto **both sides**, and the layout tr
 
 Press `?` in the app for the searchable cheat sheet. A hint strip at the bottom always shows what applies to your selection.
 
-| Action                       | Keys               | Action                   | Keys                  |
-| ---------------------------- | ------------------ | ------------------------ | --------------------- |
-| Add sub-topic / peer         | `Tab` / `Enter`    | Command palette          | `⌘K`                  |
-| Insert between levels        | `W` / `Shift+W`    | Export                   | `⌘E`                  |
-| Edit / finish editing        | `Space` / `⌘Enter` | Settings                 | `⌘,`                  |
-| Fold / Branch view           | `]` / `[`          | Find a topic             | `⌘F`                  |
-| Advanced filters             | `F` or `/`         | Reference another topic  | `X`                   |
-| Fold to Level N / unfold all | `1`–`9` / `0`      | Trail on or off          | `R`                   |
-| Status / Due / Tag           | `T` / `D` / `G`    | Zen                      | `Z`                   |
-| Note / Sticker / Line label  | `N` / `S` / `L`    | Select / Pan / Zoom tool | `V` / `H` / `Shift+Z` |
-| Duplicate / Delete topic     | `⌘D` / `Del`       | Undo / Redo              | `⌘Z` / `⌘⇧Z`          |
+| Action                       | Keys               | Action                    | Keys                  |
+| ---------------------------- | ------------------ | ------------------------- | --------------------- |
+| Add sub-topic / peer         | `Tab` / `Enter`    | Search and commands       | `⌘F` or `⌘K`          |
+| Insert between levels        | `W` / `Shift+W`    | Export                    | `⌘E`                  |
+| Edit / finish editing        | `Space` / `⌘Enter` | Settings                  | `⌘,`                  |
+| Fold / Branch view           | `]` / `[`          | Search topics and filters | `F` or `/`            |
+| Reference another topic      | `X`                |                           |                       |
+| Fold to Level N / unfold all | `1`–`9` / `0`      | Trail on or off           | `R`                   |
+| Status / Due / Tag           | `T` / `D` / `G`    | Zen                       | `Z`                   |
+| Note / Sticker / Line label  | `N` / `S` / `L`    | Select / Pan / Zoom tool  | `V` / `H` / `Shift+Z` |
+| Duplicate / Delete topic     | `⌘D` / `Del`       | Undo / Redo               | `⌘Z` / `⌘⇧Z`          |
 
 <br />
 
@@ -204,7 +204,7 @@ Canopy renders its own canvas instead of using a diagramming library, so layout,
 | Layout      | `src/layout`                | Tidy-tree layout for variable-size topics, connectors, and the compact A4 packer.                |
 | Canvas      | `src/canvas`                | Pan and zoom, culling, drag and drop, Growth Handles, layout animator.                           |
 | Editor      | `src/editor`                | Commands, keyboard, clipboard and one shortcut registry that also builds the cheat sheet.        |
-| Interface   | `src/ui`                    | Panels, inspector, filters, export dialog, command palette.                                      |
+| Interface   | `src/ui`                    | Panels, inspector, search, export dialog.                                                        |
 | Export      | `src/io`                    | SVG built straight from the layout, PNG rasteriser, print, Markdown and CSV writers.             |
 | Persistence | `src/persistence`           | Autosave to IndexedDB (Dexie) and `.canopy.json` files.                                          |
 | Theme       | `src/theme`, `src/stickers` | Look and Voice tokens and the original sticker artwork.                                          |

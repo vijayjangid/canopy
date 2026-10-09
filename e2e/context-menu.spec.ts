@@ -50,7 +50,7 @@ test('right-clicking empty canvas offers map actions', async ({ page }) => {
   await page.mouse.click(1240, 90, { button: 'right' });
   const menu = page.getByRole('menu', { name: 'Map actions' });
   await expect(menu).toBeVisible();
-  await expect(menu.getByRole('menuitem', { name: /^Fit to screen/ })).toBeVisible();
+  await expect(menu.getByRole('menuitem', { name: /^Unfold everything/ })).toBeVisible();
   await menu.getByRole('menuitem', { name: /^Keyboard shortcuts/ }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
 });

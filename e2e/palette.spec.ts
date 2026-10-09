@@ -6,9 +6,9 @@ test('opens with the shortcut, filters as you type, and runs the command', async
   const map = page.getByRole('tree', { name: 'Mind map' });
   await map.focus();
   await page.keyboard.press('ControlOrMeta+k');
-  const dialog = page.getByRole('dialog', { name: 'Command palette' });
+  const dialog = page.getByRole('dialog', { name: 'Search' });
   await expect(dialog).toBeVisible();
-  await expect(page.getByRole('combobox', { name: 'Type a command' })).toBeFocused();
+  await expect(page.getByRole('combobox', { name: /^Search topics, commands/ })).toBeFocused();
 
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
@@ -32,17 +32,24 @@ test('moves through results with arrows and runs a map preference', async ({ pag
   await expect(page.locator('html')).not.toHaveAttribute('data-look', 'minimal');
 });
 
-test('shows the key for a command and remembers recent ones', async ({ page }) => {
+test('shows the key for a command and lists the common commands when empty', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('tree', { name: 'Mind map' }).focus();
   await page.keyboard.press('ControlOrMeta+k');
-  await page.keyboard.type('fit');
-  await expect(page.getByRole('option', { name: /Fit to screen/ }).locator('kbd')).toHaveCount(1);
+  await page.keyboard.type('unfold');
+  await expect(page.getByRole('option', { name: /Unfold everything/ }).locator('kbd')).toHaveCount(
+    1,
+  );
   await page.keyboard.press('Enter');
   await page.keyboard.press('ControlOrMeta+k');
-  await expect(page.getByRole('option').first()).toContainText('Fit to screen');
-  // Used commands lead, under their own heading.
-  await expect(page.locator('.palette-group').first()).toHaveText('Recent');
+  // With nothing typed, the common commands are listed: sub-topic, peer, unfold all and the other layout.
+  const options = page.getByRole('option');
+  await expect(options).toHaveCount(4);
+  await expect(options.nth(0)).toContainText('Add sub-topic');
+  await expect(options.nth(1)).toContainText('Add peer below');
+  await expect(options.nth(2)).toContainText('Unfold everything');
+  await expect(options.nth(3)).toContainText('Layout: Down');
+  await expect(page.locator('.palette-group').first()).toHaveText('Common commands');
 
   // Searching shows each result's group as a subtitle.
   await page.keyboard.type('zoom in');
@@ -56,4 +63,30 @@ test('Escape closes the palette and returns to the map', async ({ page }) => {
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.getByRole('tree', { name: 'Mind map' })).toBeFocused();
+});
+
+test('Unfold everything from the search also fits the whole map in view', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/?demo=40');
+  const tree = page.getByRole('tree', { name: 'Mind map' });
+  await tree.focus();
+  await page.keyboard.press('1');
+  await page.waitForTimeout(500);
+  const folded = await page.locator('.topic').count();
+
+  await page.keyboard.press('ControlOrMeta+k');
+  await page.getByRole('option', { name: /Unfold everything/ }).click();
+  await expect.poll(() => page.locator('.topic').count()).toBeGreaterThan(folded);
+  // Every topic ends up inside the window.
+  await expect
+    .poll(async () =>
+      page.locator('.topic').evaluateAll((nodes) => {
+        const view = { w: window.innerWidth, h: window.innerHeight };
+        return nodes.every((n) => {
+          const r = n.getBoundingClientRect();
+          return r.left >= 0 && r.top >= 0 && r.right <= view.w && r.bottom <= view.h;
+        });
+      }),
+    )
+    .toBe(true);
 });

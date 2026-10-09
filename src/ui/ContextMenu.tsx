@@ -252,11 +252,10 @@ function canvasEntries(): Entry[] {
     ...(focus === doc.coreId || uiStore.getState().focusBranch
       ? []
       : [cmd('Fold everything above', 'view.focusBranch', 'collapse')]),
-    cmd('Fit to screen', 'view.fit', 'fit'),
     cmd('Unfold everything', 'view.unfoldAll', 'braces'),
 
     head('More'),
-    cmd('Advanced filters…', 'filter.open', 'filter'),
+    cmd('Search and filter…', 'filter.open', 'filter'),
     cmd('Export…', 'export.open', 'export'),
     cmd('Keyboard shortcuts', 'help.shortcuts', 'keyboard'),
   ];

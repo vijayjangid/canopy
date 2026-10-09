@@ -92,7 +92,7 @@ export function hintsFor(context: HintContext, mac?: boolean): Hint[] {
   }
   if (context.focusIsCore) {
     return fromCommands(
-      ['topic.addChild', 'topic.edit', 'note.open', 'stickers.open', 'view.fit'],
+      ['topic.addChild', 'topic.edit', 'note.open', 'stickers.open', 'view.unfoldAll'],
       mac,
     );
   }

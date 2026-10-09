@@ -106,75 +106,71 @@ export function connectorPath(
 
 /** Gap between a reference arrow's tip and the topic it points at, so the tip is never hidden. */
 const REFERENCE_TIP_GAP = 4;
-/** How far a loop between topics in one column or row swings out past them. */
+/** How far a loop between topics in one row or column swings out past them. */
 const REFERENCE_LOOP = 56;
 
+type Point = { x: number; y: number };
+
+const transpose = (b: Box): Box => ({ x: b.y, y: b.x, w: b.h, h: b.w });
+const swap = (p: Point): Point => ({ x: p.y, y: p.x });
+
 /**
- * A curved, non-hierarchical link from the middle of one side of `source` to the middle of the
- * facing side of `target`, and the point halfway along it. The sides are picked by which way the
- * target lies, comparing distance with the size of the boxes so wide topics still pick well.
- * Topics lined up across the Flow (stacked in Right, side by side in Down) get a loop out of the
- * side, so the arrow does not run over the topics between them.
+ * The geometry for a Right flow, where the hierarchy uses the left and right sides of a topic and
+ * the reference uses the middle of its free top or bottom side. A Down flow is this, transposed.
+ */
+function referenceRight(source: Box, target: Box): { p1: Point; c1: Point; c2: Point; p2: Point } {
+  const sourceMid = source.x + source.w / 2;
+  const targetMid = target.x + target.w / 2;
+  const below = target.y >= source.y + source.h;
+  const above = target.y + target.h <= source.y;
+
+  if (!below && !above) {
+    // Level with each other: leave and arrive by the bottom sides, dipping below both.
+    const edge = Math.max(source.y + source.h, target.y + target.h);
+    return {
+      p1: { x: sourceMid, y: source.y + source.h },
+      c1: { x: sourceMid, y: edge + REFERENCE_LOOP },
+      c2: { x: targetMid, y: edge + REFERENCE_LOOP },
+      p2: { x: targetMid, y: target.y + target.h + REFERENCE_TIP_GAP },
+    };
+  }
+
+  const s = below ? 1 : -1;
+  const p1 = { x: sourceMid, y: below ? source.y + source.h : source.y };
+  const p2 = { x: targetMid, y: (below ? target.y : target.y + target.h) - s * REFERENCE_TIP_GAP };
+  const k = Math.max(32, Math.abs(p2.y - p1.y) / 2);
+  // Stacked in one column: bow out to the right, so the arrow does not run over the topics between.
+  const stacked = source.x < target.x + target.w && target.x < source.x + source.w;
+  const bow = stacked ? Math.max(source.w, target.w) / 2 + REFERENCE_LOOP / 2 : 0;
+  return {
+    p1,
+    c1: { x: p1.x + bow, y: p1.y + s * k },
+    c2: { x: p2.x + bow, y: p2.y - s * k },
+    p2,
+  };
+}
+
+/**
+ * A curved, non-hierarchical link from the middle of the free side of `source` to the middle of
+ * the free side of `target`, and the point halfway along it. Those are the sides the connectors
+ * leave alone: top and bottom in a Right flow, left and right in a Down flow.
  */
 export function referenceGeometry(
   source: Box,
   target: Box,
   flow: Flow = 'right',
-): { d: string; mid: { x: number; y: number } } {
-  const dx = target.x + target.w / 2 - (source.x + source.w / 2);
-  const dy = target.y + target.h / 2 - (source.y + source.h / 2);
-  const horizontal =
-    Math.abs(dx) / ((source.w + target.w) / 2) >= Math.abs(dy) / ((source.h + target.h) / 2);
-
-  let x1: number;
-  let y1: number;
-  let x2: number;
-  let y2: number;
-  let c1: { x: number; y: number };
-  let c2: { x: number; y: number };
-  const alignedColumn = source.x < target.x + target.w && target.x < source.x + source.w;
-  const alignedRow = source.y < target.y + target.h && target.y < source.y + source.h;
-  if (flow === 'right' && !horizontal && alignedColumn) {
-    // Stacked topics: loop out of the right side so the arrow does not cross topics in between.
-    const edge = Math.max(source.x + source.w, target.x + target.w);
-    x1 = source.x + source.w;
-    y1 = source.y + source.h / 2;
-    x2 = target.x + target.w + REFERENCE_TIP_GAP;
-    y2 = target.y + target.h / 2;
-    c1 = { x: edge + REFERENCE_LOOP, y: y1 };
-    c2 = { x: edge + REFERENCE_LOOP, y: y2 };
-  } else if (flow === 'down' && horizontal && alignedRow) {
-    // Side by side in one row: loop out of the bottom.
-    const edge = Math.max(source.y + source.h, target.y + target.h);
-    x1 = source.x + source.w / 2;
-    y1 = source.y + source.h;
-    x2 = target.x + target.w / 2;
-    y2 = target.y + target.h + REFERENCE_TIP_GAP;
-    c1 = { x: x1, y: edge + REFERENCE_LOOP };
-    c2 = { x: x2, y: edge + REFERENCE_LOOP };
-  } else if (horizontal) {
-    const s = dx >= 0 ? 1 : -1;
-    x1 = s > 0 ? source.x + source.w : source.x;
-    y1 = source.y + source.h / 2;
-    x2 = (s > 0 ? target.x : target.x + target.w) - s * REFERENCE_TIP_GAP;
-    y2 = target.y + target.h / 2;
-    const k = Math.max(32, Math.abs(x2 - x1) / 2);
-    c1 = { x: x1 + s * k, y: y1 };
-    c2 = { x: x2 - s * k, y: y2 };
-  } else {
-    const s = dy >= 0 ? 1 : -1;
-    x1 = source.x + source.w / 2;
-    y1 = s > 0 ? source.y + source.h : source.y;
-    x2 = target.x + target.w / 2;
-    y2 = (s > 0 ? target.y : target.y + target.h) - s * REFERENCE_TIP_GAP;
-    const k = Math.max(32, Math.abs(y2 - y1) / 2);
-    c1 = { x: x1, y: y1 + s * k };
-    c2 = { x: x2, y: y2 - s * k };
-  }
+): { d: string; mid: Point } {
+  const down = flow === 'down';
+  const g = down
+    ? referenceRight(transpose(source), transpose(target))
+    : referenceRight(source, target);
+  const [p1, c1, c2, p2] = down
+    ? [swap(g.p1), swap(g.c1), swap(g.c2), swap(g.p2)]
+    : [g.p1, g.c1, g.c2, g.p2];
   return {
-    d: `M${f(x1)} ${f(y1)}C${f(c1.x)} ${f(c1.y)} ${f(c2.x)} ${f(c2.y)} ${f(x2)} ${f(y2)}`,
+    d: `M${f(p1.x)} ${f(p1.y)}C${f(c1.x)} ${f(c1.y)} ${f(c2.x)} ${f(c2.y)} ${f(p2.x)} ${f(p2.y)}`,
     // Middle of a cubic curve.
-    mid: { x: (x1 + 3 * c1.x + 3 * c2.x + x2) / 8, y: (y1 + 3 * c1.y + 3 * c2.y + y2) / 8 },
+    mid: { x: (p1.x + 3 * c1.x + 3 * c2.x + p2.x) / 8, y: (p1.y + 3 * c1.y + 3 * c2.y + p2.y) / 8 },
   };
 }
 

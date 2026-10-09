@@ -1,13 +1,5 @@
-import { useEffect, useMemo, useRef, type KeyboardEvent } from 'react';
+import { type KeyboardEvent } from 'react';
 import { focusCanvas } from '../canvas/layoutState';
-import { StatusIcon } from '../canvas/Chips';
-import { readExportTheme } from '../io/exportTheme';
-import { planningOf, usedStickers } from '../model';
-import { StickerArt } from '../stickers/art';
-import { STICKERS } from '../stickers/catalog';
-import { useThemeVersion } from '../theme';
-import { useCanopy } from '../store';
-import { DateFilter } from './DateFilter';
 import { ExportBody } from './ExportDialog';
 import { Icon, type IconName } from './icons';
 import { jumpFilter } from './filterNav';
@@ -16,12 +8,10 @@ import { TagsPanel } from './TagsPanel';
 import { AppearanceBody } from './Preferences';
 import {
   closeLeft,
+  openDialog,
   openLeft,
   setFilter,
   setFilterMode,
-  setFilterText,
-  toggleFilterChoice,
-  toggleFilterDue,
   useUi,
   type LeftTab,
 } from './uiStore';
@@ -29,183 +19,11 @@ import './panels.css';
 
 const TABS: Array<{ id: LeftTab; label: string; icon: IconName }> = [
   { id: 'settings', label: 'Settings', icon: 'settings' },
-  { id: 'filter', label: 'Filter', icon: 'filter' },
   { id: 'tags', label: 'Tags', icon: 'tag' },
   { id: 'export', label: 'Export', icon: 'export' },
 ];
 
-function ChoiceList({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <section className="filter-group">
-      <h3>{label}</h3>
-      <ul className="filter-list" aria-label={label}>
-        {children}
-      </ul>
-    </section>
-  );
-}
-
-function Choice({
-  on,
-  onClick,
-  children,
-}: {
-  on: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <li>
-      <button type="button" aria-pressed={on} onClick={onClick}>
-        {children}
-      </button>
-    </li>
-  );
-}
-
-function FilterBody() {
-  const plan = useCanopy((s) => planningOf(s.doc));
-  const doc = useCanopy((s) => s.doc);
-  const used = useMemo(() => usedStickers(doc), [doc]);
-  const active = useActiveFilter();
-  const sel = useUi((s) => s.filterSel);
-  const mode = useUi((s) => s.filterMode);
-  const count = active?.result.ordered.length ?? 0;
-  const themeVersion = useThemeVersion();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const theme = useMemo(() => readExportTheme(), [themeVersion]);
-  const nudge = useUi((s) => s.searchNudge);
-  const search = useRef<HTMLInputElement>(null);
-
-  // Asking to search puts the cursor in the box.
-  useEffect(() => {
-    if (nudge > 0) search.current?.focus();
-  }, [nudge]);
-
-  return (
-    <div className="filter-panel">
-      <div className="filter-search">
-        <Icon name="search" />
-        <input
-          ref={search}
-          type="search"
-          aria-label="Search topics and lines"
-          placeholder="Search topics and lines"
-          spellCheck={false}
-          value={sel.text}
-          onChange={(e) => setFilterText(e.target.value)}
-          onKeyDown={(e) => {
-            // Escape empties the box first, and only then closes the panel.
-            if (e.key === 'Escape' && sel.text) {
-              e.preventDefault();
-              setFilterText('');
-            }
-          }}
-        />
-      </div>
-      <p className="pref-hint">Search, or tick options. Each group you use narrows the result.</p>
-      <ChoiceList label="Due date">
-        <Choice on={sel.due === 'overdue'} onClick={() => toggleFilterDue('overdue')}>
-          Overdue
-        </Choice>
-        <Choice on={sel.due === 'week'} onClick={() => toggleFilterDue('week')}>
-          Due this week
-        </Choice>
-        <Choice on={sel.due === 'range'} onClick={() => toggleFilterDue('range')}>
-          Date range
-        </Choice>
-      </ChoiceList>
-      {sel.due === 'range' && <DateFilter />}
-      <ChoiceList label="Status">
-        {plan.statusSet.map((s) => (
-          <Choice
-            key={s.key}
-            on={sel.status.includes(s.key)}
-            onClick={() => toggleFilterChoice('status', s.key)}
-          >
-            <StatusIcon def={s} theme={theme} />
-            {s.label}
-          </Choice>
-        ))}
-      </ChoiceList>
-      {plan.tags.length > 0 && (
-        <ChoiceList label="Tags">
-          {plan.tags.map((t) => (
-            <Choice
-              key={t.key}
-              on={sel.tags.includes(t.key)}
-              onClick={() => toggleFilterChoice('tags', t.key)}
-            >
-              <span
-                className="tag-dot"
-                aria-hidden="true"
-                style={{ ['--tag-color' as string]: t.color }}
-              />
-              {t.label}
-            </Choice>
-          ))}
-        </ChoiceList>
-      )}
-      {used.size > 0 && (
-        <ChoiceList label="Stickers">
-          {STICKERS.filter((s) => used.has(s.key)).map((s) => (
-            <Choice
-              key={s.key}
-              on={sel.stickers.includes(s.key)}
-              onClick={() => toggleFilterChoice('stickers', s.key)}
-            >
-              <svg className="filter-sticker" viewBox="-2 -2 36 38" aria-hidden="true">
-                <StickerArt name={s.key} />
-              </svg>
-              {s.name}
-            </Choice>
-          ))}
-        </ChoiceList>
-      )}
-      {active && (
-        <>
-          <div className="pref">
-            <span className="pref-label">Show matches</span>
-            <div className="segmented" role="group" aria-label="How the Filter shows matches">
-              <button
-                type="button"
-                aria-pressed={mode === 'dim'}
-                onClick={() => setFilterMode('dim')}
-              >
-                Highlight
-              </button>
-              <button
-                type="button"
-                aria-pressed={mode === 'isolate'}
-                onClick={() => setFilterMode('isolate')}
-              >
-                Hide the rest
-              </button>
-            </div>
-          </div>
-          <p className="filter-count" role="status" data-state={count === 0 ? 'empty' : 'found'}>
-            {count === 0
-              ? 'Nothing matches. Try fewer choices.'
-              : `${count} ${count === 1 ? 'match' : 'matches'}`}
-          </p>
-          <div className="filter-actions">
-            <button type="button" onClick={() => jumpFilter(-1)} disabled={count === 0}>
-              Previous
-            </button>
-            <button type="button" onClick={() => jumpFilter(1)} disabled={count === 0}>
-              Next
-            </button>
-            <button type="button" onClick={() => setFilter(null)}>
-              Clear
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-/** The map panel on the left: appearance, filter, tags and export. */
+/** The map panel on the left: settings, tags and export. */
 export function LeftPanel() {
   const open = useUi((s) => s.leftOpen);
   const tab = useUi((s) => s.leftTab);
@@ -295,7 +113,6 @@ export function LeftPanel() {
       >
         <h2 className="panel-title sr-only">{current?.label}</h2>
         {tab === 'settings' && <AppearanceBody />}
-        {tab === 'filter' && <FilterBody />}
         {tab === 'tags' && <TagsPanel />}
         {tab === 'export' && <ExportBody />}
       </div>
@@ -311,7 +128,7 @@ export function FilterPill() {
   const count = active.result.ordered.length;
   return (
     <div className="filter-control" role="group" aria-label="Filter">
-      <button type="button" onClick={() => openLeft('filter')} data-tip="Filter settings">
+      <button type="button" onClick={() => openDialog('palette')} data-tip="Change the Filter">
         <Icon name="filter" />
         <span>
           Filter: {active.filter.name} ·{' '}
@@ -332,6 +149,22 @@ export function FilterPill() {
           Isolate
         </button>
       </div>
+      <button
+        type="button"
+        aria-label="Previous match"
+        onClick={() => jumpFilter(-1)}
+        disabled={count === 0}
+      >
+        <Icon name="chevron-left" />
+      </button>
+      <button
+        type="button"
+        aria-label="Next match"
+        onClick={() => jumpFilter(1)}
+        disabled={count === 0}
+      >
+        <Icon name="chevron-right" />
+      </button>
       <button type="button" aria-label="Turn the Filter off" onClick={() => setFilter(null)}>
         ×
       </button>

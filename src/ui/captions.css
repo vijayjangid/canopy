@@ -1,0 +1,20 @@
+/* Captions: the small all-caps headings that start a group, in the panels, menus and dialogs.
+   One rule, so they cannot drift apart. Layout (margins, padding) stays with each component. */
+
+.palette-group,
+.search-body h3,
+.quick-filters .filter-group h3,
+.context-heading,
+.prefs h3,
+.dialog-body h3,
+.cheat-sheet h3,
+.menu-heading,
+.export-label,
+.filter-group h3 {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--color-text-muted) 88%, var(--color-surface));
+  text-transform: uppercase;
+}

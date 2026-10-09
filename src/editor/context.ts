@@ -14,8 +14,6 @@ import {
   pointAtEdge,
   startEdgeEdit,
   startImageAltEdit,
-  focusFilterSearch,
-  openLeft,
   openTopicSearch,
   setFilter,
   setFocusBranch,
@@ -100,12 +98,7 @@ export const appContext: CommandContext = {
           ?.focus(),
       );
     },
-    searchFilter: focusFilterSearch,
     topicSearch: (sourceId) => openTopicSearch(sourceId ?? null),
-    advancedFilters: () => {
-      openLeft('filter');
-      focusFilterSearch();
-    },
     unfoldParents: () => setFocusBranch(null),
     filter: (action) => {
       if (action === 'off') setFilter(null);

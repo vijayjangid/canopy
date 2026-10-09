@@ -41,7 +41,7 @@ test('the details panel closes with its button, Escape, and the i key', async ({
   await expect(tree(page)).toBeFocused();
 
   await page.keyboard.press('i');
-  await page.getByRole('button', { name: /^Properties/ }).focus();
+  await page.getByRole('button', { name: /^Stickers/ }).focus();
   await page.keyboard.press('Escape');
   await expect(details(page)).toHaveCount(0);
 });

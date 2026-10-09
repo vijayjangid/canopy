@@ -4,10 +4,9 @@ import { canopyStore } from '../store';
 import { navigateToTopic } from '../canvas/navigation';
 import type { PaletteEntry } from './commandIndex';
 import { Palette } from './Palette';
-import { closeDialog, focusFilterSearch, openLeft } from './uiStore';
 
-/** Fuzzy-search topics by title or full path, or choose one as a reference target. */
-export function TopicSearchDialog({ referenceFrom }: { referenceFrom: string | null }) {
+/** Fuzzy-search topics by title or full path, to choose the one a topic references. */
+export function TopicSearchDialog({ referenceFrom }: { referenceFrom: string }) {
   const { allTopics, browseTopics } = useMemo(() => {
     const { doc } = canopyStore.getState();
     const allTopics: PaletteEntry[] =
@@ -43,12 +42,6 @@ export function TopicSearchDialog({ referenceFrom }: { referenceFrom: string | n
     [allTopics, browseTopics],
   );
 
-  const advancedFilters = () => {
-    closeDialog();
-    openLeft('filter');
-    focusFilterSearch();
-  };
-
   const sourceName = referenceFrom
     ? canopyStore.getState().doc.topics[referenceFrom]?.title.trim() || 'this topic'
     : null;
@@ -60,9 +53,6 @@ export function TopicSearchDialog({ referenceFrom }: { referenceFrom: string | n
       source={source}
       remember={false}
       resultLabel="topics"
-      footerAction={
-        referenceFrom ? undefined : { label: 'Advanced filters…', run: advancedFilters }
-      }
     />
   );
 }

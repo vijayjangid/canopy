@@ -5,7 +5,8 @@
 }
 
 .app-bar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: var(--space-3);
   height: 48px;
@@ -32,13 +33,6 @@
   line-height: 1;
   letter-spacing: -0.035em;
   color: var(--brand-ink);
-}
-
-.map-title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--color-text-muted);
 }
 
 .app-main {

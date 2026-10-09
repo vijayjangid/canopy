@@ -22,6 +22,8 @@ const HIDDEN: ReadonlySet<CommandId> = new Set([
   'topic.reorder',
   'view.foldToLevel',
   'palette.open',
+  'filter.open',
+  'filter.search',
 ]);
 
 const run = (id: CommandId, key?: string) => () => {

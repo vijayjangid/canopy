@@ -3,8 +3,10 @@ import { expect, test } from '@playwright/test';
 
 test('the Filter can pick out topics by sticker', async ({ page }) => {
   await page.goto('/?demo=40&plan=1');
-  await page.getByRole('button', { name: 'Filter', exact: true }).click();
-  const group = page.getByRole('list', { name: 'Stickers' });
+  await page.getByRole('tree', { name: 'Mind map' }).focus();
+  await page.keyboard.press('Meta+f');
+  const dialog = page.getByRole('dialog', { name: 'Search' });
+  const group = dialog.getByRole('list', { name: 'Stickers' });
   await expect(group).toBeVisible();
 
   const first = group.getByRole('button').first();
@@ -18,6 +20,8 @@ test('the Filter can pick out topics by sticker', async ({ page }) => {
   expect(count).toBeGreaterThan(0);
   await expect(page.locator('.topic[data-dim]').first()).toBeAttached();
 
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
 
@@ -27,6 +31,8 @@ test('the Filter can pick out topics by sticker', async ({ page }) => {
 
 test('only stickers that are on the map are offered', async ({ page }) => {
   await page.goto('/?demo=14');
-  await page.getByRole('button', { name: 'Filter', exact: true }).click();
+  await page.getByRole('tree', { name: 'Mind map' }).focus();
+  await page.keyboard.press('Meta+f');
+  await expect(page.getByRole('list', { name: 'Status' })).toBeVisible();
   await expect(page.getByRole('list', { name: 'Stickers' })).toHaveCount(0);
 });

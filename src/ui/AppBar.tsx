@@ -18,12 +18,15 @@ import { Icon } from './icons';
 import { openDialog, openLeft } from './uiStore';
 import './app-bar.css';
 
-/** New, open, save, export and the list of saved maps, in one menu. */
-function FileMenu() {
+/** The map's name, with a chevron. It opens a menu of New, Open, Save, Export and your saved maps. */
+function MapMenu() {
   const [open, setOpen] = useState(false);
+  const [renaming, setRenaming] = useState(false);
   const [maps, setMaps] = useState<MapSummary[]>([]);
   const mapId = useCanopy((s) => s.mapId);
+  const title = useCanopy((s) => s.doc.meta.title);
   const root = useRef<HTMLDivElement>(null);
+  const field = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -45,6 +48,12 @@ function FileMenu() {
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!renaming) return;
+    field.current?.focus();
+    field.current?.select();
+  }, [renaming]);
+
   const item = (label: string, hint: string, run: () => void) => (
     <button
       type="button"
@@ -60,21 +69,52 @@ function FileMenu() {
   );
 
   return (
-    <div className="menu" ref={root}>
-      <button
-        type="button"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label="File"
-        data-tip="Files and your maps"
-        data-tip-side="bottom"
-        onClick={() => setOpen((v) => !v)}
-      >
-        <Icon name="folder" />
-        <Icon name="chevron-down" />
-      </button>
+    <div className="menu map-menu" ref={root}>
+      <h1 className="map-title">
+        {renaming ? (
+          <input
+            ref={field}
+            aria-label="Map title"
+            placeholder="Untitled map"
+            value={title}
+            spellCheck={false}
+            onChange={(e) => {
+              const { doc, commit } = canopyStore.getState();
+              commit(renameMap(doc, e.target.value), { group: 'map-title' });
+            }}
+            onBlur={() => setRenaming(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === 'Escape') {
+                e.stopPropagation();
+                setRenaming(false);
+              }
+            }}
+          />
+        ) : (
+          <button
+            type="button"
+            className="map-menu-button"
+            aria-haspopup="menu"
+            aria-expanded={open}
+            aria-label={`File menu: ${title.trim() || 'Untitled map'}`}
+            data-tip="Files and your maps. Double-click to rename"
+            data-tip-side="bottom"
+            onClick={() => setOpen((v) => !v)}
+            onDoubleClick={() => {
+              setOpen(false);
+              setRenaming(true);
+            }}
+          >
+            <span className="map-name" data-empty={title.trim() === '' || undefined}>
+              {title.trim() || 'Untitled map'}
+            </span>
+            <Icon name="chevron-down" />
+          </button>
+        )}
+      </h1>
       {open && (
         <div className="menu-list" role="menu" aria-label="File">
+          {item('Rename…', '', () => setRenaming(true))}
           {item('New map', '', startNewMap)}
           {item('Open…', '', () => void openMapFromFile())}
           {item('Add a map as a branch…', '', () => void importMapAsBranch())}
@@ -86,6 +126,7 @@ function FileMenu() {
               key={m.id}
               type="button"
               role="menuitemradio"
+              className="menu-map"
               aria-checked={m.id === mapId}
               onClick={() => {
                 setOpen(false);
@@ -132,43 +173,27 @@ function History() {
   );
 }
 
-/** A slim bar: the file menu and map title as a breadcrumb, and one way into every command. */
+/** A slim bar: the file menu and map title as a pair, and one way into every command. */
 export function AppBar() {
-  const title = useCanopy((s) => s.doc.meta.title);
   return (
     <header className="app-bar">
-      <Brand />
-      <div className="crumbs">
-        <FileMenu />
-        <span className="crumb-sep" aria-hidden="true">
-          /
-        </span>
-        <h1 className="map-title">
-          <input
-            aria-label="Map title"
-            placeholder="Untitled map"
-            value={title}
-            spellCheck={false}
-            onChange={(e) => {
-              const { doc, commit } = canopyStore.getState();
-              commit(renameMap(doc, e.target.value), { group: 'map-title' });
-            }}
-          />
-        </h1>
+      <div className="app-bar-start">
+        <Brand />
+        <MapMenu />
+        <SaveBadge />
       </div>
-      <SaveBadge />
+      <History />
       <div className="app-actions">
-        <History />
         <button
           type="button"
           className="app-search"
-          aria-label="Command palette"
-          data-tip="Search or run any command (⌘K)"
+          aria-label="Search"
+          data-tip="Search topics, commands and filters (⌘F)"
           onClick={() => openDialog('palette')}
         >
           <Icon name="search" />
-          <span>Search commands</span>
-          <kbd>⌘K</kbd>
+          <span>Search</span>
+          <kbd>⌘F</kbd>
         </button>
         <button
           type="button"

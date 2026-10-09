@@ -24,12 +24,12 @@ test('clicking a topic opens its details, and the close button hides them', asyn
 test('sections fold, and the layout is remembered', async ({ page }) => {
   await page.goto('/?demo=14');
   await page.locator('.topic[data-depth="1"]').first().click();
-  const props = page.getByRole('button', { name: /^Properties/ });
-  await props.click();
-  await expect(props).toHaveAttribute('aria-expanded', 'false');
+  const stickers = page.getByRole('button', { name: /^Stickers/ });
+  await stickers.click();
+  await expect(stickers).toHaveAttribute('aria-expanded', 'false');
   await page.reload();
   await page.locator('.topic[data-depth="1"]').first().click();
-  await expect(page.getByRole('button', { name: /^Properties/ })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: /^Stickers/ })).toHaveAttribute(
     'aria-expanded',
     'false',
   );
@@ -38,8 +38,9 @@ test('sections fold, and the layout is remembered', async ({ page }) => {
 test('the left panel opens from its stripe, switches tabs and collapses', async ({ page }) => {
   await page.goto('/?demo=14');
   await expect(mapPanel(page)).toHaveCount(0);
-  await page.getByRole('button', { name: 'Filter', exact: true }).click();
-  await expect(mapPanel(page).getByRole('heading', { name: 'Filter' })).toBeVisible();
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await expect(mapPanel(page).getByRole('tab', { name: 'Settings', selected: true })).toBeVisible();
+  await expect(mapPanel(page).getByRole('tab', { name: 'Filter' })).toHaveCount(0);
   await mapPanel(page).getByRole('tab', { name: 'Tags' }).click();
   await expect(mapPanel(page).getByRole('heading', { name: 'Tags' })).toBeVisible();
   await page.keyboard.press('Escape');
@@ -55,7 +56,7 @@ test('the left panel opens from its stripe, switches tabs and collapses', async 
   await expect(strip).toBeVisible();
 
   // The close button does the same.
-  await strip.getByRole('button', { name: 'Filter' }).click();
+  await strip.getByRole('button', { name: 'Settings' }).click();
   await mapPanel(page).getByRole('button', { name: 'Close panel' }).click();
   await expect(mapPanel(page)).toHaveCount(0);
 });

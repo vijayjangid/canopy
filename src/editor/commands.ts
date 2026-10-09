@@ -57,12 +57,8 @@ export interface CommandContext {
     stickEdge: (id: string) => void;
     quickAdd: (preset: 'all' | 'status' | 'due' | 'tag') => void;
     filter: (action: 'next' | 'prev' | 'off') => void;
-    /** Opens the Filter panel with the cursor in its search box. */
-    searchFilter: () => void;
-    /** Opens fuzzy topic search. With a source ID, choosing a result creates a reference. */
+    /** Opens the search. With a source ID, it picks the target of that topic's reference instead. */
     topicSearch: (sourceId?: string) => void;
-    /** Opens the advanced Filter panel and focuses its text search. */
-    advancedFilters: () => void;
     /** Brings back everything above a single-branch view. */
     unfoldParents: () => void;
     /** Shows or hides everything but the map. */
@@ -415,6 +411,13 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
     case 'view.unfoldAll': {
       state.commit(unfoldAll(doc));
       ctx.app?.unfoldParents();
+      // Once the map has laid itself out again, bring all of it into view.
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          const layout = ctx.getLayout();
+          if (layout) ctx.viewport.getState().fit(layout.bounds);
+        }),
+      );
       announce('Everything unfolded');
       return true;
     }
@@ -426,12 +429,6 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
     case 'view.zoomOut':
       ctx.viewport.getState().zoom(1 / 1.2);
       return true;
-
-    case 'view.fit': {
-      const layout = ctx.getLayout();
-      if (layout) ctx.viewport.getState().fit(layout.bounds);
-      return true;
-    }
 
     case 'view.focusBranch':
       ctx.app?.focusBranch();
@@ -522,7 +519,7 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
       return true;
 
     case 'filter.open':
-      ctx.app?.advancedFilters();
+      ctx.app?.topicSearch();
       return true;
 
     case 'filter.search':

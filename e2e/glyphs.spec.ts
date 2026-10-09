@@ -102,9 +102,7 @@ test('zooming back in restores the text', async ({ page }) => {
   await build(page);
   await zoomOut(page, 7);
   await expect(page.locator('.topic-glyph').first()).toBeAttached();
-  await tree(page).focus();
-  await page.keyboard.press('Meta+0');
-  await page.waitForTimeout(500);
+  await page.getByRole('button', { name: 'Unfold everything' }).click();
   await expect(page.locator('.topic-glyph')).toHaveCount(0);
   await expect(page.locator('.topic-text').first()).toBeVisible();
 });

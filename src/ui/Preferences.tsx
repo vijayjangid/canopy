@@ -1,7 +1,8 @@
-import { useId } from 'react';
+import { useId, type ReactNode } from 'react';
 import { setPrefs, type MapPrefs } from '../model';
 import { settingsStore, useSettings, type AppSettings } from '../settings';
 import { Icon, type IconName } from './icons';
+import { InfoTip } from './InfoTip';
 import { canopyStore, useCanopy } from '../store';
 import { FONT_SIZE_LABELS, VOICES } from '../theme';
 import './preferences.css';
@@ -29,17 +30,12 @@ function Choice<T extends string>({
   onChange: (value: T) => void;
   hint?: string;
 }) {
-  const hintId = useId();
   const labelId = useId();
   return (
-    <div
-      className="pref"
-      role="group"
-      aria-labelledby={labelId}
-      aria-describedby={hint ? hintId : undefined}
-    >
-      <span id={labelId} className="pref-label">
-        {legend}
+    <div className="pref" role="group" aria-labelledby={labelId}>
+      <span className="pref-label">
+        <span id={labelId}>{legend}</span>
+        {hint && <InfoTip text={hint} about={legend} />}
       </span>
       <div className="segmented">
         {options.map((o) => (
@@ -58,11 +54,6 @@ function Choice<T extends string>({
           </button>
         ))}
       </div>
-      {hint && (
-        <p id={hintId} className="pref-hint">
-          {hint}
-        </p>
-      )}
     </div>
   );
 }
@@ -99,7 +90,7 @@ const VOICE_OPTIONS = (Object.keys(VOICES) as Array<MapPrefs['voice']>).map(
   }),
 );
 
-/** A yes or no setting, as a switch with its explanation beneath. */
+/** A yes or no setting, as a switch. Its explanation sits behind the "i" beside its name. */
 function Toggle({
   legend,
   hint,
@@ -111,16 +102,11 @@ function Toggle({
   checked: boolean;
   onChange: (on: boolean) => void;
 }) {
-  const hintId = useId();
   return (
     <div className="pref pref-toggle">
       <span className="pref-label">
-        {legend}
-        {hint && (
-          <small id={hintId} className="pref-sub">
-            {hint}
-          </small>
-        )}
+        <span>{legend}</span>
+        {hint && <InfoTip text={hint} about={legend} />}
       </span>
       <button
         type="button"
@@ -128,7 +114,6 @@ function Toggle({
         className="switch"
         aria-checked={checked}
         aria-label={legend}
-        aria-describedby={hint ? hintId : undefined}
         onClick={() => onChange(!checked)}
       >
         <span className="switch-knob" />
@@ -137,11 +122,38 @@ function Toggle({
   );
 }
 
+const DEVICE_NOTE = 'Most of these are kept in this browser, not saved with the map.';
+
+/** A titled group of settings. The title is followed by a line that runs to the edge. */
+function Group({
+  id,
+  title,
+  note,
+  children,
+}: {
+  id: string;
+  title: string;
+  note?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section aria-labelledby={`prefs-${id}`}>
+      <div className="prefs-heading">
+        <h3 id={`prefs-${id}`}>{title}</h3>
+        {note && <InfoTip text={note} about={`${title} settings`} />}
+        <span className="prefs-rule" aria-hidden="true" />
+      </div>
+      {children}
+    </section>
+  );
+}
+
 /** Colour, theme and font, then how the map is laid out, then how the app behaves. */
 export function AppearanceBody() {
   const prefs = useCanopy((s) => s.doc.prefs);
   const mode = useSettings((s) => s.mode);
   const handles = useSettings((s) => s.handles);
+  const handlePreview = useSettings((s) => s.handlePreview);
   const hints = useSettings((s) => s.hints);
   const motion = useSettings((s) => s.motion);
   const autoPan = useSettings((s) => s.autoPan);
@@ -156,8 +168,7 @@ export function AppearanceBody() {
 
   return (
     <div className="prefs">
-      <section aria-labelledby="prefs-appearance">
-        <h3 id="prefs-appearance">Appearance</h3>
+      <Group id="appearance" title="Appearance">
         <Choice
           legend="Colour mode"
           options={[
@@ -186,10 +197,20 @@ export function AppearanceBody() {
           value={prefs.fontSize}
           onChange={(fontSize) => setMap({ fontSize })}
         />
-      </section>
+        <Choice
+          legend="Motion"
+          hint="Animation. System follows your device's reduced motion setting."
+          options={[
+            { value: 'auto', label: 'System' },
+            { value: 'full', label: 'Full' },
+            { value: 'reduced', label: 'Reduced' },
+          ]}
+          value={motion}
+          onChange={(v) => setDevice({ motion: v })}
+        />
+      </Group>
 
-      <section aria-labelledby="prefs-layout">
-        <h3 id="prefs-layout">Map layout</h3>
+      <Group id="layout" title="Map">
         <Choice
           legend="Layout"
           options={FLOWS}
@@ -218,28 +239,49 @@ export function AppearanceBody() {
           value={prefs.chips}
           onChange={(chips) => setMap({ chips })}
         />
+        <Choice
+          legend="Handles"
+          hint="The + and link buttons around the selected topic, for adding topics and references."
+          options={[
+            { value: 'hover', label: 'On hover' },
+            { value: 'always', label: 'Always' },
+            { value: 'never', label: 'Never' },
+          ]}
+          value={handles}
+          onChange={(v) => setDevice({ handles: v })}
+        />
+      </Group>
+
+      <Group id="behaviour" title="Behaviour" note={DEVICE_NOTE}>
         <Toggle
           legend="Level numbers"
-          hint="Shows 1.1, 1.2 before each title."
+          hint="Shows 1.1, 1.2 before each title. Saved with the map."
           checked={prefs.showLevels}
           onChange={(on) => setMap({ showLevels: on })}
-        />
-      </section>
-
-      <section aria-labelledby="prefs-behaviour">
-        <h3 id="prefs-behaviour">Behaviour</h3>
-        <p className="pref-nudge">Kept in this browser, not saved with the map.</p>
-        <Toggle
-          legend="Auto-pan"
-          hint="Keeps the topic you are working on in view."
-          checked={autoPan}
-          onChange={(on) => setDevice({ autoPan: on })}
         />
         <Toggle
           legend="Trail"
           hint="Marks the way up to the Core from the selected topic."
           checked={trail}
           onChange={(on) => setDevice({ trail: on })}
+        />
+        <Toggle
+          legend="Shortcut hints"
+          hint="A quiet row of keys at the bottom."
+          checked={hints}
+          onChange={(on) => setDevice({ hints: on })}
+        />
+        <Toggle
+          legend="Preview on hover"
+          hint="Shows a ghost of the topic a + button would add while you point at it. Off by default, since it can get in the way. Dragging a + always shows where it will land."
+          checked={handlePreview}
+          onChange={(on) => setDevice({ handlePreview: on })}
+        />
+        <Toggle
+          legend="Auto-pan"
+          hint="Keeps the topic you are working on in view."
+          checked={autoPan}
+          onChange={(on) => setDevice({ autoPan: on })}
         />
         <Toggle
           legend="Text expansion"
@@ -253,33 +295,7 @@ export function AppearanceBody() {
           checked={discardBlank}
           onChange={(on) => setDevice({ discardBlank: on })}
         />
-        <Toggle
-          legend="Shortcut hints"
-          hint="A quiet row of keys at the bottom."
-          checked={hints}
-          onChange={(on) => setDevice({ hints: on })}
-        />
-        <Choice
-          legend="Add-topic handles"
-          options={[
-            { value: 'hover', label: 'On hover' },
-            { value: 'always', label: 'Always' },
-            { value: 'never', label: 'Never' },
-          ]}
-          value={handles}
-          onChange={(v) => setDevice({ handles: v })}
-        />
-        <Choice
-          legend="Motion (animation)"
-          options={[
-            { value: 'auto', label: 'System' },
-            { value: 'full', label: 'Full' },
-            { value: 'reduced', label: 'Reduced' },
-          ]}
-          value={motion}
-          onChange={(v) => setDevice({ motion: v })}
-        />
-      </section>
+      </Group>
     </div>
   );
 }

@@ -33,9 +33,18 @@ test('the shortcuts dialog can be searched by name, group or key', async ({ page
   await expect(dialog).toHaveCount(0);
 });
 
-test('F opens advanced filters, like /', async ({ page }) => {
+test('F and / open the search, like Cmd+F', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('tree', { name: 'Mind map' }).focus();
-  await page.keyboard.press('f');
-  await expect(page.getByRole('searchbox', { name: 'Search topics and lines' })).toBeFocused();
+  for (const key of ['f', '/']) {
+    const search = page.getByRole('combobox', { name: /^Search topics, commands/ });
+    // Focus can still be settling after the last dialog closed, so ask again until the box has it.
+    await expect(async () => {
+      await page.getByRole('tree', { name: 'Mind map' }).focus();
+      await page.keyboard.press(key);
+      await expect(search).toBeFocused({ timeout: 1000 });
+    }).toPass();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.getByRole('tree', { name: 'Mind map' })).toBeFocused();
+  }
 });

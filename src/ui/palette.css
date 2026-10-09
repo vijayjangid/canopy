@@ -46,11 +46,6 @@
 /* A heading starts a group of commands. */
 .palette-group {
   padding: 10px 10px 4px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
 }
 
 .palette-list li[role='option'] {
@@ -167,4 +162,198 @@
   min-width: 18px;
   padding: 0 5px;
   font-size: 11px;
+}
+
+/* ---------- Search: recent searches, quick filters and common commands under one box ---------- */
+
+.search-body {
+  max-height: min(72vh, 640px);
+  padding-bottom: var(--space-2);
+  overflow: auto;
+}
+
+.search .palette-list.search-list {
+  max-height: none;
+  overflow: visible;
+}
+
+.search-body h3,
+.quick-filters .filter-group h3 {
+  margin: 0;
+}
+
+.search-recents,
+.quick-filters {
+  padding: var(--space-3) var(--space-4) 0;
+}
+
+.search-recents {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  row-gap: var(--space-2);
+}
+
+.search-recents ul {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.search-recents > .quick-clear {
+  grid-row: 1;
+  grid-column: 2;
+}
+
+.search-recents li button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 220px;
+  height: 28px;
+  padding: 0 12px 0 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--color-text);
+  cursor: pointer;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
+.search-recents li button .icon {
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-muted);
+}
+
+.search-recents li button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-recents li button:hover {
+  background: var(--color-hover);
+}
+
+.quick-filters-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 24px;
+}
+
+.quick-filters .filter-count {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 12.5px;
+}
+
+.quick-clear {
+  padding: 2px 8px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--color-accent);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+}
+
+.quick-clear:hover {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+
+.search-body button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.quick-filters .filter-group h3 {
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.quick-filters .filter-group:first-of-type h3 {
+  margin-top: var(--space-2);
+}
+
+.quick-filters .date-filter {
+  margin-top: var(--space-2);
+}
+
+.search-list {
+  margin-top: var(--space-2);
+}
+
+/* A name that is exactly what was typed. */
+.palette-list li[data-exact] {
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.search-exact {
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-accent);
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  border-radius: 999px;
+}
+
+/* The row that turns the text into a Filter is an action, not a result: set apart and drawn as a button. */
+.search-divider {
+  height: 1px;
+  margin: var(--space-2) var(--space-2) var(--space-1);
+  background: color-mix(in srgb, var(--color-border) 80%, transparent);
+}
+
+.palette-list li[data-action] {
+  grid-template-columns: auto 1fr auto;
+  margin: var(--space-1) var(--space-2) var(--space-1);
+  border: 1px dashed color-mix(in srgb, var(--color-accent) 55%, var(--color-border));
+}
+
+.palette-list li[data-action] > .icon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-accent);
+}
+
+.palette-list li[data-action] .palette-label {
+  color: var(--color-accent);
+}
+
+.palette-list li[data-action][data-active] {
+  border-style: solid;
+}
+
+/* Clearing the recent searches: a quiet button with an icon, in the heading row. */
+.search-recents > .quick-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
+.search-recents > .quick-clear .icon {
+  width: 13px;
+  height: 13px;
+}
+
+.search-recents > .quick-clear:hover {
+  color: var(--color-danger);
+  background: transparent;
+  border-color: currentcolor;
 }

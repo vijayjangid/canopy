@@ -58,12 +58,14 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 
 ### Information architecture
 
-- **Top bar [Built]:** a File menu (New, Open, Save a copy, recent maps), the map title with a save indicator, and the Command Palette (⌘K) and shortcut sheet buttons. Look, Mode and Flow live in the left panel instead.
+- **Top bar [Built]:** a File menu (New, Open, Save a copy, recent maps), the map title with a save indicator, and the Search (⌘F) and shortcut sheet buttons. Look, Mode and Flow live in the left panel instead.
 - **Canvas [Built]:** the infinite map.
 - **Left panel [Built]:** a strip of four tabs that opens into a floating panel: Settings (appearance, layout and behaviour), Filter, Tags and Export. The Outline is planned to join it.
-- **Right inspector [Built]:** floating details panel that opens when a topic is clicked and closes with its own button. Tabs: Properties, Stickers, Note. When a line is picked, the Stickers tab edits the line.
-- **Bottom-left toolbar [Built]:** pointer tools (Select, Pan, Zoom), fit to screen, unfold everything, Zen. A minimap is planned.
+- **Right inspector [Built]:** floating details panel that opens when a topic is clicked and closes with its own button. Tabs: Details and Note. The Details tab starts directly with the Properties fields (Status, Due date and Tags, with no heading to open or close), followed by a collapsible Stickers section. When a line is picked, the Stickers tab edits the line.
+- **Bottom-left toolbar [Built]:** pointer tools (Select, Pan, Zoom), unfold everything (which also fits the whole map in view), Zen. There is no separate fit button or shortcut. A minimap is planned.
 - **Bottom-center [Built]:** a transient shortcut hint strip that adapts to the current selection, and a Trail pill.
+- **Readable panels [Built]:** both side panels follow one rhythm: content 20px from the edge, groups 20px apart, related things 8px apart, names 13 to 13.5px, labels and small print 12px, and panels 372px wide. Explanations are not printed under every control. They sit behind a small **"i"** beside the name (shown on hover or keyboard focus, and read out as the button's name), so a panel reads as names and controls first and needs less scrolling. This covers every Settings row, the Behaviour note, the Filter's search hint and the sticker hint.
+- **Details panel heading [Built]:** the topic's name is shown in full at 18px, wrapping to at most two lines and then ending in an ellipsis (hovering shows the whole name). The `Level 3 · 3.2` line under it appears only when Level numbers is turned on in Settings. Status and due-date pills are 28px tall with 8px between them.
 - **Status bar [Built]:** the Trail as a path from the Core to the focused topic, with Copy path and, in a Branch view, Unfold everything.
 - **View switcher [Planned]:** Map | Board | Table | Timeline.
 
@@ -72,10 +74,10 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 ### 3.1 Canvas and topic creation [Built, with Brain-dump partly planned]
 
 - **Growth Handles:** hovering or focusing a topic shows `+` handles on its right (sub-topic) and bottom (peer below) edges, and one on the line above it that inserts a topic between the topic and its parent (hold `Shift` to take all its peers along). The handle on the top edge is the Reference Handle (see 3.10). "Add peer above" stays available as `Shift+Enter`, the context menu and the palette.
-  - **Ghost preview:** hovering a handle shows a translucent ghost topic at its exact landing position, and surrounding topics shift slightly to make room.
+  - **Ghost preview:** dragging a handle shows a translucent ghost topic at its exact landing position, and surrounding topics shift slightly to make room. Merely pointing at a handle does the same only when the device setting **Preview on hover** is on (off by default, because the shifting layout can get in the way).
   - **Click** creates the topic and enters inline edit.
   - **Drag from a handle** creates a topic at the drop point with a magnetic snap to valid slots.
-  - Handle visibility is a device setting: on hover, always or never.
+  - Handle visibility is a device setting: on hover, always or never. So is **Preview on hover** (off by default).
 - **Keyboard:**
   - `Tab` adds a sub-topic, `Enter` adds a peer, `Shift+Enter` adds a peer above, `⌘Enter` finishes editing.
   - `W` inserts a topic between this one and its parent, and `Shift+W` between it and its sub-topics.
@@ -90,7 +92,7 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 - **Auto-pan [Built]:** the view keeps the topic you are working on in view as the map changes (a device setting).
 - **Pointer tools [Built]:** Select (`V`, the default), Pan (`H`, or hold `Space` and drag) and Zoom (`Shift+Z`, or hold `⌘`). With Zoom, click zooms in, `Alt`-click zooms out, and dragging an area fills the view with it. The middle button always pans.
 - **Context menu [Built]:** right-click a topic, a line or empty canvas for the actions that otherwise need a shortcut, with the shortcut shown. It opens from the keyboard with the menu key or `Shift+F10`.
-- **Command Palette (⌘K) [Built]:** every action is searchable, with its shortcut shown next to it, plus map and device settings.
+- **Search (⌘F, also ⌘K, `F` and `/`) [Built]:** one dialog for topics, commands and filters. See 3.9.
 
 ### 3.2 Flow (layout) [Right and Down built, the rest planned]
 
@@ -154,8 +156,9 @@ Every topic can carry Properties. They are optional and invisible until used, so
 - The local list of people, Roles and "I am this person" went with People. Old files that still contain them open normally, and those fields are ignored.
 
 **Find a topic and Filters [Built]**
-- **Find a topic (`⌘F`):** a fuzzy search over every topic by title or full path. Choosing a result unfolds the path to it, selects it and scrolls it into view. Without a query it lists the first topics, and the list is capped (60) so it stays fast on large maps. An *Advanced filters…* button opens the Filter panel.
-- The Filter panel (opened with `/` or `F`, with the cursor in its search box) ticks choices in four groups: Due date (overdue, this week, a date range), Status, Tags and Stickers. Choices inside a group are alternatives, and the groups combine (AND). Only the stickers that are on the map are offered.
+- **Search (`⌘F`, `⌘K`, `F`, `/`, or the Search button in the top bar):** one box that searches across topics, commands, status, tags, stickers and due dates. Results come in two groups. **Filter the map** holds the topics that match (by title or full path; choosing one unfolds the path to it, selects it and scrolls it into view), then status, tag, sticker and due date choices that match, and last a set-apart *Highlight topics matching “text”* button. A name that is exactly what was typed leads its group and is marked **Exact match**. **Commands** holds every action, with its shortcut, plus map and device settings. With no topic or choice to go to, the matching commands lead, so `Enter` runs one. Each group is capped, so it stays fast on large maps.
+- **Empty search:** shows **Recent searches** (the last six queries, one click to ask again, and a Clear all button), **Quick filters** in four groups (Due date: overdue, this week, a date range; Status; Tags; Stickers), and **Common commands**: Add sub-topic, Add peer below, Unfold everything (which also fits the map in view) and a switch to the layout not in use. Choices inside a group are alternatives, and the groups combine (AND). Only the stickers that are on the map are offered. A choice applies at once, and a count with a Clear button shows how many topics match.
+- There is no Filter tab. A Filter that is on shows as a pill over the map with Highlight and Isolate, Previous and Next match, and a button to turn it off. Clicking its name opens the search again.
 - **Filter modes:** *Highlight* (non-matching topics fade) or *Isolate* (non-matching topics are hidden, with the paths to matches kept).
 - A Filter tells you how many topics match, and `.` and `,` jump to the next and previous match, opening folded branches on the way and announcing each jump. A pill over the map shows the active Filter with its mode and a switch off.
 - Filters are also used by the export ("only what the Filter picks out").
@@ -229,9 +232,10 @@ Every topic can carry Properties. They are optional and invisible until used, so
 
 Settings live in the Settings tab of the left panel, in three groups. The map-level choices are saved in the file, and the device-level ones are kept in this browser and labelled as such.
 
-- **Appearance:** Colour mode (device), Theme, Font, Font size (map).
-- **Map layout (map):** Layout (Flow), Spacing, Connectors, Property chips (Off, Compact, Full), Level numbers.
-- **Behaviour (device):** Auto-pan, Trail, Text expansion, Remove empty new topics, Shortcut hints, Add-topic handles (on hover, always, never), Motion (System, Full, Reduced).
+- **Appearance:** Colour mode (device), Theme, Font, Font size (map), Motion (System, Full, Reduced; device).
+- **Map:** Layout (Flow), Spacing, Connectors, Property chips (Off, Compact, Full) (map), Handles (on hover, always, never; the add and reference buttons around a topic; device).
+- **Behaviour:** switches. Level numbers (map), then on this device: Trail, Shortcut hints, Preview on hover, Auto-pan, Text expansion, Remove empty new topics.
+- Each group title is followed by a line, the first two groups hold only segmented choices and the last only switches, and each setting is one line with its explanation behind a small "i" beside its name. On a tall window the tab fits without scrolling, and on a shorter one it scrolls.
 - **[Cut or deferred]:** typography scale per level, topic shape, snap and grid, larger hit targets, screen-reader verbosity, date format and first day of the week, overdue behaviour, default export settings and anything about attachments or Roles. **[Planned]:** shortcut customisation (M5.6).
 
 ### 3.8 Import / Export [Built, simplified]
@@ -268,7 +272,7 @@ These were not in v0.2. They exist to help someone work inside a big map without
 
 A Reference links a topic to **one** existing topic anywhere in the map, so two branches that share the same sub-tree can point at one copy instead of repeating it. A Reference does not move or copy anything and never changes the tree.
 
-- **Drawn as:** a bold dashed arrow in the accent colour, drawn above the topics, so it reads differently from the solid parent-child lines. It leaves the middle of the side of the source that faces the target and ends with an arrowhead at the middle of the facing side of the target. Topics lined up across the Flow (stacked in a Right flow, side by side in a Down flow) get a loop out of the side, so the arrow never runs over the topics between them.
+- **Drawn as:** a bold dashed arrow in the accent colour, drawn above the topics, so it reads differently from the solid parent-child lines. It uses the sides the parent-child connectors leave free: the middle of the top or bottom side in a Right flow, the middle of the left or right side in a Down flow. It leaves the side that faces the target and ends with an arrowhead at the middle of the facing side of the target. Topics level with each other across the Flow loop out past both, and topics stacked along the Flow bow out to one side so the arrow does not run over the ones between them.
 - **Create by dragging:** the link-icon Reference Handle sits above a selected topic (not shown on the Core). Drag it onto any other topic: a dashed line follows the pointer and the topic under it is highlighted. Release to connect. Releasing on empty canvas, or `Esc`, cancels.
 - **Create by search:** click the handle, press `X`, or choose "Reference to…" in the topic's context menu. A search over every topic by name or full path (for example "Case Types › Workflow › Templates") picks the target.
 - **Replace:** a topic has at most one reference, so a new one replaces the old.
@@ -372,15 +376,15 @@ Tokens live in `motion/`. A layout animator (`canvas/animator.ts`) tweens every 
 | Show or hide the inspector | `I` | Built |
 | Property Quick-Add / all properties | `P` / `Shift+P` | Built |
 | Set status / due date / tag | `T` / `D` / `G` | Built |
-| Find a topic (fuzzy, by title or path) | `⌘F` | Built |
-| Advanced filters (Filter panel) | `/` or `F` | Built (was a dialog) |
+| Search topics, commands and filters | `⌘F`, `⌘K` | Built |
+| Search with quick filters | `/` or `F` | Built (the Filter tab was merged into Search) |
 | Reference another topic (search) | `X` | Built |
 | Next / previous Filter match | `.` / `,` | Built (were `]` / `[`) |
 | Trail on or off | `R` | Built |
 | Zen | `Z` | Built |
 | Select / Pan / Zoom tool | `V` / `H` / `Shift+Z` | Built |
-| Zoom in / out / fit | `⌘+` / `⌘-` / `⌘0` | Built |
-| Command palette | `⌘K` | Built |
+| Zoom in / out | `⌘+` / `⌘-` | Built |
+| Search (opens the same dialog) | `⌘K` | Built |
 | Settings | `⌘,` | Built |
 | Cheat sheet | `?` | Built |
 | Copy / Cut / Paste as sub-topic / Paste as peer | `⌘C` / `⌘X` / `⌘V` / `⌘⇧V` | Built |

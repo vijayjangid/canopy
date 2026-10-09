@@ -4,6 +4,16 @@ import { mapPanel, openMapPanel } from './panels';
 
 const tree = (page: Page) => page.getByRole('tree', { name: 'Mind map' });
 
+/** Renames the map from the File menu, and leaves the field. */
+async function renameMap(page: import('@playwright/test').Page, name: string) {
+  await page.getByRole('button', { name: /^File menu/ }).click();
+  await page.getByRole('menuitem', { name: 'Rename…' }).click();
+  const field = page.getByRole('textbox', { name: 'Map title' });
+  await field.fill(name);
+  await field.press('Enter');
+  await expect(field).toHaveCount(0);
+}
+
 test('switches colour mode and remembers it', async ({ page }) => {
   await page.goto('/');
   const root = page.locator('html');
@@ -25,10 +35,9 @@ test('switches colour mode and remembers it', async ({ page }) => {
 
 test('renames the map and lists it under Maps', async ({ page }) => {
   await page.goto('/');
-  const title = page.getByRole('textbox', { name: 'Map title' });
-  await title.fill('Launch plan');
+  await renameMap(page, 'Launch plan');
   await page.waitForTimeout(900);
-  await page.getByRole('button', { name: 'File', exact: true }).click();
+  await page.getByRole('button', { name: /^File menu/ }).click();
   await expect(page.getByRole('menuitemradio', { name: /Launch plan/ })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('menu')).toHaveCount(0);
@@ -55,7 +64,7 @@ test('saves a map to a file and opens it again', async ({ page }) => {
     (window as unknown as { showSaveFilePicker?: unknown }).showSaveFilePicker = undefined;
   });
   await page.goto('/');
-  await page.getByRole('textbox', { name: 'Map title' }).fill('Roadmap');
+  await renameMap(page, 'Roadmap');
   await tree(page).focus();
   await page.keyboard.press('Tab');
   await page.keyboard.type('Research');
@@ -80,7 +89,7 @@ test('saves a map to a file and opens it again', async ({ page }) => {
   await fileMenu(page, 'Open…');
   await (await chooser).setFiles(path);
   await expect(page.getByRole('treeitem', { name: 'Interviews', exact: true })).toBeVisible();
-  await expect(page.getByRole('textbox', { name: 'Map title' })).toHaveValue('Roadmap');
+  await expect(page.getByRole('button', { name: 'File menu: Roadmap' })).toBeVisible();
 });
 
 test('explains why a file cannot be opened', async ({ page }) => {
@@ -101,6 +110,6 @@ test('explains why a file cannot be opened', async ({ page }) => {
 });
 
 async function fileMenu(page: import('@playwright/test').Page, item: string) {
-  await page.getByRole('button', { name: 'File', exact: true }).click();
+  await page.getByRole('button', { name: /^File menu/ }).click();
   await page.getByRole('menuitem', { name: item }).click();
 }

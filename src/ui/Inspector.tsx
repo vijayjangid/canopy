@@ -18,6 +18,7 @@ import { canopyStore, useCanopy } from '../store';
 import { StickerArt } from '../stickers/art';
 import { searchStickers } from '../stickers/catalog';
 import { Icon, type IconName } from './icons';
+import { InfoTip } from './InfoTip';
 import { Markdown } from './Markdown';
 import { PropertiesTab } from './PropertiesTab';
 import { showToast } from './toast';
@@ -47,7 +48,7 @@ const SECTIONS: Array<{ id: InspectorTab; label: string; icon: IconName }> = [
 function summaryOf(id: InspectorTab, topic: Topic): string {
   if (id === 'note') return topic.note ? 'Has a note' : '';
   if (id === 'stickers') return topic.stickers?.length ? String(topic.stickers.length) : '';
-  return topic.props ? 'Set' : '';
+  return '';
 }
 
 /** The details panel: it opens when a topic is clicked, and closes with its button. */
@@ -81,6 +82,7 @@ export function Inspector() {
   const depth = ancestorsOf(doc, topic.id).length;
   const parentName = parent?.title.trim().replace(/\s+/g, ' ') || 'Empty topic';
   const flow = doc.prefs.flow;
+  const showLevels = doc.prefs.showLevels;
 
   // A picked line stays picked as you move along its siblings.
   const goTo = (id: string) => {
@@ -125,11 +127,9 @@ export function Inspector() {
             </nav>
           )}
           <h2 title={many ? undefined : topic.title.trim()}>
-            {many
-              ? 'Several topics'
-              : clamp(topic.title.trim().replace(/\s+/g, ' ') || 'Empty topic', 60)}
+            {many ? 'Several topics' : topic.title.trim().replace(/\s+/g, ' ') || 'Empty topic'}
           </h2>
-          {!many && (
+          {!many && showLevels && (
             <p className="panel-level">
               {parent ? `Level ${depth} · ${depth}.${place}` : 'Core · Level 0'}
             </p>
@@ -209,6 +209,22 @@ export function Inspector() {
         ) : (
           SECTIONS.filter((x) => x.id !== 'note' && (!many || x.id === 'properties')).map(
             ({ id, label, icon }) => {
+              // Status, due date and tags are the heart of the panel, so they sit there directly,
+              // with no heading to open or close. The region keeps its name for screen readers.
+              if (id === 'properties') {
+                return (
+                  <section
+                    key={id}
+                    id={`inspector-section-${id}`}
+                    className="panel-section panel-section-plain"
+                    aria-label={label}
+                  >
+                    <div className="panel-section-body">
+                      <PropertiesTab />
+                    </div>
+                  </section>
+                );
+              }
               const isOpen = sections[id];
               return (
                 <section
@@ -233,7 +249,6 @@ export function Inspector() {
                   </button>
                   {isOpen && (
                     <div id={`inspector-body-${id}`} className="panel-section-body">
-                      {id === 'properties' && <PropertiesTab />}
                       {id === 'stickers' && <StickersTab key={focus} topic={topic} />}
                     </div>
                   )}
@@ -491,10 +506,18 @@ function StickersTab({ topic }: { topic: Topic }) {
           })}
         </ul>
       )}
-      <p className="inspector-hint">
-        {full
-          ? `This ${where} is full (${max} of ${max}). Click a marked sticker to take it off.`
-          : `Click a sticker to put it on, or again to take it off. ${placed.length} of ${max} used.`}
+      <p className="sticker-meta">
+        <span data-full={full || undefined}>
+          {full ? `Full: ${max} of ${max}` : `${placed.length} of ${max} used`}
+        </span>
+        <InfoTip
+          text={
+            full
+              ? `This ${where} is full. Click a marked sticker to take it off.`
+              : 'Click a sticker to put it on, or again to take it off.'
+          }
+          about="stickers"
+        />
       </p>
     </div>
   );

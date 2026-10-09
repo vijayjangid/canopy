@@ -152,6 +152,7 @@ test('a Filter dims or isolates, counts matches and jumps between them', async (
   await tree(page).focus();
   await page.keyboard.press('/');
   await page.getByRole('list', { name: 'Status' }).getByRole('button', { name: 'Blocked' }).click();
+  await page.keyboard.press('Escape');
   const control = page.locator('.filter-control');
   await expect(control).toContainText('Filter: Blocked');
   const count = Number((await control.textContent())?.match(/· (\d+)/)?.[1]);
@@ -178,6 +179,7 @@ test('a tag becomes a Filter', async ({ page }) => {
   await tree(page).focus();
   await page.keyboard.press('/');
   await page.getByRole('list', { name: 'Tags' }).getByRole('button', { name: 'Launch' }).click();
+  await page.keyboard.press('Escape');
   await expect(page.locator('.filter-control')).toContainText('Filter: #Launch');
 });
 
@@ -186,6 +188,7 @@ test('exports a table with properties and respects a Filter', async ({ page }) =
   await tree(page).focus();
   await page.keyboard.press('/');
   await page.getByRole('list', { name: 'Status' }).getByRole('button', { name: 'Blocked' }).click();
+  await page.keyboard.press('Escape');
   await tree(page).focus();
   await page.keyboard.press('ControlOrMeta+e');
   const panel = mapPanel(page);
@@ -262,6 +265,7 @@ test('every Look keeps chips, stickers and the Filter pill accessible in dark mo
     .getByRole('list', { name: 'Due date' })
     .getByRole('button', { name: 'Due this week' })
     .click();
+  await page.keyboard.press('Escape');
   for (const look of ['Minimal', 'High contrast', 'Playful']) {
     const panel = await openMapPanel(page, 'Settings');
     await panel.getByRole('group', { name: 'Theme' }).getByRole('button', { name: look }).click();

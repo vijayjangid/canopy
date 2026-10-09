@@ -62,7 +62,13 @@ describe('palette coverage', () => {
       'topic.reorder': 'topic.moveBack',
       'view.foldToLevel': 'view.level.1',
     };
-    const notOffered = new Set(['nav.arrow', 'select.escape', 'palette.open']);
+    const notOffered = new Set([
+      'nav.arrow',
+      'select.escape',
+      'palette.open',
+      'filter.open',
+      'filter.search',
+    ]);
     for (const command of COMMANDS) {
       if (notOffered.has(command.id)) continue;
       expect(ids.has(variants[command.id] ?? command.id), command.id).toBe(true);

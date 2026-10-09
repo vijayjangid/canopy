@@ -93,13 +93,15 @@ test('right-clicking a reference line offers to go to, change or remove it', asy
   await expect(reference).toHaveCount(0);
 });
 
-test('topic search keeps the initial results bounded on a large map', async ({ page }) => {
+test('search keeps its results bounded on a large map', async ({ page }) => {
   await page.goto('/?demo=5000');
   await page.getByRole('tree', { name: 'Mind map' }).focus();
   await page.keyboard.press('Meta+f');
-  const dialog = page.getByRole('dialog', { name: 'Find a topic' });
+  const dialog = page.getByRole('dialog', { name: 'Search' });
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole('option')).toHaveCount(60);
+  await page.keyboard.type('topic');
+  await expect(dialog.getByRole('option').first()).toBeVisible();
+  expect(await dialog.getByRole('option').count()).toBeLessThanOrEqual(22);
 });
 
 async function alphaAndBeta(page: import('@playwright/test').Page) {

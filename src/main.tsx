@@ -4,6 +4,7 @@ import { App } from './App';
 import './theme/tokens.css';
 import './theme/looks.css';
 import './theme/reset.css';
+import './ui/captions.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element');

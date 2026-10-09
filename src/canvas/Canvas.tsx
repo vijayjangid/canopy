@@ -880,7 +880,7 @@ export function Canvas() {
         <EdgeQuickBar key={edgeFocus} id={edgeFocus} layout={layout} />
       )}
       <HintStrip />
-      <ZoomControls onFit={() => viewportStore.getState().fit(layout.bounds)} />
+      <ZoomControls />
     </div>
   );
 }

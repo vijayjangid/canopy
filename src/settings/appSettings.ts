@@ -10,6 +10,8 @@ export interface AppSettings {
   mode: ModeSetting;
   motion: MotionPreference;
   handles: HandleVisibility;
+  /** Show the topic a + button would add, as a ghost, while it is pointed at. Off unless asked for. */
+  handlePreview: boolean;
   hints: boolean;
   /** Pan the map to keep the selected topic in view as topics are added or moved between. */
   autoPan: boolean;
@@ -25,6 +27,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   mode: 'auto',
   motion: 'auto',
   handles: 'hover',
+  handlePreview: false,
   hints: true,
   autoPan: true,
   discardBlank: true,
@@ -50,6 +53,7 @@ export function parseSettings(raw: string | null): AppSettings {
     if (HANDLES.includes(value['handles'] as HandleVisibility)) {
       out.handles = value['handles'] as HandleVisibility;
     }
+    if (typeof value['handlePreview'] === 'boolean') out.handlePreview = value['handlePreview'];
     if (typeof value['hints'] === 'boolean') out.hints = value['hints'];
     if (typeof value['autoPan'] === 'boolean') out.autoPan = value['autoPan'];
     if (typeof value['discardBlank'] === 'boolean') out.discardBlank = value['discardBlank'];
@@ -66,6 +70,7 @@ function pick(state: AppSettings): AppSettings {
     mode: state.mode,
     motion: state.motion,
     handles: state.handles,
+    handlePreview: state.handlePreview,
     hints: state.hints,
     autoPan: state.autoPan,
     discardBlank: state.discardBlank,

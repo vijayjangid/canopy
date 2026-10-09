@@ -11,10 +11,6 @@ const backToMap = (e: { detail: number }) => {
   if (e.detail > 0) focusCanvas();
 };
 
-interface Props {
-  onFit: () => void;
-}
-
 const TOOLS: Array<{
   id: CanvasTool;
   label: string;
@@ -36,8 +32,8 @@ const TOOLS: Array<{
   },
 ];
 
-/** The pointer tools, fit the map, and Zen, which hides everything but the map. */
-export function ZoomControls({ onFit }: Props) {
+/** The pointer tools, unfold everything (which also fits the map), and Zen, which hides everything but the map. */
+export function ZoomControls() {
   const tool = useEffectiveTool();
   const cmd = isMac() ? '⌘' : 'Ctrl';
   return (
@@ -61,18 +57,6 @@ export function ZoomControls({ onFit }: Props) {
         ))}
       </div>
       <span className="tool-sep" aria-hidden="true" />
-      <button
-        type="button"
-        aria-label="Fit to screen"
-        data-tip="Fit to screen (⌘0)"
-        data-tip-side="top"
-        onClick={(e) => {
-          onFit();
-          backToMap(e);
-        }}
-      >
-        <Icon name="fit" />
-      </button>
       <button
         type="button"
         aria-label="Unfold everything"

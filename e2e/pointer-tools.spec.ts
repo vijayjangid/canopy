@@ -114,7 +114,8 @@ test('the zoom tool zooms to a topic or an area, in and out', async ({ page }) =
   expect(await widthOf(page, 'Documentation')).toBeLessThan(zoomed);
 
   // Dragging an area fills the view with it.
-  await page.getByRole('button', { name: 'Fit to screen' }).click();
+  await page.getByRole('button', { name: 'Unfold everything' }).click();
+  await page.waitForTimeout(400);
   const fitted = await widthOf(page, 'Documentation');
   const box = await page.getByRole('treeitem', { name: 'Documentation' }).boundingBox();
   if (!box) throw new Error('missing topic');

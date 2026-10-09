@@ -109,7 +109,7 @@ test('Unfold everything also brings back the parents', async ({ page }) => {
 test('tooltips are dark in Light Mode', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'light' });
   await page.goto('/?demo=14');
-  await page.getByRole('button', { name: 'Fit to screen' }).hover();
+  await page.getByRole('button', { name: 'Unfold everything' }).hover();
   const tip = page.locator('.tooltip[data-visible]');
   await expect(tip).toBeVisible();
   const bg = await tip.evaluate((el) => getComputedStyle(el).backgroundColor);

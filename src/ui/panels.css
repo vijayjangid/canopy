@@ -42,10 +42,6 @@
   min-height: 0;
 }
 
-.panel-right {
-  width: 336px;
-}
-
 .stripe {
   gap: 2px;
   padding: 4px;
@@ -173,83 +169,20 @@
   min-width: 0;
 }
 
-.panel-heading h2 {
-  margin: 0;
-  overflow: hidden;
-  font-size: 16px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.panel-eyebrow {
-  margin: 0;
-  font-size: 11px;
-  color: var(--color-text-muted);
-}
-
 .panel-title {
   margin: 0 0 var(--space-3);
   font-size: 14px;
-}
-
-.panel-scroll {
-  flex: 1;
-  min-height: 0;
-  padding: var(--space-3) var(--space-4) var(--space-4);
-  overflow: auto;
-}
-
-.panel-right .panel-scroll {
-  padding: 0;
 }
 
 .panel-section {
   border-bottom: 1px solid var(--color-border);
 }
 
-.panel-section-head {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  width: 100%;
-  padding: 10px var(--space-3);
-  font: inherit;
-  font-weight: 600;
-  color: var(--color-text);
-  text-align: left;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-}
-
 .panel-section-head:hover {
   background: var(--color-hover);
 }
 
-.panel-section-summary {
-  margin-left: auto;
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--color-text-muted);
-}
-
-.panel-section-body {
-  padding: 0 var(--space-4) var(--space-4);
-}
-
-.panel-note {
-  padding: var(--space-3) var(--space-4);
-}
-
 /* The filter, in the panel and as a pill over the map */
-
-.filter-list {
-  display: grid;
-  gap: 4px;
-  padding: 0;
-  margin: var(--space-2) 0 var(--space-3);
-  list-style: none;
-}
 
 .filter-list button,
 .filter-actions button,
@@ -274,12 +207,6 @@
   display: block;
   font-size: 12px;
   opacity: 0.8;
-}
-
-.filter-count {
-  margin: var(--space-2) 0;
-  font-size: 13px;
-  color: var(--color-text-muted);
 }
 
 .filter-actions {
@@ -331,16 +258,6 @@
 
 /* Preferences, people and export fit a narrow panel: labels sit above their controls. */
 
-.panel .pref {
-  grid-template-columns: 1fr;
-  gap: var(--space-1);
-}
-
-.panel .pref > .pref-hint,
-.panel .pref .segmented {
-  grid-column: 1;
-}
-
 .panel .segmented {
   flex-wrap: wrap;
 }
@@ -355,14 +272,6 @@
 
 .panel .people-list li {
   align-items: center;
-}
-
-.panel .prefs h3 {
-  margin-top: var(--space-4);
-}
-
-.panel .prefs section:first-child h3 {
-  margin-top: 0;
 }
 
 .icon {
@@ -387,13 +296,6 @@
   padding: 0 var(--space-2);
 }
 
-.filter-group h3 {
-  margin: var(--space-4) 0 var(--space-2);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-}
-
 .date-filter {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -413,15 +315,6 @@
 
 /* ---------- Compact density for the side panels ---------- */
 
-.panel-left,
-.panel-right {
-  width: 352px;
-}
-
-.panel-scroll {
-  padding: var(--space-2) var(--space-3) var(--space-3);
-}
-
 .panel-left .panel-tabs button {
   height: 36px;
   padding: 0 8px;
@@ -432,53 +325,6 @@
 .panel-left .panel-collapse {
   width: 28px;
   height: 28px;
-}
-
-.panel-section-head {
-  padding: 7px var(--space-3);
-}
-
-.panel-section-body {
-  padding: 0 var(--space-3) var(--space-3);
-}
-
-.panel .segmented button {
-  height: 24px;
-  padding: 0 9px;
-  font-size: 12px;
-}
-
-.panel .segmented button[data-icon-only] {
-  min-width: 28px;
-  padding: 0 6px;
-}
-
-.filter-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: var(--space-1) 0 var(--space-2);
-}
-
-.filter-list button {
-  padding: 3px 10px;
-  font-size: 12.5px;
-  border-radius: 999px;
-}
-
-.filter-group h3 {
-  margin: var(--space-3) 0 var(--space-1);
-  font-size: 12px;
-}
-
-.filter-actions button {
-  padding: 4px 10px;
-  font-size: 12.5px;
-}
-
-.filter-count {
-  margin: var(--space-2) 0;
-  font-size: 12px;
 }
 
 /* Closed, the left panel is only its tab strip, with every tab showing its icon and name. */
@@ -548,10 +394,6 @@
 .panel-left.panel-strip .panel-tabs button:last-child {
   border-top-right-radius: 9px;
   border-bottom-right-radius: 9px;
-}
-
-.panel-left .panel-scroll {
-  padding-top: var(--space-4);
 }
 
 .panel-crumb {
@@ -669,14 +511,7 @@
   height: 16px;
 }
 
-.filter-search {
-  position: relative;
-  display: flex;
-  align-items: center;
-  margin-bottom: var(--space-2);
-}
-
-.filter-search .icon {
+.filter-search > .icon {
   position: absolute;
   left: 10px;
   width: 14px;
@@ -690,19 +525,7 @@
   padding-left: 30px;
 }
 
-.panel-level {
-  margin: 2px 0 0;
-  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 11px;
-  color: var(--color-text-muted);
-}
-
 /* Icon and text sit on one centre line, whatever the icon is. */
-.filter-list button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
 
 .filter-list .status-icon {
   flex: none;
@@ -737,4 +560,206 @@
 
 .filter-pill-count[data-state='empty'] {
   color: var(--color-danger);
+}
+
+/* ======================================================================================
+   Side panels: one rhythm.
+   Content sits 20px from the edge. Groups are 20px apart, related things 8px apart.
+   Names are 13 to 13.5px, section titles 14px, small print 12px. Explanations live behind
+   an "i" so a panel reads as names and controls first.
+   ====================================================================================== */
+
+.panel-left,
+.panel-right {
+  width: 372px;
+}
+
+.panel-scroll {
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-4) var(--space-5) var(--space-6);
+  overflow: auto;
+}
+
+.panel-right .panel-scroll {
+  padding: 0;
+}
+
+/* The details panel: a title that gets room, then the controls. */
+.panel-right .panel-header {
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-3) var(--space-3) var(--space-5);
+}
+
+.panel-nav button,
+.panel-right .panel-collapse {
+  width: 30px;
+  height: 30px;
+}
+
+.panel-eyebrow {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.panel-crumb button {
+  font-size: 12px;
+}
+
+.panel-heading h2 {
+  display: -webkit-box;
+  margin: 4px 0 0;
+  overflow: hidden;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.panel-level {
+  margin: var(--space-2) 0 0;
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+
+/* Collapsible sections of the details panel. */
+.panel-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px var(--space-5);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+.panel-section-head .icon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+}
+
+.panel-section-summary {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.panel-section-body {
+  padding: var(--space-1) var(--space-5) var(--space-5);
+}
+
+.panel-section-plain .panel-section-body {
+  padding-top: var(--space-5);
+}
+
+.panel-note {
+  padding: var(--space-4) var(--space-5);
+}
+
+/* Segmented controls and pills in the panels. */
+.panel .segmented button {
+  height: 28px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.panel .segmented button[data-icon-only] {
+  min-width: 34px;
+  padding: 0 var(--space-2);
+}
+
+/* The filter: groups of choices, each choice a pill. */
+.filter-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.panel .filter-search input[type='search'] {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+
+.filter-group h3 {
+  margin: var(--space-5) 0 10px;
+}
+
+.filter-group:first-of-type h3 {
+  margin-top: var(--space-4);
+}
+
+.filter-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.filter-list button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  font-size: 13px;
+  border-radius: 999px;
+}
+
+.filter-actions button {
+  padding: 5px 14px;
+  font-size: 13px;
+}
+
+.filter-count {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* The small "i" that holds an explanation. */
+.info-tip {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  color: var(--color-text-muted);
+  cursor: help;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  opacity: 0.7;
+  transition: opacity var(--motion-instant) var(--ease-standard);
+}
+
+.info-tip .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.info-tip:hover,
+.info-tip:focus-visible {
+  color: var(--color-text);
+  opacity: 1;
 }

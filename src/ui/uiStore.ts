@@ -16,7 +16,7 @@ export type DialogName =
 export type InspectorTab = 'properties' | 'note' | 'stickers';
 
 /** Tabs of the panel on the left. */
-export type LeftTab = 'settings' | 'filter' | 'tags' | 'export';
+export type LeftTab = 'settings' | 'tags' | 'export';
 
 export type FilterMode = 'dim' | 'isolate';
 
@@ -53,8 +53,6 @@ interface UiState {
   imageAltEditing: string | null;
   /** The topic whose reference line is picked, so it shows its delete icon. */
   referenceFocus: string | null;
-  /** Counts each request to put the cursor in the Filter's search box. */
-  searchNudge: number;
 }
 
 const PANELS_KEY = 'canopy.panels.v2';
@@ -73,7 +71,7 @@ function loadPanels(): Pick<UiState, 'sections' | 'leftOpen' | 'leftTab'> {
   try {
     const raw = JSON.parse(localStorage.getItem(PANELS_KEY) ?? '{}') as Record<string, unknown>;
     if (typeof raw['leftOpen'] === 'boolean') base.leftOpen = raw['leftOpen'];
-    const tabs: LeftTab[] = ['settings', 'filter', 'tags', 'export'];
+    const tabs: LeftTab[] = ['settings', 'tags', 'export'];
     if (tabs.includes(raw['leftTab'] as LeftTab)) base.leftTab = raw['leftTab'] as LeftTab;
     const saved = raw['sections'];
     if (typeof saved === 'object' && saved !== null) {
@@ -103,7 +101,6 @@ export const uiStore = createStore<UiState>(() => ({
   focusBranch: null,
   referenceFocus: null,
   imageAltEditing: null,
-  searchNudge: 0,
   ...loadPanels(),
 }));
 
@@ -218,13 +215,5 @@ export const stopImageAltEdit = () => uiStore.setState({ imageAltEditing: null }
 export const setReferenceFocus = (referenceFocus: string | null) =>
   uiStore.setState((s) => (s.referenceFocus === referenceFocus ? s : { referenceFocus }));
 
-/** Opens the Filter panel with the cursor in its search box. */
-export function focusFilterSearch(): void {
-  uiStore.setState((s) => ({
-    leftOpen: true,
-    leftTab: 'filter',
-    searchNudge: s.searchNudge + 1,
-  }));
-}
 export const setFilterText = (text: string) =>
   uiStore.setState((s) => ({ filterSel: { ...s.filterSel, text } }));

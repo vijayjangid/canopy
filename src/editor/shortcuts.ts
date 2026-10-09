@@ -34,7 +34,6 @@ export type CommandId =
   | 'view.unfoldAll'
   | 'view.zoomIn'
   | 'view.zoomOut'
-  | 'view.fit'
   | 'view.zen'
   | 'view.trail'
   | 'view.focusBranch'
@@ -137,7 +136,6 @@ export const COMMANDS: readonly CommandDef[] = [
     ],
   },
   { id: 'view.zoomOut', label: 'Zoom out', shortcuts: [{ key: '-', mod: true }] },
-  { id: 'view.fit', label: 'Fit to screen', shortcuts: [{ key: '0', mod: true }] },
   {
     id: 'view.focusBranch',
     label: 'Fold everything above into one node, or unfold it again',
@@ -154,7 +152,7 @@ export const COMMANDS: readonly CommandDef[] = [
   { id: 'view.zen', label: 'Zen mode: hide everything but the map', shortcuts: [{ key: 'z' }] },
   {
     id: 'palette.open',
-    label: 'Open command palette',
+    label: 'Search and run commands',
     shortcuts: [{ key: 'k', mod: true }],
   },
   {
@@ -177,10 +175,10 @@ export const COMMANDS: readonly CommandDef[] = [
   { id: 'topic.referenceRemove', label: 'Remove topic reference', shortcuts: [] },
   { id: 'topic.imageAlt', label: 'Describe the picture (alt text)', shortcuts: [] },
   { id: 'topic.imageRemove', label: 'Remove the picture from the topic', shortcuts: [] },
-  { id: 'filter.open', label: 'Advanced filters', shortcuts: [{ key: '/' }, { key: 'f' }] },
+  { id: 'filter.open', label: 'Search and filter', shortcuts: [{ key: '/' }, { key: 'f' }] },
   {
     id: 'filter.search',
-    label: 'Find a topic',
+    label: 'Search topics, commands and filters',
     shortcuts: [{ key: 'f', mod: true }],
   },
   { id: 'filter.next', label: 'Next match in the Filter', shortcuts: [{ key: '.' }] },
@@ -228,7 +226,6 @@ export const COMMAND_GROUPS: Record<CommandId, string> = {
   'view.unfoldAll': 'Fold',
   'view.zoomIn': 'View',
   'view.zoomOut': 'View',
-  'view.fit': 'View',
   'view.zen': 'View',
   'view.trail': 'View',
   'view.focusBranch': 'View',

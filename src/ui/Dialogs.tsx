@@ -1,6 +1,6 @@
 import { CheatSheet } from './CheatSheet';
 import { DeleteConfirm } from './DeleteConfirm';
-import { Palette } from './Palette';
+import { SearchDialog } from './SearchDialog';
 import { QuickAdd } from './QuickAdd';
 import { TopicSearchDialog } from './TopicSearchDialog';
 import { useDialog, useUi } from './uiStore';
@@ -13,8 +13,12 @@ export function Dialogs() {
   if (dialog === 'quickadd') return <QuickAdd />;
   if (dialog === 'confirmDelete') return <DeleteConfirm />;
   if (dialog === 'topicSearch') {
-    return <TopicSearchDialog referenceFrom={topicSearchFrom} />;
+    return topicSearchFrom ? (
+      <TopicSearchDialog referenceFrom={topicSearchFrom} />
+    ) : (
+      <SearchDialog />
+    );
   }
-  if (dialog === 'palette') return <Palette />;
+  if (dialog === 'palette') return <SearchDialog />;
   return null;
 }

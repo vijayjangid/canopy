@@ -35,7 +35,7 @@ describe('hintsFor', () => {
       'Edit title',
       'Note',
       'Sticker',
-      'Fit to screen',
+      'Unfold everything',
     ]);
   });
 

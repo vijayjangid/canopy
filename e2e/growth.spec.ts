@@ -17,9 +17,20 @@ async function twoChildren(page: Page) {
   await expect(page.getByRole('treeitem')).toHaveCount(3);
 }
 
-test('shows handles around a hovered topic and a ghost for the one under the pointer', async ({
+/** Turns the hover preview on, keeping the blank-topic setting the e2e storage state sets. */
+async function previewOn(page: Page) {
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      'canopy.settings',
+      JSON.stringify({ discardBlank: false, handlePreview: true }),
+    ),
+  );
+}
+
+test('shows handles around a hovered topic and, when asked, a ghost for the one under the pointer', async ({
   page,
 }) => {
+  await previewOn(page);
   await twoChildren(page);
   await page.mouse.move(0, 0);
   await expect(page.locator('.growth-handle')).toHaveCount(0);
@@ -43,6 +54,40 @@ test('shows handles around a hovered topic and a ghost for the one under the poi
 
   await page.mouse.move(5, 5);
   await expect(page.locator('.topic[data-kind="ghost"]')).toHaveCount(0);
+});
+
+test('pointing at a handle shows no ghost unless the preview is switched on', async ({ page }) => {
+  await twoChildren(page);
+  await topic(page, 'Alpha').click();
+  await page.mouse.move(0, 0);
+  await topic(page, 'Alpha').hover();
+  for (const kind of ['child', 'after'] as const) {
+    await handle(page, kind).hover();
+    await page.waitForTimeout(150);
+    await expect(page.locator('.topic[data-kind="ghost"]')).toHaveCount(0);
+  }
+  await expect(page.getByRole('treeitem')).toHaveCount(3);
+
+  // Clicking still adds the topic.
+  await handle(page, 'after').click();
+  await expect(page.getByRole('textbox', { name: 'Topic title' })).toBeFocused();
+  await expect(page.getByRole('treeitem')).toHaveCount(4);
+});
+
+test('the Settings tab switches the hover preview on', async ({ page }) => {
+  await twoChildren(page);
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  const toggle = page.getByRole('switch', { name: 'Preview on hover' });
+  await expect(toggle).toHaveAttribute('aria-checked', 'false');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-checked', 'true');
+  await page.getByRole('button', { name: 'Close' }).first().click();
+
+  await topic(page, 'Alpha').click();
+  await page.mouse.move(0, 0);
+  await topic(page, 'Alpha').hover();
+  await handle(page, 'after').hover();
+  await expect(page.locator('.topic[data-kind="ghost"]')).toHaveCount(1);
 });
 
 test('the Core only offers sub-topics', async ({ page }) => {
@@ -70,6 +115,8 @@ test('clicking a handle turns the ghost into the real topic and opens the editor
 });
 
 test('keeps the subject in place when the preview becomes real', async ({ page }) => {
+  // Wide enough that auto-pan, which keeps topics clear of the details panel, has nothing to do.
+  await page.setViewportSize({ width: 1600, height: 800 });
   await twoChildren(page);
   const before = await topic(page, 'Beta').locator('.topic-box').boundingBox();
   await topic(page, 'Beta').click();

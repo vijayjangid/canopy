@@ -72,12 +72,16 @@ test('handles are centred on the topic at every zoom level', async ({ page }) =>
     const b = await boxOf(page);
     if (!b) continue;
     await hoverSelected(page);
-    const m = await misalignment(page);
-    if (!m) continue;
-    expect(m.topX).toBeLessThan(1);
-    expect(m.bottomX).toBeLessThan(1);
-    expect(m.rightY).toBeLessThan(1);
-    expect(m.gapDiff).toBeLessThan(1);
+    // Wait for the zoom and the handles' fade-in to settle, then every handle must be centred.
+    await expect
+      .poll(
+        async () => {
+          const m = await misalignment(page);
+          return m ? Math.max(m.topX, m.bottomX, m.rightY, m.gapDiff) : 0;
+        },
+        { timeout: 5000 },
+      )
+      .toBeLessThan(1);
   }
 });
 

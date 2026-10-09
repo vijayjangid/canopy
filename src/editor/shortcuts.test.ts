@@ -15,7 +15,7 @@ describe('shortcut matching', () => {
 
   it('separates plain keys from Cmd and Alt variants', () => {
     expect(findCommand(key({ key: '0' }))?.id).toBe('view.unfoldAll');
-    expect(findCommand(key({ key: '0', metaKey: true }))?.id).toBe('view.fit');
+    expect(findCommand(key({ key: '0', metaKey: true }))).toBeUndefined();
     expect(findCommand(key({ key: 'ArrowUp' }))?.id).toBe('nav.arrow');
     expect(findCommand(key({ key: 'ArrowUp', shiftKey: true }))?.id).toBe('nav.arrow');
     expect(findCommand(key({ key: 'ArrowUp', altKey: true }))?.id).toBe('topic.reorder');

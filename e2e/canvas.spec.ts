@@ -35,8 +35,8 @@ test('zooms with the controls and the keyboard, and fits the map', async ({ page
   await page.keyboard.press('Control+-');
   await page.keyboard.press('Control+-');
   expect(await width()).toBeLessThan(before);
-  await page.getByRole('button', { name: 'Fit to screen' }).click();
-  expect(Math.abs((await width()) - before)).toBeLessThan(1);
+  await page.getByRole('button', { name: 'Unfold everything' }).click();
+  await expect.poll(async () => Math.abs((await width()) - before)).toBeLessThan(1);
 });
 
 test('Zen hides everything but the map, and Escape brings it back', async ({ page }) => {

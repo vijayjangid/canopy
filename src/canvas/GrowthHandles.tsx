@@ -106,6 +106,8 @@ export function GrowthHandles({ layout, drawn, onCommit }: Props) {
   // Panning and zooming own the pointer, so the add-topic handles step out of the way.
   const tool = useEffectiveTool();
   const visibility = useSettings((s) => s.handles);
+  // Pointing at a + shows the topic it would add only when asked for. A drag always shows where it lands.
+  const previewOnHover = useSettings((s) => s.handlePreview);
   // Browsing stays quiet: handles belong to the selected topic, and only while it is hovered.
   const hovered = hoverId !== null && hoverId === focus ? hoverId : null;
   const subject =
@@ -349,7 +351,7 @@ export function GrowthHandles({ layout, drawn, onCommit }: Props) {
             style={{ left: at.x, top: at.y }}
             onPointerEnter={(e) => {
               growthStore.getState().keepAlive();
-              if (!growthStore.getState().dragOrigin && !gliding) {
+              if (previewOnHover && !growthStore.getState().dragOrigin && !gliding) {
                 growthStore.getState().setSlot(subject, withShift(kind, e.shiftKey));
               }
             }}
@@ -364,7 +366,13 @@ export function GrowthHandles({ layout, drawn, onCommit }: Props) {
               onPointerMove(e);
               // A pointer that rested on the handle while it glided into place starts the preview once it moves.
               const store = growthStore.getState();
-              if (!press.current && !gliding && !store.slot && !store.dragOrigin) {
+              if (
+                previewOnHover &&
+                !press.current &&
+                !gliding &&
+                !store.slot &&
+                !store.dragOrigin
+              ) {
                 store.setSlot(subject, withShift(kind, e.shiftKey));
               }
             }}
