@@ -12,6 +12,7 @@ import {
   STICKER_SHADOW_OFFSET,
   stickerBlob,
   textLines,
+  TOPIC_PADDING,
   typeForDepth,
   type ChipItem,
   type TopicBox,
@@ -207,7 +208,7 @@ export const TopicNode = memo(function TopicNode({
   const badge =
     flow === 'right' ? { x: w + 6, y: h / 2 - 10 } : { x: w / 2 - badgeW / 2, y: h + 6 };
   const titleLines = lines.map((line, i) => (
-    <tspan key={i} x={w / 2} y={firstBaseline + i * style.lineHeight}>
+    <tspan key={i} x={TOPIC_PADDING.x} y={firstBaseline + i * style.lineHeight}>
       {i === 0 && showLevel && depth > 0 && (
         <tspan className="level-prefix">{levelPrefix(depth, position)}</tspan>
       )}
@@ -285,7 +286,7 @@ export const TopicNode = memo(function TopicNode({
             >
               {stickerBlob(
                 lines,
-                w / 2,
+                TOPIC_PADDING.x,
                 firstBaseline,
                 style,
                 showLevel && depth > 0 ? levelPrefix(depth, position) : '',
@@ -305,7 +306,7 @@ export const TopicNode = memo(function TopicNode({
         <text
           className="topic-text"
           data-empty={empty || undefined}
-          textAnchor="middle"
+          textAnchor="start"
           dominantBaseline="central"
           fontSize={style.size}
           fontWeight={style.weight}
@@ -317,7 +318,7 @@ export const TopicNode = memo(function TopicNode({
         <g
           className="topic-chips"
           aria-hidden="true"
-          transform={`translate(${(w - chipRowWidth(chips)) / 2} ${h - chipsH})`}
+          transform={`translate(${TOPIC_PADDING.x} ${h - chipsH})`}
         >
           <ChipRow
             items={chips}

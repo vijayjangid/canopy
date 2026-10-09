@@ -89,12 +89,12 @@ export interface ChipRowSpan {
 
 /**
  * The pills behind sticker lettering, one per line, and one more for the chip row when there is
- * one. They overlap where they meet, so together they read as one blob that follows the shape of
- * the content.
+ * one. Text and chips start at `left`, so the pills share that left edge and overlap where they
+ * meet, which makes one blob that follows the shape of the content.
  */
 export function stickerBlob(
   lines: string[],
-  centreX: number,
+  left: number,
   firstBaseline: number,
   style: TypeStyle,
   prefix: string,
@@ -108,7 +108,7 @@ export function stickerBlob(
     const width = textWidth(line, style) + (i === 0 ? prefixWidth(prefix, style) : 0) + padX * 2;
     const h = style.lineHeight + padY * 2;
     return {
-      x: centreX - width / 2,
+      x: left - padX,
       y: firstBaseline + i * style.lineHeight - h / 2,
       w: width,
       h,
@@ -116,10 +116,11 @@ export function stickerBlob(
     };
   });
   if (chipRow && chipRow.width > 0) {
-    const width = chipRow.width + (6 + grow) * 2;
+    // Same side padding as the title pills, so the blob's left edge runs straight down.
+    const width = chipRow.width + padX * 2;
     const h = chipRow.height + (3 + grow) * 2;
     rects.push({
-      x: centreX - width / 2,
+      x: left - padX,
       y: chipRow.top - 3 - grow,
       w: width,
       h,
@@ -129,6 +130,7 @@ export function stickerBlob(
   return rects;
 }
 
+/** Titles and chips start `x` from a topic's left edge. */
 export const TOPIC_PADDING = { x: 14, y: 9 };
 export const TOPIC_MIN = { w: 72, h: 36 };
 export const TOPIC_MAX_TEXT_WIDTH = 220;

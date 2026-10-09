@@ -155,3 +155,26 @@ test('tags on the Core stay readable against its solid colour', async ({ page })
   await expect(dot).toHaveAttribute('stroke', /.+/);
   await expect(dot).toHaveAttribute('fill', '#5b4bdb');
 });
+
+test('titles and chips start at the same left edge, in every theme', async ({ page }) => {
+  await page.goto('/?demo=14&plan=1');
+  for (const name of ['Minimal', 'High contrast', 'Playful']) {
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('group', { name: 'Theme' }).getByRole('button', { name }).click();
+    await page.getByRole('button', { name: 'Close panel' }).click();
+    // A topic with a row of chips under its title.
+    const topic = page.locator('.topic[data-depth="1"]:has(.topic-chips)').first();
+    await expect(topic).toBeVisible();
+    // Both are laid out from the same left padding, so compare the layout, not glyph edges.
+    const [titleX, chipsX] = await Promise.all([
+      topic.locator('.topic-text tspan').first().getAttribute('x'),
+      topic
+        .locator('.topic-chips')
+        .getAttribute('transform')
+        .then((t) => /translate\(([\d.]+)/.exec(t ?? '')?.[1]),
+    ]);
+    expect(titleX).toBe('14');
+    expect(chipsX).toBe('14');
+    await expect(topic.locator('.topic-text')).toHaveAttribute('text-anchor', 'start');
+  }
+});

@@ -15,6 +15,7 @@ import {
   stickerBlob,
   seedOf,
   textLines,
+  TOPIC_PADDING,
   typeForDepth,
   topicRows,
   type Layout,
@@ -270,19 +271,19 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
       textLinesShown
         .map(
           (l, i) =>
-            `<tspan x="${f(b.w / 2)}" y="${f(first + i * style.lineHeight)}">${
+            `<tspan x="${TOPIC_PADDING.x}" y="${f(first + i * style.lineHeight)}">${
               i === 0 && doc.prefs.showLevels && b.depth > 0
                 ? `<tspan fill="${prefixFill}" fill-opacity="${prefixOpacity}" font-family="${escapeXml(LEVEL_FONT_STACK)}" font-size="${f(style.size * LEVEL_PREFIX_SCALE)}" font-weight="400">${levelPrefix(b.depth, b.position)}</tspan>`
                 : ''
             }${escapeXml(l)}</tspan>`,
         )
         .join('');
-    const box = `text-anchor="middle" dominant-baseline="central" font-size="${f(style.size)}" font-weight="${paint.weight}"`;
+    const box = `text-anchor="start" dominant-baseline="central" font-size="${f(style.size)}" font-weight="${paint.weight}"`;
     if (paint.sticker && textLinesShown.length > 0) {
       const blobOf = (grow: number) =>
         stickerBlob(
           textLinesShown,
-          b.w / 2,
+          TOPIC_PADDING.x,
           first,
           style,
           doc.prefs.showLevels && b.depth > 0 ? levelPrefix(b.depth, b.position) : '',
@@ -309,7 +310,7 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
     );
     if (options.chips !== false && rows.chips.length > 0) {
       out.push(
-        `<g transform="translate(${f((b.w - chipRowWidth(rows.chips)) / 2)} ${f(b.h - rows.total)})">${chipsMarkup(
+        `<g transform="translate(${TOPIC_PADDING.x} ${f(b.h - rows.total)})">${chipsMarkup(
           rows.chips,
           topic,
           b.depth === 0 && theme.look !== 'playful' ? contextOnCore(chipContext) : chipContext,
