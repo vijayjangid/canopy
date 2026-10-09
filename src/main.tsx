@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
+import { installSlidingSelection } from './ui/slider';
 import './theme/tokens.css';
 import './theme/looks.css';
 import './theme/reset.css';
@@ -8,6 +9,8 @@ import './ui/captions.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element');
+
+installSlidingSelection();
 
 createRoot(root).render(
   <StrictMode>

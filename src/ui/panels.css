@@ -136,15 +136,14 @@
   font-weight: 500;
 }
 
-/* The active tab shows its icon and name in the accent colour, over a bar on the header line. */
-.panel-left .panel-tabs button::after {
-  position: absolute;
-  inset: auto 0 -1px;
-  height: 2px;
-  content: '';
-  background: var(--color-accent);
-  transform: scaleX(0);
-  transition: transform var(--motion-quick) var(--ease-standard);
+/* The active tab shows its icon and name in the accent colour, over a bar on the header line. One
+   bar glides from tab to tab (see ui/slider.ts), for this list and the details panel's. */
+.panel-left .panel-tabs {
+  position: relative;
+}
+
+.panel-left .panel-tabs button {
+  transition: color var(--motion-quick) var(--ease-standard);
 }
 
 .panel-left .panel-tabs button[aria-selected='true'] {
@@ -152,8 +151,24 @@
   background: transparent;
 }
 
-.panel-left .panel-tabs button[aria-selected='true']::after {
-  transform: scaleX(1);
+.panel-tabs[data-slide]::after,
+.inspector-tabs[data-slide]::after {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: var(--slide-w);
+  height: 2px;
+  content: '';
+  background: var(--color-accent);
+  transform: translateX(var(--slide-x));
+  pointer-events: none;
+}
+
+.panel-tabs[data-slide='ready']::after,
+.inspector-tabs[data-slide='ready']::after {
+  transition:
+    transform var(--motion-quick) var(--ease-standard),
+    width var(--motion-quick) var(--ease-standard);
 }
 
 .panel-left .panel-tabs button:first-child {
@@ -489,6 +504,7 @@
 
 /* Inside the bar the corners step down with the padding, like the panels. */
 .filter-control .segmented {
+  --slide-radius: 8px;
   border-radius: 10px;
 }
 
@@ -574,6 +590,20 @@
 
 .panel-right .panel-scroll {
   padding: 0;
+}
+
+/* The details panel slides in from the right edge of the window when it opens. It stays put while
+   you move between topics, because it is the same element. */
+@keyframes panel-slide-in {
+  from {
+    transform: translateX(calc(100% + var(--space-3)));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .panel-right {
+    animation: panel-slide-in var(--motion-standard) var(--ease-standard);
+  }
 }
 
 /* The details panel: a title that gets room, then the controls. */

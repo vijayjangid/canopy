@@ -2,6 +2,9 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  /* Clip, not hidden: nothing that starts outside the window, such as a panel sliding in, can make
+     the page scroll sideways. */
+  overflow: clip;
 }
 
 .app-bar {

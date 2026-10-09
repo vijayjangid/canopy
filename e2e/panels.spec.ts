@@ -75,3 +75,49 @@ test('the selected topic is marked apart from its own border colour', async ({ p
   expect(ring).not.toBe(border);
   await expect(selected.locator('.topic-wash')).toHaveCount(1);
 });
+
+test('the details panel slides in from the right edge, and only when it opens', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/?demo=14');
+  // Watch for the panel to appear, and record where it starts.
+  await page.evaluate(() => {
+    const w = window as unknown as { __slide?: { left: number; animations: number } };
+    const watch = new MutationObserver(() => {
+      const panel = document.querySelector('.panel-right');
+      if (!panel || w.__slide) return;
+      w.__slide = {
+        left: panel.getBoundingClientRect().left,
+        animations: panel.getAnimations().length,
+      };
+    });
+    watch.observe(document.body, { childList: true, subtree: true });
+  });
+  await page.locator('.topic[data-depth="1"]').first().click();
+  const start = await page.evaluate(
+    () => (window as unknown as { __slide?: { left: number; animations: number } }).__slide ?? null,
+  );
+  expect(start).not.toBeNull();
+  expect(start?.animations).toBeGreaterThan(0);
+  // It begins past the right edge of the window.
+  const width = await page.evaluate(() => window.innerWidth);
+  expect(start?.left).toBeGreaterThanOrEqual(width);
+  // The page itself never scrolls sideways to follow it.
+  expect(await page.evaluate(() => window.scrollX)).toBe(0);
+  // And it settles inside the window.
+  await expect
+    .poll(() => page.locator('.panel-right').evaluate((el) => el.getBoundingClientRect().right))
+    .toBeLessThan(width);
+
+  // Picking another topic keeps the same panel, with no new slide.
+  await page.locator('.topic[data-depth="1"]').nth(1).click();
+  expect(await page.locator('.panel-right').evaluate((el) => el.getAnimations().length)).toBe(0);
+});
+
+test('the details panel just appears when reduced motion is asked for', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/?demo=14');
+  await page.locator('.topic[data-depth="1"]').first().click();
+  await expect(page.locator('.panel-right')).toHaveCSS('animation-name', 'none');
+});

@@ -578,6 +578,7 @@
    ====================================================================================== */
 
 .inspector-tabs {
+  position: relative;
   display: flex;
   gap: 0;
   padding: 0 6px 0 0;
@@ -600,6 +601,7 @@
   background: transparent;
   border: 0;
   border-radius: 0;
+  transition: color var(--motion-quick) var(--ease-standard);
 }
 
 .inspector-tabs button:hover {
@@ -607,23 +609,9 @@
   background: var(--color-hover);
 }
 
-.inspector-tabs button::after {
-  position: absolute;
-  inset: auto 0 -1px;
-  height: 2px;
-  content: '';
-  background: var(--color-accent);
-  transform: scaleX(0);
-  transition: transform var(--motion-quick) var(--ease-standard);
-}
-
 .inspector-tabs button[aria-selected='true'] {
   color: var(--color-accent);
   background: transparent;
-}
-
-.inspector-tabs button[aria-selected='true']::after {
-  transform: scaleX(1);
 }
 
 .inspector-tabs button:focus-visible {
