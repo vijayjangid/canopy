@@ -1,0 +1,231 @@
+<div align="center">
+
+<img src="public/favicon.svg" alt="Canopy logo" width="84" height="84" />
+
+# Canopy
+
+**A fast, keyboard-first mind map that doubles as a light planning tool.**
+Local-first, private by default, accessible to the core, and a pleasure to look at.
+
+[![Build](https://github.com/vijayjangid/canopy/actions/workflows/pages.yml/badge.svg)](https://github.com/vijayjangid/canopy/actions/workflows/pages.yml)
+![React](https://img.shields.io/badge/React-19-5b4bdb?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-built-646cff?logo=vite&logoColor=white)
+![Local-first](https://img.shields.io/badge/local--first-no%20account-2b8a3e)
+
+<br />
+
+<img src="docs/screenshots/hero.png" alt="Canopy showing a product launch plan as a mind map with status chips, due dates and stickers" width="920" />
+
+</div>
+
+<br />
+
+## ✨ Why Canopy
+
+Most mind-mapping tools make you choose between a pretty doodle and a useful plan. Canopy is built so a map can be both, without ever getting in your way.
+
+|                                         |                                                                                                                            |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| ⌨️ **Keyboard-first, mouse-delightful** | Every action has a shortcut. The mouse gets rich affordances (ghost previews, magnetic drops), not a separate feature set. |
+| 🎨 **Structure and style are separate** | Look, Font and Mode never touch your data. Restyle a whole map in one click.                                               |
+| 🎬 **Motion explains, never decorates** | New topics grow out of their parent and removed ones fold back. Reduced-motion is respected everywhere.                    |
+| ♿ **Accessible by default**            | The map is a real ARIA tree, not just pixels on a canvas. Automated axe checks run in the test suite.                      |
+| 🔒 **Local-first and private**          | Works offline, autosaves to your browser, and needs no account. Your map is a plain `.canopy.json` file.                   |
+| 📋 **A map is also a plan**             | Give any topic a status, due date and tags, then filter, roll up and export it without leaving the map.                    |
+
+<br />
+
+## 🚀 Feature tour
+
+### 🌱 Grow ideas at the speed of thought
+
+- **Growth handles** appear on hover with a **ghost preview** of exactly where the new topic will land. Click to add, or drag to drop with a magnetic snap.
+- `Tab` adds a sub-topic, `Enter` a peer, `W` inserts a topic **between** a topic and its parent. No dragging needed.
+- **Text expansion:** type `!!Research>Interviews>Synthesis` for a chain, or `!!A, B, C` for peers. One undo puts the text back.
+- **Paste an outline** (indented text or Markdown bullets) onto any topic and it unfurls into a branch.
+- **Drag to re-parent** with a clear drop line that shows whether you are making a sub-topic or a peer.
+
+### 🧭 Never lose your place in a big map
+
+- **Trail** highlights (or isolates) the path from the focused topic up to the Core, with a clickable breadcrumb and **Copy path**.
+- **Branch view** (`[`) shows only one branch and collapses everything above it into a single dotted node.
+- **Fold** with `]`, fold the whole map to **Level N** with `1`–`9`, and peek inside a folded branch from its badge.
+- **Zen** (`Z`) hides every panel until you press `Esc`. **Auto-pan** keeps the topic you are working on in view.
+- A **Command Palette** (`⌘K`) searches every action, shows its shortcut, and covers settings too.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/inspector.png" alt="Selecting a topic highlights its trail to the Core and opens the inspector with status, due date, tags and stickers" /></td>
+    <td width="50%"><img src="docs/screenshots/palette.png" alt="The command palette listing create and edit actions with their shortcuts" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Trail and Inspector</b>: follow the path to the Core while you edit properties.</sub></td>
+    <td align="center"><sub><b>Command Palette</b> (<code>⌘K</code>): 64 commands, each with its shortcut.</sub></td>
+  </tr>
+</table>
+
+### 📌 Turn the map into a plan
+
+- **Properties:** Status (Not started, In progress, Blocked, In review, Done, Canceled), Due date and Tags, shown as compact chips.
+- **Shorthand while typing:** `#launch /doing ^fri` becomes a tag, a status and a due date when you finish the title.
+- **Roll-ups:** a folded branch shows its hidden count plus a status summary such as `12 · 3/7`.
+- **Filters** pick out topics by property, text or sticker, and step through matches with `.` and `,`. Exports can respect the active Filter.
+
+### 🎭 Make it yours: Looks, Voices and Modes
+
+Three **Looks**, four **Voices**, Light, Dark or Auto. Colour, type and connectors change. Your data never does.
+
+<table>
+  <tr>
+    <td width="33%"><img src="docs/screenshots/look-playful.png" alt="Playful look: saturated colour by level, gradient cards and bold rounded connectors" /></td>
+    <td width="33%"><img src="docs/screenshots/look-contrast.png" alt="High Contrast look: black on white, thicker strokes and a different corner shape per level" /></td>
+    <td width="33%"><img src="docs/screenshots/look-sketch-dark.png" alt="Minimal look in Dark mode with the handwritten Sketch voice and tapered connectors" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Playful</b><br />colour by level</sub></td>
+    <td align="center"><sub><b>High Contrast</b><br />level by shape, not just colour</sub></td>
+    <td align="center"><sub><b>Minimal + Sketch</b> in Dark<br />tapered connectors</sub></td>
+  </tr>
+</table>
+
+- **Looks:** Minimal, High Contrast, Playful.
+- **Voices:** Clean, Editorial (serif), Mono, Sketch (handwritten, with hand-drawn wobbly lines).
+- **Connectors:** curved, elbow, straight or tapered. **Layout:** Right or Down, in Compact, Comfortable or Airy spacing.
+- **Stickers:** original die-cut artwork on the corners of topics, and on the **lines** between them. Lines can carry a label such as _depends on_.
+- **Notes:** a Markdown note on any topic, with a Write and Preview switch.
+
+<br />
+
+## 📄 Compact layout for print and export
+
+Big maps print badly: a tidy tree grows tall and thin, and shrinks to an unreadable sliver on a page. The **Compact layout** option moves topics around so the map fills an **A4** page, then shrinks it only as far as it has to.
+
+<div align="center">
+<img src="docs/screenshots/compact-before-after.png" alt="The same 133-topic map on A4: the standard layout at 21% size, the compact layout at 63% size" width="920" />
+</div>
+
+<table>
+  <tr>
+    <td width="260" valign="top"><img src="docs/screenshots/export-compact.png" alt="The Export panel with Compact layout enabled and Best fit page orientation" width="260" /></td>
+    <td valign="top">
+
+**How it decides.** Every branch picks the arrangement that wastes the least room:
+
+- 📚 a **column** beside its parent,
+- 📊 a **row** under it,
+- 🗂️ or **indented** under it like an outline.
+
+The top topic can also split its branches onto **both sides**, and the layout tries portrait and landscape to see which scales larger. A map that already fits at full size is left exactly as drawn. Branches with a labelled line keep their room for the label.
+
+**Where it works.** PNG, SVG and PDF, with **Best fit**, **Portrait** or **Landscape** pages. It also works with **Only the selected branches**. The map on screen is never changed, and the preview tells you the page and the size, for example _A4 landscape, 63% size_.
+
+</td>
+  </tr>
+</table>
+
+### 📤 Everything you can export
+
+| Format       | What you get                                                                                         |
+| ------------ | ---------------------------------------------------------------------------------------------------- |
+| **PNG**      | 1×, 2× or 4×, optional transparent background. The scale lowers itself if a canvas would be too big. |
+| **SVG**      | Vector, follows Look, Voice, connectors, level numbers and folds, with the map's font embedded.      |
+| **PDF**      | One page, vector, selectable text, through the browser's print dialog.                               |
+| **Markdown** | A nested outline with optional notes, and properties written as the inline shorthand.                |
+| **CSV**      | One row per topic with its path and properties. Spreadsheet formulas are defused.                    |
+| **JSON**     | `canopy/1`, versioned and lossless. Export then import gives you the same map back.                  |
+
+<br />
+
+## ⌨️ Shortcuts worth learning
+
+Press `?` in the app for the searchable cheat sheet. A hint strip at the bottom always shows what applies to your selection.
+
+| Action                       | Keys               | Action                   | Keys                  |
+| ---------------------------- | ------------------ | ------------------------ | --------------------- |
+| Add sub-topic / peer         | `Tab` / `Enter`    | Command palette          | `⌘K`                  |
+| Insert between levels        | `W` / `Shift+W`    | Export                   | `⌘E`                  |
+| Edit / finish editing        | `Space` / `⌘Enter` | Settings                 | `⌘,`                  |
+| Fold / Branch view           | `]` / `[`          | Filter                   | `/`                   |
+| Fold to Level N / unfold all | `1`–`9` / `0`      | Trail on or off          | `R`                   |
+| Status / Due / Tag           | `T` / `D` / `G`    | Zen                      | `Z`                   |
+| Note / Sticker / Line label  | `N` / `S` / `L`    | Select / Pan / Zoom tool | `V` / `H` / `Shift+Z` |
+| Duplicate / Delete branch    | `⌘D` / `Del`       | Undo / Redo              | `⌘Z` / `⌘⇧Z`          |
+
+<br />
+
+## 🏁 Getting started
+
+You need **Node.js 20.19 or newer** (or 22.12+).
+
+```bash
+git clone git@github.com:vijayjangid/canopy.git
+cd canopy
+npm install
+npm run dev
+```
+
+Then open the address Vite prints (usually <http://localhost:5173>).
+
+> 💡 **Try a big map.** In development, add `?demo=200&plan=1` to the address to open a generated map with 200 topics and planning properties. It is handy for trying Trail, Filters and the compact export.
+
+### Scripts
+
+| Command            | What it does                                              |
+| ------------------ | --------------------------------------------------------- |
+| `npm run dev`      | Start the dev server.                                     |
+| `npm run build`    | Typecheck, then build to `dist/`.                         |
+| `npm run preview`  | Serve the production build locally.                       |
+| `npm test`         | Unit and component tests (Vitest).                        |
+| `npm run test:e2e` | End-to-end tests with an accessibility scan (Playwright). |
+| `npm run check`    | Typecheck, lint, format check and unit tests in one go.   |
+| `npm run bench`    | Performance benchmark for large maps.                     |
+
+### Hosting
+
+`npm run build` produces a static site in `dist/` that works from any path, so it can be hosted on any static host. The repository includes a [GitHub Actions workflow](.github/workflows/pages.yml) that builds on every push and can publish to GitHub Pages when you run it by hand.
+
+<br />
+
+## 🧱 Under the hood
+
+Canopy renders its own canvas instead of using a diagramming library, so layout, hit-testing and export all share one source of truth.
+
+| Area        | Folder                      | Notes                                                                                            |
+| ----------- | --------------------------- | ------------------------------------------------------------------------------------------------ |
+| Data model  | `src/model`                 | Normalised topic table with pure, immutable operations (Immer). Undoable. Versioned file format. |
+| Layout      | `src/layout`                | Tidy-tree layout for variable-size topics, connectors, and the compact A4 packer.                |
+| Canvas      | `src/canvas`                | Pan and zoom, culling, drag and drop, Growth Handles, layout animator.                           |
+| Editor      | `src/editor`                | Commands, keyboard, clipboard and one shortcut registry that also builds the cheat sheet.        |
+| Interface   | `src/ui`                    | Panels, inspector, filters, export dialog, command palette.                                      |
+| Export      | `src/io`                    | SVG built straight from the layout, PNG rasteriser, print, Markdown and CSV writers.             |
+| Persistence | `src/persistence`           | Autosave to IndexedDB (Dexie) and `.canopy.json` files.                                          |
+| Theme       | `src/theme`, `src/stickers` | Look and Voice tokens and the original sticker artwork.                                          |
+
+**Stack:** React 19, TypeScript, Vite, Zustand, Immer, Dexie. Tested with Vitest, Testing Library, fast-check and Playwright with axe.
+
+**Performance:** the canvas culls what is off screen, skips animation on very large maps, and is built to stay smooth at thousands of topics.
+
+<br />
+
+## 🗺️ Status and roadmap
+
+Canopy is under active development. The core editor, planning properties, Looks and Voices, navigation aids and all export formats are built. Still ahead:
+
+- 🧩 more Flows (Left, Both, Radial) and a per-branch Flow override
+- 🗃️ Board, Table and Timeline views over the same map
+- 📥 OPML and CSV import
+- ⌨️ customisable shortcuts
+
+The full picture lives in [`spec.md`](spec.md) (what the product is and how it behaves) and [`plan.md`](plan.md) (milestones and decisions).
+
+<br />
+
+## 🙏 Credits
+
+Fonts are bundled through [Fontsource](https://fontsource.org) under the SIL Open Font License: Patrick Hand, Source Serif 4, JetBrains Mono and Bricolage Grotesque. The stickers and interface icons are original artwork drawn for Canopy. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for details.
+
+<div align="center">
+<br />
+<sub>Built with care for people who think in branches. 🌳</sub>
+</div>
