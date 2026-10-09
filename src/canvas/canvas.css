@@ -1,0 +1,786 @@
+.canvas-host {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 1px 1px, var(--color-grid) 1.4px, transparent 0) 0 0 / 24px 24px,
+    var(--color-bg);
+}
+
+.canvas-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: default;
+  user-select: none;
+}
+
+.canvas-svg[data-dragging] {
+  cursor: grabbing;
+}
+
+.canvas-svg:focus {
+  outline: none;
+}
+
+/* The focused topic carries its own ring, so the whole canvas needs none. */
+.canvas-svg:focus-visible {
+  outline: none;
+}
+
+.marquee {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  border: 1px solid var(--color-selection);
+  background: color-mix(in srgb, var(--color-selection) 14%, transparent);
+  border-radius: 4px;
+}
+
+.marquee[hidden] {
+  display: none;
+}
+
+.connector {
+  fill: none;
+  stroke: var(--color-connector);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.topic {
+  cursor: pointer;
+}
+
+.topic[data-kind='ghost'],
+.topic[data-kind='leaving'] {
+  pointer-events: none;
+}
+
+.topic[data-kind='ghost'] .topic-box {
+  fill: color-mix(in srgb, var(--color-accent) 10%, var(--color-topic-bg));
+  stroke: var(--color-accent);
+  stroke-dasharray: 6 4;
+}
+
+.topic[data-kind='ghost'] .topic-text {
+  fill: var(--color-text-muted);
+  font-style: italic;
+}
+
+.fold-badge {
+  cursor: pointer;
+}
+
+.fold-badge rect {
+  fill: var(--color-accent);
+}
+
+.fold-badge text {
+  font-family: var(--font-map);
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--color-core-text);
+  pointer-events: none;
+}
+
+.fold-badge:hover rect {
+  filter: brightness(1.1);
+}
+
+.fold-toggle {
+  pointer-events: none;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--motion-quick) var(--ease-standard);
+}
+
+.topic:hover .fold-toggle,
+.topic[data-selected] .fold-toggle {
+  pointer-events: all;
+  opacity: 1;
+}
+
+.fold-toggle-body {
+  transform: scale(var(--toggle-scale, 1));
+}
+
+.fold-toggle .fold-toggle-hit,
+.fold-toggle:hover .fold-toggle-hit {
+  fill: transparent;
+  stroke: none;
+}
+
+.fold-toggle circle {
+  fill: var(--color-surface);
+  stroke: var(--color-border);
+  stroke-width: 1.5px;
+}
+
+.fold-toggle path {
+  fill: none;
+  stroke: var(--color-text-muted);
+  stroke-width: 1.6px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.fold-toggle:hover circle {
+  stroke: var(--color-accent);
+}
+
+.drop-target {
+  fill: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  stroke: var(--color-accent);
+  stroke-width: 3px;
+  vector-effect: non-scaling-stroke;
+}
+
+.drop-line {
+  stroke: var(--color-accent);
+  stroke-width: 3px;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.drop-dot {
+  fill: var(--color-accent);
+}
+
+.drag-chip {
+  position: absolute;
+  z-index: 4;
+  max-width: 260px;
+  padding: 6px 12px;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-core-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+  background: var(--color-accent);
+  border-radius: 999px;
+  box-shadow: var(--shadow-float);
+  transform: translate(14px, 14px);
+}
+
+.fold-peek {
+  position: absolute;
+  z-index: 3;
+  min-width: 160px;
+  max-width: 280px;
+  padding: var(--space-2) var(--space-3);
+  font-size: 13px;
+  color: var(--color-text);
+  pointer-events: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-float);
+  transform: translateY(-50%);
+}
+
+.fold-peek[data-flow='down'] {
+  transform: translateX(-50%);
+}
+
+.fold-peek ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fold-peek li {
+  padding: 2px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fold-peek p {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+}
+
+.fold-peek-hint {
+  font-size: 12px;
+}
+
+.topic-shadow {
+  fill: var(--color-topic-shadow);
+  pointer-events: none;
+}
+
+.topic-box {
+  fill: var(--color-topic-bg);
+  stroke: var(--color-topic-border);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.topic-text {
+  fill: var(--color-topic-text);
+  font-family: var(--font-map);
+}
+
+.topic-text[data-empty] {
+  fill: var(--color-text-muted);
+  font-style: italic;
+}
+
+.topic[data-depth='0'] .topic-box {
+  fill: var(--color-core-bg);
+  stroke: var(--color-core-bg);
+}
+
+.topic[data-depth='0'] .topic-text {
+  fill: var(--color-core-text);
+}
+
+.topic[data-depth='1'] .topic-box {
+  stroke: var(--color-level1-border);
+}
+
+.topic-ring {
+  fill: none;
+  stroke: var(--color-selection);
+  stroke-width: 2px;
+  opacity: 0.7;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.topic-wash {
+  fill: var(--color-selection);
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.topic[data-focused] .topic-ring {
+  stroke-width: 3px;
+  opacity: 1;
+}
+
+.zoom-controls {
+  position: absolute;
+  left: var(--space-4);
+  bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-float);
+}
+
+.zoom-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 var(--space-2);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 13px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+}
+
+.zoom-controls button:hover {
+  color: var(--color-text);
+  background: var(--color-hover);
+}
+
+.zoom-controls .zen-button {
+  padding: 0 10px 0 8px;
+}
+
+.first-run {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  gap: 4px;
+  max-width: 280px;
+  padding: var(--space-3) var(--space-4);
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
+  pointer-events: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-float);
+  transform: translateX(-50%);
+}
+
+.first-run strong {
+  color: var(--color-text);
+}
+
+.first-run kbd {
+  padding: 1px 6px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-track);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+
+/* A new sticker is stamped on: it drops, presses in, and ripples and bursts lines outward. */
+.sticker-stamp {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: sticker-stamp 560ms cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+
+@keyframes sticker-stamp {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px) scale(1.9) rotate(-18deg);
+  }
+  38% {
+    opacity: 1;
+    transform: translateY(0) scale(0.82) rotate(3deg);
+  }
+  60% {
+    transform: scale(1.08) rotate(-1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.stamp-dent,
+.stamp-ring {
+  fill: none;
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+/* The surface darkens for a moment where the stamp lands, as if pressed in. */
+.stamp-dent {
+  fill: var(--color-text);
+  animation: stamp-dent 560ms ease-out both;
+}
+
+@keyframes stamp-dent {
+  0%,
+  25% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
+
+.stamp-ring {
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  animation: stamp-ring 620ms ease-out 200ms both;
+}
+
+@keyframes stamp-ring {
+  from {
+    opacity: 0.9;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+.stamp-ray {
+  stroke: var(--color-accent);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 7;
+  pointer-events: none;
+  animation: stamp-ray 560ms ease-out 200ms both;
+}
+
+@keyframes stamp-ray {
+  from {
+    opacity: 1;
+    stroke-dashoffset: 7;
+  }
+  55% {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+  to {
+    opacity: 0;
+    stroke-dashoffset: -7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sticker-stamp,
+  .stamp-dent,
+  .stamp-ring,
+  .stamp-ray {
+    animation: none;
+  }
+  .stamp-fx {
+    display: none;
+  }
+}
+
+.canvas-svg[data-filter] .topic,
+.canvas-svg[data-filter] .connector {
+  transition: opacity var(--motion-standard) var(--ease-standard);
+}
+
+.connector[data-dim] {
+  opacity: 0.12;
+}
+
+.topic[data-dim] {
+  opacity: 0.22;
+}
+
+.topic[data-dim][data-selected] {
+  opacity: 0.6;
+}
+
+/* ---------- Lines: hover, label and stickers ---------- */
+
+.link {
+  cursor: pointer;
+}
+
+/* A wide invisible stroke makes a thin line easy to point at. */
+.connector-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16px;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: stroke;
+}
+
+/* Pointing at a line tints it with a faded interactive colour; picking it uses the full colour. */
+.link:hover .connector {
+  stroke: color-mix(in srgb, var(--color-accent) 60%, transparent);
+  stroke-width: 3;
+}
+
+.link:hover .connector[data-style='tapered'] {
+  fill: color-mix(in srgb, var(--color-accent) 60%, transparent);
+  stroke: color-mix(in srgb, var(--color-accent) 60%, transparent);
+  stroke-width: 1.4px;
+}
+
+.link[data-selected] .connector {
+  stroke: var(--color-accent);
+  stroke-width: 3;
+}
+
+.link[data-selected] .connector[data-style='tapered'] {
+  fill: var(--color-accent);
+  stroke: var(--color-accent);
+  stroke-width: 1.4px;
+}
+
+.edge-hit {
+  fill: transparent;
+  pointer-events: all;
+}
+
+/* The halo is the canvas colour, so the line breaks cleanly behind the words. */
+.edge-text {
+  font-family: var(--font-map);
+  paint-order: stroke;
+  stroke: var(--color-bg);
+  stroke-width: 6px;
+  stroke-linejoin: round;
+  fill: var(--color-text-muted);
+  user-select: none;
+  transition: fill var(--motion-quick) var(--ease-standard);
+}
+
+.link:hover .edge-text,
+.link[data-selected] .edge-text {
+  fill: var(--color-accent);
+}
+
+.edge-badge-wrap[data-dim] {
+  opacity: 0.2;
+}
+
+/* The label editor sits over the badge, at the current zoom. */
+.edge-editor {
+  position: absolute;
+  z-index: 8;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 2px solid var(--color-accent);
+  border-radius: 14px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: 500 13px/1 var(--font-map);
+  text-align: center;
+  outline: none;
+  box-shadow: var(--shadow-float);
+}
+.edge-editor::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Quick label and stickers, shown beside a picked line. */
+.edge-quickbar {
+  position: absolute;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  transform: translate(-50%, calc(-100% - 22px));
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-float);
+  animation: quickbar-in var(--motion-quick) var(--ease-standard);
+}
+
+@keyframes quickbar-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% - 14px));
+  }
+}
+
+.edge-quickbar-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--color-border);
+}
+
+.edge-quickbar button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font: inherit;
+  font-size: 16px;
+  color: var(--color-accent);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+}
+
+.edge-quickbar button:hover:not(:disabled) {
+  background: var(--color-hover);
+}
+
+.edge-quickbar-placed {
+  position: relative;
+}
+
+.edge-quickbar-x {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-surface) 78%, transparent);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity var(--motion-instant) var(--ease-standard);
+}
+
+.edge-quickbar-placed:hover .edge-quickbar-x,
+.edge-quickbar-placed:focus-visible .edge-quickbar-x {
+  opacity: 1;
+}
+
+.edge-quickbar button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edge-quickbar {
+    animation: none;
+  }
+}
+
+.edge-quickbar button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+/* ---------- The Trail: the way from the focused topic up to the Core ---------- */
+
+.link[data-trail] .connector {
+  stroke: color-mix(in srgb, var(--color-accent) 58%, var(--color-connector));
+  stroke-width: 3.5;
+}
+
+.link[data-trail] .connector[data-style='tapered'] {
+  fill: color-mix(in srgb, var(--color-accent) 58%, var(--color-connector));
+  stroke: color-mix(in srgb, var(--color-accent) 58%, var(--color-connector));
+  stroke-width: 1.4px;
+}
+
+.topic[data-trail] .topic-box {
+  stroke: color-mix(in srgb, var(--color-accent) 62%, var(--color-topic-border));
+  stroke-width: 2.5;
+}
+
+:root[data-look='playful'] .link[data-trail] .connector {
+  stroke: var(--hue);
+  stroke-width: 5;
+}
+
+:root[data-look='playful'] .link[data-trail] .connector[data-style='tapered'] {
+  fill: var(--hue);
+  stroke: var(--hue);
+  stroke-width: 1.4px;
+}
+
+:root[data-look='playful'] .topic[data-trail] .topic-box {
+  stroke-width: 3.5;
+}
+
+:root[data-look='contrast'] .link[data-trail] .connector {
+  stroke: var(--color-accent);
+}
+
+/* The Trail's lines march toward the Core. With reduced motion they stay solid. */
+@keyframes trail-march {
+  to {
+    stroke-dashoffset: 15;
+  }
+}
+
+:root:not([data-motion='reduced']) .link[data-trail] .connector:not([data-style='tapered']) {
+  stroke-linecap: butt;
+  stroke-dasharray: 9 6;
+  animation: trail-march 700ms linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='full']) .link[data-trail] .connector:not([data-style='tapered']) {
+    stroke-linecap: round;
+    stroke-dasharray: none;
+    animation: none;
+  }
+}
+
+/* ---------- Pointer tools ---------- */
+
+.tool-group {
+  display: flex;
+  gap: 2px;
+}
+
+.tool-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 2px;
+  background: var(--color-border);
+}
+
+.zoom-controls .tool-group button[aria-pressed='true'] {
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
+}
+
+.canvas-svg[data-tool='pan'] {
+  cursor: grab;
+}
+
+.canvas-svg[data-tool='pan'][data-dragging] {
+  cursor: grabbing;
+}
+
+.canvas-svg[data-tool='zoom'] {
+  cursor: zoom-in;
+}
+
+.canvas-svg[data-tool='zoom'][data-zoom-out] {
+  cursor: zoom-out;
+}
+
+/* A borrowed tool owns the pointer, so nothing on the map shows a cursor of its own. */
+.canvas-svg[data-tool='pan'] *,
+.canvas-svg[data-tool='zoom'] * {
+  cursor: inherit !important;
+}
+
+.marquee[data-mode='zoom'] {
+  border-style: dashed;
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+/* ---------- One branch alone: everything above is a single dotted node ---------- */
+
+.context-node {
+  cursor: pointer;
+}
+
+.context-box {
+  fill: transparent;
+  stroke: var(--color-text-muted);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: all;
+  transition: stroke var(--motion-quick) var(--ease-standard);
+}
+
+.context-link {
+  stroke: var(--color-text-muted);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.7;
+}
+
+.context-title,
+.context-path {
+  font-family: var(--font-map);
+  pointer-events: none;
+  user-select: none;
+}
+
+.context-title {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--color-text);
+}
+
+.context-path {
+  font-size: 11px;
+  fill: var(--color-text-muted);
+}
+
+.context-node:hover .context-box {
+  stroke: var(--color-accent);
+}

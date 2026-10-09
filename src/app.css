@@ -1,0 +1,203 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 48px;
+  padding: 0 var(--space-4);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.logo-mark {
+  flex: none;
+  filter: drop-shadow(0 1px 2px rgb(60 30 160 / 30%));
+}
+
+.app-name {
+  font-family: 'Bricolage Grotesque Variable', var(--font-body), sans-serif;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  color: var(--brand-ink);
+}
+
+.map-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.app-main {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Zen: only the map stays, and a quiet way back. */
+.app[data-zen] .app-bar,
+.app[data-zen] .panel-layer,
+.app[data-zen] .status-bar,
+.app[data-zen] .zoom-controls,
+.app[data-zen] .hint-strip {
+  display: none;
+}
+
+.zen-exit {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 7;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  opacity: 0.55;
+  transition: opacity var(--motion-quick) var(--ease-standard);
+}
+
+.zen-exit:hover,
+.zen-exit:focus-visible {
+  color: var(--color-text);
+  opacity: 1;
+}
+
+.zen-exit kbd {
+  font: inherit;
+  font-weight: 600;
+}
+
+.status-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-3);
+  height: 28px;
+  padding: 0 var(--space-4);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.status-bar-label {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+}
+
+.status-bar .icon {
+  flex: none;
+  width: 12px;
+  height: 12px;
+}
+
+.status-bar-label .icon {
+  color: var(--color-accent);
+}
+
+.trail-path {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+.trail-path li {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  min-width: 0;
+  gap: 2px;
+}
+
+.trail-path li:last-child {
+  flex-shrink: 0;
+  max-width: 50%;
+}
+
+.trail-path button,
+.trail-current,
+.trail-gap {
+  min-width: 0;
+  max-width: 22ch;
+  padding: 1px 4px;
+  overflow: hidden;
+  font: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 4px;
+}
+
+.trail-path button {
+  color: var(--color-text-muted);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+.trail-path button:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+.trail-path button:focus-visible {
+  outline: 2px solid var(--color-focus);
+}
+
+.trail-current {
+  max-width: 100%;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.status-bar-copy {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 7px;
+  font: inherit;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+}
+
+.status-bar-copy:hover {
+  color: var(--color-text);
+  background: var(--color-hover);
+}
+
+.status-bar-copy:focus-visible {
+  outline: 2px solid var(--color-focus);
+}

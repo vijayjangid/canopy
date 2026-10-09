@@ -1,0 +1,102 @@
+/* Design tokens: Mode x Look x Voice. Components read only these variables. */
+
+:root {
+  /* Spacing and shape */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+
+  /* Type (Voice: clean) */
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-size-base: 15px;
+  /* The Voice applies to the map only; the app around it stays in the system font. */
+  --font-map: var(--font-body);
+
+  /* Motion tokens (see spec section 5) */
+  --motion-instant: 80ms;
+  --motion-quick: 160ms;
+  --motion-standard: 240ms;
+  --motion-layout: 420ms;
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Native controls, such as the date picker icon, follow the app's own mode. */
+  color-scheme: light;
+
+  /* Brand: a modern electric violet for the mark, black or white for the name. */
+  --brand-from: #7b5cff;
+  --brand-to: #5b2ff0;
+  --brand-ink: #000000;
+  --color-danger: #c92a2a;
+  --color-success: #19782f;
+
+  /* Color (Mode: light, Look: minimal) */
+  --color-bg: #eef1f6;
+  --color-grid: #c9d0dc;
+  --color-surface: #ffffff;
+  --color-text: #1b1b1f;
+  --color-text-muted: #5f6068;
+  --color-border: #e1e2e6;
+  --color-hover: rgb(30 30 60 / 4%);
+  --color-track: rgb(0 0 0 / 6%);
+  --color-accent: #5b4bdb;
+  --color-focus: #6b4eff;
+  --color-selection: #6b4eff;
+  --color-topic-bg: #ffffff;
+  --color-topic-border: #dfe3ec;
+  --color-topic-shadow: rgb(40 48 90 / 12%);
+  --color-topic-text: #1b1b1f;
+  --color-core-bg: #5b4bdb;
+  --color-core-text: #ffffff;
+  --color-level1-border: #c9cedb;
+  --color-connector: #b4b5c3;
+  --shadow-float: 0 4px 16px rgb(20 20 40 / 10%);
+}
+
+:root[data-scheme='dark'] {
+  color-scheme: dark;
+  --brand-from: #8f74ff;
+  --brand-to: #6a43f5;
+  --brand-ink: #ffffff;
+  --color-danger: #ff8787;
+  --color-success: #6fd48f;
+  --color-bg: #13171c;
+  --color-grid: #232a33;
+  --color-surface: #1c2127;
+  --color-text: #ececf0;
+  --color-text-muted: #a3a6b0;
+  --color-border: #323a45;
+  --color-hover: rgb(255 255 255 / 5%);
+  --color-track: rgb(255 255 255 / 7%);
+  --color-accent: #a78bfa;
+  --color-focus: #b9a4ff;
+  --color-selection: #b9a4ff;
+  --color-topic-bg: #1f252c;
+  --color-topic-border: #2d3540;
+  --color-topic-shadow: rgb(0 0 0 / 38%);
+  --color-topic-text: #ececf0;
+  --color-level1-border: #3b4659;
+  --color-core-bg: #ececf0;
+  --color-core-text: #1c1d21;
+  --color-connector: #4b4e59;
+  --shadow-float: 0 8px 28px rgb(0 0 0 / 45%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='full']) {
+    --motion-instant: 0ms;
+    --motion-quick: 0ms;
+    --motion-standard: 0ms;
+    --motion-layout: 0ms;
+  }
+}
+
+:root[data-motion='reduced'] {
+  --motion-instant: 0ms;
+  --motion-quick: 0ms;
+  --motion-standard: 0ms;
+  --motion-layout: 0ms;
+}

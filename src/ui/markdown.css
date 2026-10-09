@@ -1,0 +1,109 @@
+.markdown {
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.markdown > :first-child {
+  margin-top: 0;
+}
+
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  margin: 1em 0 0.4em;
+  line-height: 1.25;
+}
+
+.markdown h3 {
+  font-size: 18px;
+}
+
+.markdown h4 {
+  font-size: 16px;
+}
+
+.markdown h5,
+.markdown h6 {
+  font-size: 14px;
+}
+
+.markdown p,
+.markdown ul,
+.markdown ol,
+.markdown blockquote,
+.markdown pre,
+.markdown table {
+  margin: 0 0 0.75em;
+}
+
+.markdown ul,
+.markdown ol {
+  padding-left: 1.4em;
+}
+
+.markdown ul.tasks {
+  padding-left: 0;
+  list-style: none;
+}
+
+.markdown ul.tasks input {
+  margin: 0 var(--space-2) 0 0;
+  vertical-align: middle;
+}
+
+.markdown code {
+  padding: 1px 5px;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.9em;
+  background: var(--color-track);
+  border-radius: 4px;
+}
+
+.markdown pre {
+  padding: var(--space-3);
+  overflow: auto;
+  background: var(--color-track);
+  border-radius: var(--radius-sm);
+}
+
+.markdown pre code {
+  padding: 0;
+  background: none;
+}
+
+.markdown blockquote {
+  padding-left: var(--space-3);
+  color: var(--color-text-muted);
+  border-left: 3px solid var(--color-border);
+}
+
+.markdown a {
+  color: var(--color-accent);
+}
+
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.markdown th,
+.markdown td {
+  padding: 4px 8px;
+  text-align: left;
+  border: 1px solid var(--color-border);
+}
+
+.markdown th {
+  background: var(--color-track);
+}
+
+.markdown hr {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+}

@@ -1,0 +1,59 @@
+.growth-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.growth-handle {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: calc(22px * var(--hs, 1));
+  height: calc(22px * var(--hs, 1));
+  padding: 0;
+  color: var(--color-core-text);
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: none;
+  background: var(--color-accent);
+  border: calc(2px * var(--hs, 1)) solid var(--color-bg);
+  border-radius: 50%;
+  box-shadow: var(--shadow-float);
+  transform: translate(-50%, -50%) scale(1);
+  animation: handle-in var(--motion-quick) var(--ease-standard);
+  transition: transform var(--motion-instant) var(--ease-standard);
+}
+
+.growth-handle[data-kind='between'] {
+  width: calc(18px * var(--hs, 1));
+  height: calc(18px * var(--hs, 1));
+  color: var(--color-accent);
+  background: var(--color-surface);
+  border-color: var(--color-accent);
+}
+
+.growth-handle:hover {
+  transform: translate(-50%, -50%) scale(1.14);
+}
+
+.growth-handle[data-active] {
+  opacity: 0.4;
+}
+
+.growth-handle:active {
+  transform: translate(-50%, -50%) scale(0.94);
+}
+
+@keyframes handle-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .growth-handle {
+    animation: none;
+  }
+}

@@ -1,0 +1,159 @@
+.title-editor {
+  position: absolute;
+  z-index: 2;
+  transform-origin: 0 0;
+  box-sizing: border-box;
+  resize: none;
+  overflow: hidden;
+  text-align: center;
+  font-family: var(--font-map);
+  color: var(--color-topic-text);
+  /* The topic underneath keeps its fill, border and selection mark, so nothing is drawn twice. */
+  background: transparent;
+  border: 0;
+  outline: none;
+  caret-color: var(--color-selection);
+}
+
+.title-editor:focus-visible {
+  outline: none;
+}
+
+.title-editor[data-depth='0'] {
+  color: var(--color-core-text);
+  caret-color: var(--color-core-text);
+}
+
+.title-editor::placeholder {
+  color: var(--color-text-muted);
+}
+
+.title-tokens {
+  position: absolute;
+  z-index: 3;
+  max-width: 360px;
+  padding: 4px 10px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text);
+  pointer-events: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-float);
+  transform: translateX(-4px);
+}
+
+.title-tokens span {
+  color: var(--color-text-muted);
+}
+
+/* Expression mode: a !! title is an outline, so the topic is tinted and tagged until it is applied. */
+.title-editor[data-expression] {
+  color: var(--color-accent);
+  caret-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.title-mode {
+  position: absolute;
+  z-index: 3;
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding: 3px 9px 3px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #fff;
+  text-transform: uppercase;
+  pointer-events: none;
+  background: var(--brand-to);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgb(60 30 160 / 35%);
+  transform: translateY(-100%);
+  animation: title-mode-in var(--motion-quick) var(--ease-standard);
+}
+
+.title-mode b {
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+@keyframes title-mode-in {
+  from {
+    opacity: 0;
+    transform: translateY(-70%) scale(0.92);
+  }
+}
+
+/* The guide under an expression: what to do next, with buttons that type it. */
+.title-guide {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  gap: 6px;
+  max-width: 340px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-float);
+  animation: title-guide-in var(--motion-quick) var(--ease-standard);
+}
+
+.title-guide p {
+  margin: 0;
+}
+
+.title-guide-message {
+  font-weight: 600;
+}
+
+.title-guide-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.title-guide-keys button {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding: 2px 8px 2px 4px;
+  font: inherit;
+  color: var(--color-text);
+  cursor: pointer;
+  background: var(--color-track);
+  border: 0;
+  border-radius: 999px;
+}
+
+.title-guide-keys button:hover {
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+.title-guide kbd {
+  min-width: 18px;
+  padding: 0 5px;
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+
+.title-guide-preview {
+  color: var(--color-text-muted);
+}
+
+@keyframes title-guide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}

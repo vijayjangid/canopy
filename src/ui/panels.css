@@ -1,0 +1,740 @@
+/* Floating side panels that shrink to a narrow stripe, in the manner of design tools. */
+
+.panel-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.panel,
+.stripe,
+.filter-control {
+  pointer-events: auto;
+}
+
+.panel,
+.stripe {
+  position: absolute;
+  top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-float);
+}
+
+.panel-left,
+.stripe-left {
+  left: var(--space-3);
+}
+
+.panel-right,
+.stripe-right {
+  right: var(--space-3);
+}
+
+.panel {
+  bottom: var(--space-3);
+  width: 316px;
+  min-height: 0;
+}
+
+.panel-right {
+  width: 336px;
+}
+
+.stripe {
+  gap: 2px;
+  padding: 4px;
+}
+
+.stripe button,
+.panel-tabs button,
+.panel-collapse {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+}
+
+.stripe button:hover,
+.panel-tabs button:hover,
+.panel-collapse:hover {
+  color: var(--color-text);
+  background: var(--color-hover);
+}
+
+.stripe button[data-filled] {
+  color: var(--color-accent);
+}
+
+.stripe button:focus-visible,
+.panel-tabs button:focus-visible,
+.panel-collapse:focus-visible,
+.panel-section-head:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 6px 6px 6px var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.panel-tabs {
+  display: flex;
+  gap: 2px;
+}
+
+/* In the open left panel the tabs sit on the header's bottom line, each with its name beside its icon. */
+.panel-left .panel-header {
+  align-items: stretch;
+  padding: 0 6px 0 0;
+}
+
+.panel-left .panel-tabs {
+  min-width: 0;
+  gap: 0;
+}
+
+.panel-left .panel-tabs button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-left .panel-tabs button,
+.panel-left .panel-collapse {
+  position: relative;
+  width: auto;
+  height: 44px;
+  border-radius: 0;
+}
+
+.panel-left .panel-collapse {
+  flex: none;
+  width: 32px;
+  align-self: center;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.panel-left .panel-tabs button {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+  padding: 0 9px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* The active tab shows its icon and name in the accent colour, over a bar on the header line. */
+.panel-left .panel-tabs button::after {
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 2px;
+  content: '';
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transition: transform var(--motion-quick) var(--ease-standard);
+}
+
+.panel-left .panel-tabs button[aria-selected='true'] {
+  color: var(--color-accent);
+  background: transparent;
+}
+
+.panel-left .panel-tabs button[aria-selected='true']::after {
+  transform: scaleX(1);
+}
+
+.panel-left .panel-tabs button:first-child {
+  border-top-left-radius: 13px;
+}
+
+.panel-left .panel-tabs button:focus-visible {
+  outline-offset: -3px;
+}
+
+.panel-heading {
+  min-width: 0;
+}
+
+.panel-heading h2 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-eyebrow {
+  margin: 0;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.panel-title {
+  margin: 0 0 var(--space-3);
+  font-size: 14px;
+}
+
+.panel-scroll {
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  overflow: auto;
+}
+
+.panel-right .panel-scroll {
+  padding: 0;
+}
+
+.panel-section {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.panel-section-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 10px var(--space-3);
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+.panel-section-head:hover {
+  background: var(--color-hover);
+}
+
+.panel-section-summary {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.panel-section-body {
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.panel-note {
+  padding: var(--space-3) var(--space-4);
+}
+
+/* The filter, in the panel and as a pill over the map */
+
+.filter-list {
+  display: grid;
+  gap: 4px;
+  padding: 0;
+  margin: var(--space-2) 0 var(--space-3);
+  list-style: none;
+}
+
+.filter-list button,
+.filter-actions button,
+.filter-control > button {
+  padding: 7px var(--space-3);
+  font: inherit;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.filter-list button[aria-pressed='true'] {
+  color: var(--color-core-text);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.filter-hint {
+  display: block;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.filter-count {
+  margin: var(--space-2) 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.filter-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.filter-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.filter-control {
+  position: absolute;
+  top: var(--space-3);
+  left: 50%;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-float);
+  transform: translateX(-50%);
+}
+
+.filter-control > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px var(--space-3);
+  white-space: nowrap;
+  border: 0;
+  border-radius: 10px;
+}
+
+.filter-control > button:hover {
+  background: var(--color-hover);
+}
+
+.filter-control > button:focus-visible,
+.filter-list button:focus-visible,
+.filter-actions button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+/* Preferences, people and export fit a narrow panel: labels sit above their controls. */
+
+.panel .pref {
+  grid-template-columns: 1fr;
+  gap: var(--space-1);
+}
+
+.panel .pref > .pref-hint,
+.panel .pref .segmented {
+  grid-column: 1;
+}
+
+.panel .segmented {
+  flex-wrap: wrap;
+}
+
+.panel .export-options {
+  grid-template-columns: 1fr;
+}
+
+.panel .export-footer {
+  flex-wrap: wrap;
+}
+
+.panel .people-list li {
+  align-items: center;
+}
+
+.panel .prefs h3 {
+  margin-top: var(--space-4);
+}
+
+.panel .prefs section:first-child h3 {
+  margin-top: 0;
+}
+
+.icon {
+  flex: none;
+}
+
+.panel-left {
+  bottom: 64px;
+  width: 372px;
+}
+
+/* Segmented buttons that carry an icon, with or without a word. */
+.segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.segmented button[data-icon-only] {
+  min-width: 34px;
+  justify-content: center;
+  padding: 0 var(--space-2);
+}
+
+.filter-group h3 {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.date-filter {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin: var(--space-2) 0 0;
+}
+
+.date-filter input {
+  padding: 6px var(--space-2);
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- Compact density for the side panels ---------- */
+
+.panel-left,
+.panel-right {
+  width: 352px;
+}
+
+.panel-scroll {
+  padding: var(--space-2) var(--space-3) var(--space-3);
+}
+
+.panel-left .panel-tabs button {
+  height: 36px;
+  padding: 0 8px;
+  gap: 5px;
+  font-size: 12.5px;
+}
+
+.panel-left .panel-collapse {
+  width: 28px;
+  height: 28px;
+}
+
+.panel-section-head {
+  padding: 7px var(--space-3);
+}
+
+.panel-section-body {
+  padding: 0 var(--space-3) var(--space-3);
+}
+
+.panel .segmented button {
+  height: 24px;
+  padding: 0 9px;
+  font-size: 12px;
+}
+
+.panel .segmented button[data-icon-only] {
+  min-width: 28px;
+  padding: 0 6px;
+}
+
+.filter-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: var(--space-1) 0 var(--space-2);
+}
+
+.filter-list button {
+  padding: 3px 10px;
+  font-size: 12.5px;
+  border-radius: 999px;
+}
+
+.filter-group h3 {
+  margin: var(--space-3) 0 var(--space-1);
+  font-size: 12px;
+}
+
+.filter-actions button {
+  padding: 4px 10px;
+  font-size: 12.5px;
+}
+
+.filter-count {
+  margin: var(--space-2) 0;
+  font-size: 12px;
+}
+
+/* Closed, the left panel is only its tab strip, with every tab showing its icon and name. */
+.panel-left.panel-strip {
+  bottom: auto;
+  width: auto;
+  overflow: hidden;
+}
+
+.panel-strip .panel-tabs {
+  display: flex;
+}
+
+.panel-left.panel-strip .panel-tabs button:first-child {
+  border-bottom-left-radius: 13px;
+}
+
+.panel-left.panel-strip .panel-tabs button:last-child {
+  border-top-right-radius: 13px;
+  border-bottom-right-radius: 13px;
+}
+
+/* The open panel is as tall as its content, up to the room there is. */
+.panel-left {
+  bottom: auto;
+  max-height: calc(100% - var(--space-3) - 64px);
+}
+
+/* A slimmer tab header. */
+.panel-left .panel-tabs button {
+  height: 32px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.panel-left .panel-tabs .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.panel-left .panel-collapse {
+  width: 24px;
+  height: 24px;
+}
+
+.panel-left .panel-collapse .icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* The tab strip is as tall, and as padded, as the zoom controls: 4px around 32px buttons. */
+.panel-left .panel-tabs button {
+  height: 40px;
+  padding: 0 var(--space-2);
+  font-size: 13px;
+}
+
+.panel-left.panel-strip {
+  border-radius: var(--radius-md);
+}
+
+.panel-left.panel-strip .panel-tabs button:first-child {
+  border-top-left-radius: 9px;
+  border-bottom-left-radius: 9px;
+}
+
+.panel-left.panel-strip .panel-tabs button:last-child {
+  border-top-right-radius: 9px;
+  border-bottom-right-radius: 9px;
+}
+
+.panel-left .panel-scroll {
+  padding-top: var(--space-4);
+}
+
+.panel-crumb {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  gap: 2px;
+  overflow: hidden;
+  color: var(--color-text-muted);
+}
+
+.panel-crumb .icon {
+  flex: none;
+  width: 12px;
+  height: 12px;
+}
+
+.panel-crumb button {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 2px;
+  overflow: hidden;
+  font: inherit;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+}
+
+.panel-crumb button:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+.panel-crumb button:focus-visible {
+  outline: 2px solid var(--color-focus);
+}
+
+.panel-heading {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.panel-nav {
+  display: flex;
+  flex: none;
+  gap: 2px;
+}
+
+.panel-nav button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+}
+
+.panel-nav button:hover:not(:disabled) {
+  color: var(--color-text);
+  background: var(--color-hover);
+}
+
+.panel-nav button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.panel-nav button:focus-visible {
+  outline: 2px solid var(--color-focus);
+}
+
+.trail-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px 4px var(--space-3);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.trail-control .icon {
+  width: 14px;
+  height: 14px;
+  color: var(--color-accent);
+}
+
+.trail-control .segmented button {
+  white-space: nowrap;
+}
+
+/* Inside the bar the corners step down with the padding, like the panels. */
+.filter-control .segmented {
+  border-radius: 10px;
+}
+
+.filter-control .segmented button {
+  border-radius: 8px;
+}
+
+.filter-list button .filter-sticker {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+.filter-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.filter-search .icon {
+  position: absolute;
+  left: 10px;
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.panel .filter-search input[type='search'] {
+  width: 100%;
+  padding-left: 30px;
+}
+
+.panel-level {
+  margin: 2px 0 0;
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+/* Icon and text sit on one centre line, whatever the icon is. */
+.filter-list button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-list .status-icon {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  background: var(--color-surface);
+  border-radius: 50%;
+}
+
+.filter-list .tag-dot {
+  flex: none;
+  box-shadow: 0 0 0 1.5px var(--color-surface);
+}
+
+.filter-count[data-state='found'] {
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+.filter-count[data-state='empty'] {
+  padding: 6px 10px;
+  font-weight: 600;
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 45%, transparent);
+  border-radius: var(--radius-sm);
+}
+
+.filter-pill-count[data-state='found'] {
+  color: var(--color-success);
+}
+
+.filter-pill-count[data-state='empty'] {
+  color: var(--color-danger);
+}

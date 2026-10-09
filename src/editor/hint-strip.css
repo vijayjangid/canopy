@@ -1,0 +1,35 @@
+.hint-strip {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-3);
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px var(--space-4);
+  max-width: min(760px, 92%);
+  transform: translate(-50%, 4px);
+  opacity: 0;
+  pointer-events: none;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  transition:
+    opacity var(--motion-quick) var(--ease-standard),
+    transform var(--motion-quick) var(--ease-standard);
+}
+
+.hint-strip[data-visible] {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.hint kbd {
+  margin-right: 4px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.hint {
+  white-space: nowrap;
+}

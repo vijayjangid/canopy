@@ -1,0 +1,19 @@
+/* Patrick Hand has one weight. These faces reuse it for the heavier weights the map asks for, so the
+   browser does not smear a fake bold over the letters. */
+@font-face {
+  font-family: 'Patrick Hand';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url('../../node_modules/@fontsource/patrick-hand/files/patrick-hand-latin-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Patrick Hand';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url('../../node_modules/@fontsource/patrick-hand/files/patrick-hand-latin-400-normal.woff2')
+    format('woff2');
+}

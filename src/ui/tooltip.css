@@ -1,0 +1,46 @@
+.tooltip {
+  position: fixed;
+  z-index: 60;
+  max-width: 260px;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-text);
+  pointer-events: none;
+  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-float);
+  backdrop-filter: blur(12px) saturate(1.4);
+  opacity: 0;
+  transform: translateY(3px) scale(0.97);
+  transition:
+    opacity var(--motion-quick) var(--ease-standard),
+    transform var(--motion-quick) var(--ease-standard);
+}
+
+.tooltip[data-side='top'] {
+  transform: translateY(-3px) scale(0.97);
+}
+
+.tooltip[data-side='left'] {
+  transform: translateX(-3px) scale(0.97);
+}
+
+.tooltip[data-side='right'] {
+  transform: translateX(3px) scale(0.97);
+}
+
+.tooltip[data-visible] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Light Mode gets a dark tooltip, which stands out from the pale map and panels. */
+:root:not([data-scheme='dark']) .tooltip {
+  color: #f5f5f8;
+  background: rgb(27 28 34 / 94%);
+  border-color: rgb(255 255 255 / 10%);
+  box-shadow: 0 6px 18px rgb(20 20 40 / 22%);
+}

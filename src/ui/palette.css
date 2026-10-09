@@ -1,0 +1,157 @@
+.palette {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.palette-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+  color: var(--color-text-muted);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+.palette-input {
+  flex: 1;
+  width: 100%;
+  padding: 14px 0;
+  font: inherit;
+  font-size: 15px;
+  color: var(--color-text);
+  background: transparent;
+  border: 0;
+  outline: none;
+}
+
+.palette-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.palette-input:focus-visible {
+  outline: none;
+}
+
+.palette-list {
+  max-height: min(50vh, 420px);
+  margin: 0;
+  padding: var(--space-1) 6px var(--space-2);
+  overflow: auto;
+  list-style: none;
+  scroll-padding-block: 28px 8px;
+}
+
+/* A heading starts a group of commands. */
+.palette-group {
+  padding: 10px 10px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.palette-list li[role='option'] {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-3);
+  align-items: center;
+  padding: 7px 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background var(--motion-instant) var(--ease-standard);
+}
+
+/* Searching adds a second line, so those rows are a little taller. */
+.palette-list li[data-searching] {
+  padding-block: 6px;
+}
+
+.palette-text {
+  display: grid;
+  min-width: 0;
+}
+
+.palette-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette-label mark {
+  font-weight: 650;
+  color: var(--color-accent);
+  background: transparent;
+}
+
+.palette-sub {
+  font-size: 11.5px;
+  line-height: 1.3;
+  color: var(--color-text-muted);
+}
+
+/* The row the arrow keys or the pointer are on. */
+.palette-list li[data-active] {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.palette-list li[role='option']:active {
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+.palette-keys {
+  display: inline-flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.palette-keys kbd,
+.palette-help kbd {
+  min-width: 20px;
+  padding: 1px 6px;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--color-text-muted);
+  background: var(--color-track);
+  border: 1px solid transparent;
+  border-radius: 6px;
+}
+
+.palette-list li[data-active] .palette-keys kbd {
+  color: var(--color-text);
+  background: var(--color-surface);
+  border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+
+.palette-empty {
+  padding: var(--space-4) var(--space-3);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.palette-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px var(--space-4);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+.palette-help {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.palette-help kbd {
+  min-width: 18px;
+  padding: 0 5px;
+  font-size: 11px;
+}
