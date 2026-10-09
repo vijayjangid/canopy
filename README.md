@@ -53,7 +53,8 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 - **References** link one topic to another existing topic without duplicating its branch; dashed arrows distinguish references from parent-child lines. Drag from the link handle above a selected topic onto any topic to connect them, or click the handle (or press `X`) to search by name or path. Click an arrow to show its delete icon, or right-click it to go to, change or remove the reference.
 - **Find a topic** with `⌘F` by title or path. Choose **Advanced filters** for status, tags, dates and stickers.
 - **Fold** with `]`, fold the whole map to **Level N** with `1`–`9`, and peek inside a folded branch from its badge.
-- **Zen** (`Z`) hides every panel until you press `Esc`. **Auto-pan** keeps the topic you are working on in view.
+- **Zen** (`Z`) hides every panel until you press `Esc` or click **Exit Zen**, which sits in the bottom left where the toolbar was. **Auto-pan** keeps the topic you are working on in view.
+- **Zoomed out, topics become icons** so the map stays readable at a glance: a house for the Core, a **T** for text-only topics, the status mark for topics with a status, a picture mark for pictures, a page for notes, and small dots for tags and due dates.
 - A **Command Palette** (`⌘K`) searches every action, shows its shortcut, and covers settings too.
 
 <table>
@@ -94,7 +95,10 @@ Three **Looks**, four **Voices**, Light, Dark or Auto. Colour, type and connecto
 - **Looks:** Minimal, High Contrast, Playful.
 - **Voices:** Clean, Editorial (serif), Mono, Sketch (handwritten, with hand-drawn wobbly lines).
 - **Connectors:** curved, elbow, straight or tapered. **Layout:** Right or Down, in Compact, Comfortable or Airy spacing.
-- **Stickers:** original die-cut artwork on the corners of topics, and on the **lines** between them. Lines can carry a label such as _depends on_.
+- **Pictures:** paste any image from the clipboard (a screenshot, a copied image) onto the selected topic. The topic grows to fit it, up to a maximum size, and larger pictures are scaled down and stored inside the map file. Pasting works while you are typing the title too. Point at the picture for an **Alt** button (describe it for screen readers) and a **✕** button (remove it), or use the right-click menu. Pictures appear in SVG, PNG and PDF exports.
+- **Drag and drop:** drop a picture on the canvas to add it as a new topic under the Core, or on a topic to put it on that topic. Drop a Canopy map file (`.canopy.json`) on a topic, or on the canvas for the Core, to add the whole map as a new branch, so explored maps can be combined into a bigger one. The topic it will land on is outlined while you drag. File ▸ **Add a map as a branch…** does the same from the keyboard.
+- **Stickers:** original die-cut artwork on the corners of topics, and on the **lines** between them. Each sticker is a switch: click it to put it on, click it again to take it off, and a sticker goes on a topic or line only once. Lines can carry a label such as _depends on_, and the bar beside a picked line has a pencil that jumps to the label field.
+- **Delete with care:** deleting a topic that has sub-topics asks whether to remove **the whole branch** or **only the topic**, in which case its sub-topics move up to its parent, in its place.
 - **Notes:** a Markdown note on any topic, with a Write and Preview switch.
 
 <br />
@@ -153,7 +157,7 @@ Press `?` in the app for the searchable cheat sheet. A hint strip at the bottom 
 | Fold to Level N / unfold all | `1`–`9` / `0`      | Trail on or off          | `R`                   |
 | Status / Due / Tag           | `T` / `D` / `G`    | Zen                      | `Z`                   |
 | Note / Sticker / Line label  | `N` / `S` / `L`    | Select / Pan / Zoom tool | `V` / `H` / `Shift+Z` |
-| Duplicate / Delete branch    | `⌘D` / `Del`       | Undo / Redo              | `⌘Z` / `⌘⇧Z`          |
+| Duplicate / Delete topic     | `⌘D` / `Del`       | Undo / Redo              | `⌘Z` / `⌘⇧Z`          |
 
 <br />
 

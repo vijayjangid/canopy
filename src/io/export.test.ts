@@ -10,6 +10,7 @@ import {
   setFolded,
   setNote,
   setPrefs,
+  setTopicImage,
   type CanopyMap,
 } from '../model';
 import { legibleOn, luminance, type ExportTheme } from './exportTheme';
@@ -229,5 +230,18 @@ describe('Markdown with shorthand', () => {
     const text = mapToMarkdown(sample(), { notes: false, only: new Set(['a', 'a1']) });
     expect(text).toContain('Deep');
     expect(text).not.toContain('Second');
+  });
+});
+
+describe('pictures in exports', () => {
+  const PNG =
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+  it('draws a topic picture into the SVG, clipped and scaled to the display size', () => {
+    const map = setTopicImage(sample(), 'a', { src: PNG, w: 2000, h: 1000 });
+    const { svg } = draw(map);
+    expect(svg).toContain(`href="${PNG}"`);
+    expect(svg).toContain('width="280" height="140"');
+    expect(svg).toContain('clip-path="url(#img-a)"');
   });
 });

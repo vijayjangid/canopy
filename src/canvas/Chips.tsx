@@ -43,7 +43,7 @@ export function describeProps(topic: Topic, ctx: ChipContext): string {
   return parts.join(', ');
 }
 
-function StatusMark({
+export function StatusMark({
   def,
   theme,
   x,

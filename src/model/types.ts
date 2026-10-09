@@ -38,12 +38,32 @@ export interface EdgeData {
   stickers?: StickerRef[];
 }
 
+/** Longest side, in pixels, of an image kept on a topic. Larger pictures are scaled down on paste. */
+export const MAX_IMAGE_SIDE = 1280;
+/** Longest alt text kept for a picture. */
+export const MAX_IMAGE_ALT = 200;
+/** Longest embedded image text accepted from a file, about 4.5 MB of picture. */
+export const MAX_IMAGE_CHARS = 6_000_000;
+
+/** A picture pasted onto a topic, kept inside the map as a data URL so the file stays whole. */
+export interface TopicImage {
+  /** `data:image/...;base64,...` for a PNG, JPEG, WebP or GIF. */
+  src: string;
+  /** Size of the stored picture in pixels. */
+  w: number;
+  h: number;
+  /** What the picture shows, for people who cannot see it. */
+  alt?: string;
+}
+
 /** Optional content a topic can carry beyond its title. */
 export interface TopicExtras {
   /** The line to the parent: its label and stickers. */
   edge?: EdgeData;
   /** A non-hierarchical link to another topic in this map. */
   referenceTo?: TopicId;
+  /** A picture shown above the title. */
+  image?: TopicImage;
   /** Markdown. */
   note?: string;
   stickers?: StickerRef[];

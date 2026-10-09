@@ -4,21 +4,19 @@ import {
   MAX_EDGE_LABEL,
   MAX_EDGE_STICKERS,
   MAX_STICKERS,
-  addEdgeSticker,
-  addSticker,
   ancestorsOf,
   childrenOf,
-  removeEdgeSticker,
-  removeSticker,
   setEdgeLabel,
   setNote,
+  toggleEdgeSticker,
+  toggleSticker,
   type Topic,
 } from '../model';
 import { prefersReducedMotion } from '../motion';
 import { markFresh } from '../canvas/stampStore';
 import { canopyStore, useCanopy } from '../store';
 import { StickerArt } from '../stickers/art';
-import { STICKERS, searchStickers, stickerName } from '../stickers/catalog';
+import { searchStickers } from '../stickers/catalog';
 import { Icon, type IconName } from './icons';
 import { Markdown } from './Markdown';
 import { PropertiesTab } from './PropertiesTab';
@@ -384,6 +382,7 @@ function StickersTab({ topic }: { topic: Topic }) {
   const placed = (onLine ? topic.edge?.stickers : topic.stickers) ?? [];
   const max = onLine ? MAX_EDGE_STICKERS : MAX_STICKERS;
   const full = placed.length >= max;
+  const on = new Set(placed.map((s) => s.key));
   const shown = searchStickers(query);
   const where = onLine ? 'line' : 'topic';
   const target = useRef<HTMLDivElement>(null);
@@ -399,22 +398,23 @@ function StickersTab({ topic }: { topic: Topic }) {
     el.setAttribute('data-flash', '');
   }, [onLine, nudge]);
 
-  const add = (key: string) => {
+  // Each sticker is a switch: a press puts it on, and a press on one that is on takes it off.
+  const toggle = (key: string) => {
     const { doc, commit } = canopyStore.getState();
-    const next = onLine ? addEdgeSticker(doc, topic.id, key) : addSticker(doc, topic.id, key);
+    const next = onLine ? toggleEdgeSticker(doc, topic.id, key) : toggleSticker(doc, topic.id, key);
     if (next === doc) {
       showToast(
         onLine
-          ? `The line holds ${max} stickers. Remove one to add another.`
-          : `All ${max} corners are taken. Remove a sticker to add another.`,
+          ? `The line holds ${max} stickers. Take one off to add another.`
+          : `All ${max} corners are taken. Take a sticker off to add another.`,
       );
-    } else {
-      const before = doc.topics[topic.id];
-      const after = next.topics[topic.id];
-      if (onLine) markFresh(before?.edge?.stickers, after?.edge?.stickers);
-      else markFresh(before?.stickers, after?.stickers);
-      commit(next);
+      return;
     }
+    const before = doc.topics[topic.id];
+    const after = next.topics[topic.id];
+    if (onLine) markFresh(before?.edge?.stickers, after?.edge?.stickers);
+    else markFresh(before?.stickers, after?.stickers);
+    commit(next);
   };
 
   return (
@@ -446,38 +446,6 @@ function StickersTab({ topic }: { topic: Topic }) {
           </label>
         )}
       </div>
-      <h3 className="inspector-subhead">On this {where}</h3>
-      {placed.length === 0 ? (
-        <p className="inspector-empty">
-          {onLine
-            ? 'Stickers sit on the middle of the line.'
-            : 'Stickers stick to the corners of the topic.'}
-        </p>
-      ) : (
-        <ul className="placed-stickers" aria-label={`Stickers on this ${where}`}>
-          {placed.map((s) => (
-            <li key={s.id}>
-              <Sticker name={s.key} size={28} />
-              <span>{stickerName(s.key)}</span>
-              <button
-                type="button"
-                aria-label={`Remove ${stickerName(s.key)} sticker`}
-                onClick={() => {
-                  const { doc, commit } = canopyStore.getState();
-                  commit(
-                    onLine
-                      ? removeEdgeSticker(doc, topic.id, s.id)
-                      : removeSticker(doc, topic.id, s.id),
-                  );
-                }}
-              >
-                ×
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      <h3 className="inspector-subhead">Sticker sheet</h3>
       <input
         type="search"
         className="sticker-search"
@@ -490,25 +458,43 @@ function StickersTab({ topic }: { topic: Topic }) {
         <p className="inspector-empty">No stickers match.</p>
       ) : (
         <ul className="sticker-grid" aria-label="Stickers">
-          {shown.map((s) => (
-            <li key={s.key}>
-              <button
-                type="button"
-                aria-label={s.name}
-                data-tip={s.name}
-                disabled={full}
-                onClick={() => add(s.key)}
-              >
-                <Sticker name={s.key} />
-              </button>
-            </li>
-          ))}
+          {shown.map((s) => {
+            const applied = on.has(s.key);
+            return (
+              <li key={s.key}>
+                <button
+                  type="button"
+                  aria-label={s.name}
+                  aria-pressed={applied}
+                  data-tip={applied ? `${s.name}. Click to take off` : s.name}
+                  disabled={full && !applied}
+                  onClick={() => toggle(s.key)}
+                >
+                  <Sticker name={s.key} />
+                  {applied && (
+                    <span className="sticker-check" aria-hidden="true">
+                      <svg viewBox="0 0 12 12" width="9" height="9">
+                        <path
+                          d="M2.5 6.4l2.4 2.4 4.6-5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  )}
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
       <p className="inspector-hint">
         {full
-          ? `All ${max} places are taken.`
-          : `${STICKERS.length} stickers. Each ${where} holds up to ${max}.`}
+          ? `This ${where} is full (${max} of ${max}). Click a marked sticker to take it off.`
+          : `Click a sticker to put it on, or again to take it off. ${placed.length} of ${max} used.`}
       </p>
     </div>
   );

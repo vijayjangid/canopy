@@ -22,6 +22,7 @@ function extrasOf(topic: Topic): TopicExtras | undefined {
   if (topic.props) extras.props = topic.props;
   if (topic.edge) extras.edge = topic.edge;
   if (topic.referenceTo) extras.referenceTo = topic.referenceTo;
+  if (topic.image) extras.image = topic.image;
   return Object.keys(extras).length > 0 ? extras : undefined;
 }
 

@@ -1,5 +1,6 @@
 import type { Topic } from '../model';
 import { chipRowWidth, topicRows } from './chips';
+import { IMAGE_PAD, imageOffset, imageSize } from './image';
 import type { Measure, Size } from './types';
 
 export interface TypeStyle {
@@ -132,16 +133,20 @@ export function createTopicMeasurer(textWidth: TextWidth): Measure & { invalidat
     const rowWidth = chipRowWidth(chips);
     // Stickers hang off the corners, so give them room to sit beside the text.
     const stickers = topic.stickers?.length ?? 0;
+    const picture = imageSize(topic.image);
+    const above = imageOffset(topic);
     const size: Size = {
       w:
         Math.max(
+          picture ? picture.w + IMAGE_PAD * 2 : 0,
           TOPIC_MIN.w,
           Math.ceil(widest) + 2 + TOPIC_PADDING.x * 2,
           rowWidth > 0 ? rowWidth + TOPIC_PADDING.x * 2 : 0,
         ) +
         Math.min(stickers, 2) * 14,
       h:
-        rows > 0
+        above +
+        (rows > 0
           ? // With a row of chips the title sits at the top, and the chips close to it.
             Math.max(
               TOPIC_PADDING.y + lines.length * style.lineHeight + CHIPS_GAP + rows + CHIPS_BOTTOM,
@@ -151,7 +156,7 @@ export function createTopicMeasurer(textWidth: TextWidth): Measure & { invalidat
               TOPIC_MIN.h,
               lines.length * style.lineHeight + TOPIC_PADDING.y * 2,
               stickers >= 3 ? 52 : 0,
-            ),
+            )),
     };
     if (!byDepth) {
       byDepth = new Map();

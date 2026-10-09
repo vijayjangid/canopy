@@ -1,18 +1,23 @@
 import { useEffect } from 'react';
 import { useStore } from 'zustand';
 import { edgeMidpoint, type Layout } from '../layout';
-import { MAX_EDGE_STICKERS, addEdgeSticker, removeEdgeSticker, type Topic } from '../model';
+import { toggleEdgeSticker, type Topic } from '../model';
 import { canopyStore, useCanopy } from '../store';
 import { StickerArt } from '../stickers/art';
 import { stickerName } from '../stickers/catalog';
 import { appContext } from '../editor';
+import { Icon } from '../ui/icons';
+import { showToast } from '../ui/toast';
 import { setEdgeFocus } from '../ui/uiStore';
 import { markFresh } from './stampStore';
 import { viewportStore } from './viewportStore';
 
 const QUICK = ['star', 'flag', 'alert', 'question', 'done'] as const;
 
-/** A small bar beside a picked line, to stick stickers on it or take them off without leaving the map. */
+/**
+ * A small bar beside a picked line. Each sticker is a switch: it is marked while it is on the line,
+ * and a press puts it on or takes it off, as in the details panel. The pencil opens the label field there.
+ */
 export function EdgeQuickBar({ id, layout }: { id: string; layout: Layout }) {
   const vp = useStore(viewportStore, (s) => s.vp);
   const flow = useCanopy((s) => s.doc.prefs.flow);
@@ -32,7 +37,21 @@ export function EdgeQuickBar({ id, layout }: { id: string; layout: Layout }) {
 
   const mid = edgeMidpoint(parent, child, flow);
   const placed = topic.edge?.stickers ?? [];
-  const full = placed.length >= MAX_EDGE_STICKERS;
+  const on = new Set(placed.map((s) => s.key));
+  // The usual few, then anything else on the line, so every sticker on it can be taken off here.
+  const keys = [...QUICK, ...placed.map((s) => s.key).filter((k) => !QUICK.some((q) => q === k))];
+  const full = placed.length >= 3;
+
+  const toggle = (key: string) => {
+    const { doc, commit } = canopyStore.getState();
+    const next = toggleEdgeSticker(doc, id, key);
+    if (next === doc) {
+      showToast('The line holds 3 stickers. Take one off to add another.');
+      return;
+    }
+    markFresh(doc.topics[id]?.edge?.stickers, next.topics[id]?.edge?.stickers);
+    commit(next);
+  };
 
   return (
     <div
@@ -41,52 +60,37 @@ export function EdgeQuickBar({ id, layout }: { id: string; layout: Layout }) {
       aria-label="Stickers for this line"
       style={{ left: mid.x * vp.k + vp.x, top: mid.y * vp.k + vp.y }}
     >
-      {QUICK.map((key) => (
-        <button
-          key={key}
-          type="button"
-          aria-label={`Add ${stickerName(key)} sticker to the line`}
-          data-tip={stickerName(key)}
-          data-tip-side="bottom"
-          disabled={full}
-          onClick={() => {
-            const { doc, commit } = canopyStore.getState();
-            const next = addEdgeSticker(doc, id, key);
-            markFresh(doc.topics[id]?.edge?.stickers, next.topics[id]?.edge?.stickers);
-            commit(next);
-          }}
-        >
-          <svg viewBox="-2 -2 36 38" width="22" height="22" aria-hidden="true">
-            <StickerArt name={key} />
-          </svg>
-        </button>
-      ))}
-      {placed.length > 0 && (
-        <>
-          <span className="edge-quickbar-sep" aria-hidden="true" />
-          {placed.map((sticker) => (
-            <button
-              key={sticker.id}
-              type="button"
-              className="edge-quickbar-placed"
-              aria-label={`Remove ${stickerName(sticker.key)} sticker from the line`}
-              data-tip="Remove"
-              data-tip-side="bottom"
-              onClick={() => {
-                const { doc, commit } = canopyStore.getState();
-                commit(removeEdgeSticker(doc, id, sticker.id));
-              }}
-            >
-              <svg viewBox="-2 -2 36 38" width="22" height="22" aria-hidden="true">
-                <StickerArt name={sticker.key} />
-              </svg>
-              <span className="edge-quickbar-x" aria-hidden="true">
-                ×
-              </span>
-            </button>
-          ))}
-        </>
-      )}
+      <button
+        type="button"
+        className="edge-quickbar-edit"
+        aria-label="Edit the line label, in the details panel"
+        data-tip="Edit label"
+        data-tip-side="bottom"
+        onClick={() => appContext.app?.labelEdge(id)}
+      >
+        <Icon name="edit" />
+      </button>
+      <span className="edge-quickbar-sep" aria-hidden="true" />
+      {keys.map((key) => {
+        const applied = on.has(key);
+        return (
+          <button
+            key={key}
+            type="button"
+            className="edge-quickbar-sticker"
+            aria-label={stickerName(key)}
+            aria-pressed={applied}
+            data-tip={applied ? `${stickerName(key)}. Click to take off` : stickerName(key)}
+            data-tip-side="bottom"
+            disabled={full && !applied}
+            onClick={() => toggle(key)}
+          >
+            <svg viewBox="-2 -2 36 38" width="22" height="22" aria-hidden="true">
+              <StickerArt name={key} />
+            </svg>
+          </button>
+        );
+      })}
       <button
         type="button"
         className="edge-quickbar-more"

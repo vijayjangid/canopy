@@ -1,5 +1,8 @@
 import {
   MAX_EDGE_LABEL,
+  MAX_IMAGE_ALT,
+  MAX_IMAGE_CHARS,
+  MAX_IMAGE_SIDE,
   MAX_EDGE_STICKERS,
   type ConnectorStyle,
   type EdgeData,
@@ -16,6 +19,7 @@ import {
   type StickerRef,
   type TagDef,
   type TopicExtras,
+  type TopicImage,
   type TopicProps,
   type Voice,
 } from './types';
@@ -41,6 +45,26 @@ export const isRecord = (v: unknown): v is Record<string, unknown> =>
 const isString = (v: unknown): v is string => typeof v === 'string';
 const strings = (v: unknown): string[] | null =>
   Array.isArray(v) && v.every(isString) ? (v as string[]) : null;
+
+const IMAGE_SRC = /^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/;
+
+/** A pasted picture, only if it is an embedded raster image of a sensible size. Never a link or SVG. */
+export function readImage(raw: unknown): TopicImage | undefined {
+  if (!isRecord(raw)) return undefined;
+  const { src, w, h, alt } = raw;
+  if (!isString(src) || src.length > MAX_IMAGE_CHARS || !IMAGE_SRC.test(src)) return undefined;
+  const side = (v: unknown) =>
+    typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= MAX_IMAGE_SIDE * 2;
+  if (!side(w) || !side(h)) return undefined;
+  const text = isString(alt) ? alt.replace(/\s+/g, ' ').trim().slice(0, MAX_IMAGE_ALT) : '';
+  return { src, w: w as number, h: h as number, ...(text ? { alt: text } : {}) };
+}
+
+/** A sticker is on a topic or line once, so older files with repeats keep the first of each. */
+function onePerKind(list: readonly StickerRef[]): StickerRef[] {
+  const seen = new Set<string>();
+  return list.filter((s) => (seen.has(s.key) ? false : (seen.add(s.key), true)));
+}
 
 /** Only web and mail addresses, never `javascript:` and friends. */
 export function isSafeLink(ref: string): boolean {
@@ -119,7 +143,8 @@ export function readExtras(node: Record<string, unknown>, path: string, fail: Fa
           list.push({ id: s['id'], key: s['key'] });
         }
       }
-      if (list.length > 0) out.stickers = list;
+      const once = onePerKind(list);
+      if (once.length > 0) out.stickers = once;
     }
   }
 
@@ -137,7 +162,8 @@ export function readExtras(node: Record<string, unknown>, path: string, fail: Fa
             list.push({ id: s['id'], key: s['key'] });
           }
         }
-        if (list.length > 0) edge.stickers = list.slice(0, MAX_EDGE_STICKERS);
+        const once = onePerKind(list).slice(0, MAX_EDGE_STICKERS);
+        if (once.length > 0) edge.stickers = once;
       }
       if (edge.label || edge.stickers) out.edge = edge;
     }
@@ -147,6 +173,12 @@ export function readExtras(node: Record<string, unknown>, path: string, fail: Fa
     if (isString(node['referenceTo']) && node['referenceTo'].length > 0) {
       out.referenceTo = node['referenceTo'];
     } else fail(`${path}.referenceTo must be a non-empty topic id`);
+  }
+
+  if (node['image'] !== undefined) {
+    const image = readImage(node['image']);
+    if (image) out.image = image;
+    else fail(`${path}.image must be an embedded PNG, JPEG, WebP or GIF picture`);
   }
 
   const props = readProps(node['props'], `${path}.props`, fail);

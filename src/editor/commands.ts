@@ -6,6 +6,8 @@ import {
   createPeer,
   createSubTopic,
   deleteBranch,
+  deleteNode,
+  depthOf,
   duplicateBranch,
   foldToLevel,
   getTopic,
@@ -15,6 +17,7 @@ import {
   moveSibling,
   movableRoots,
   setFolded,
+  setTopicImage,
   setTopicReference,
   siblingsOf,
   subtreeOf,
@@ -39,11 +42,17 @@ export interface CommandContext {
   /** Dialogs and file actions, which live in the UI layer. */
   app?: {
     openDialog: (name: DialogName) => void;
-    file: (action: 'new' | 'open' | 'save') => void;
+    file: (action: 'new' | 'open' | 'save' | 'import') => void;
     /** Opens or closes the Inspector. With a tab, it opens there and focuses its first field. */
     inspector: (tab?: 'note' | 'stickers' | 'properties') => void;
+    /** Asks whether to delete the selected topics with everything below them, or only the topics. */
+    confirmDelete: () => void;
+    /** Types a description for the picture on a topic. */
+    editImageAlt: (id: string) => void;
     /** Types a label on the line from a topic to its parent. */
     editEdge: (id: string) => void;
+    /** Opens the details panel on the line above a topic and puts the cursor in its label field. */
+    labelEdge: (id: string) => void;
     /** Opens the Stickers tab aimed at the line above a topic. */
     stickEdge: (id: string) => void;
     quickAdd: (preset: 'all' | 'status' | 'due' | 'tag') => void;
@@ -113,6 +122,28 @@ export function removeSelection(ctx: CommandContext): number {
   const next = survivorAfterDelete(doc, new Set(doomed), focus);
   commit(doomed.reduce(deleteBranch, doc), { select: [next], focus: next });
   return doomed.length;
+}
+
+/**
+ * Removes the selected topics but keeps what is below them: their sub-topics move up to the
+ * parent, in the same place. Returns how many topics went and how many sub-topics moved up.
+ */
+export function removeKeepingSubTopics(ctx: CommandContext): { count: number; moved: number } {
+  const { doc, focus, selection, commit } = ctx.store.getState();
+  const ids = selection.filter((s) => s !== doc.coreId && doc.topics[s] !== undefined);
+  if (ids.length === 0) return { count: 0, moved: 0 };
+  // Deepest first, so a chain of selected topics lifts cleanly one level at a time.
+  const ordered = [...ids].sort((a, b) => depthOf(doc, b) - depthOf(doc, a));
+  let map = doc;
+  const lifted = new Set<TopicId>();
+  for (const id of ordered) {
+    for (const kid of childrenOf(map, id)) lifted.add(kid.id);
+    map = deleteNode(map, id);
+  }
+  const stay = [...lifted].filter((id) => map.topics[id] !== undefined);
+  const next = stay.length > 0 ? stay : [survivorAfterDelete(doc, new Set(ids), focus)];
+  commit(map, { select: next, focus: next[0] });
+  return { count: ids.length, moved: stay.length };
 }
 
 const ARROWS: Record<string, Arrow> = {
@@ -197,12 +228,60 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
       ctx.app?.topicSearch(focus);
       return true;
 
+    case 'topic.imageAlt':
+      if (!doc.topics[focus]?.image) {
+        announce('This topic has no picture');
+        return true;
+      }
+      ctx.app?.editImageAlt(focus);
+      return true;
+
+    case 'topic.imageRemove':
+      if (!doc.topics[focus]?.image) {
+        announce('This topic has no picture');
+        return true;
+      }
+      state.commit(setTopicImage(doc, focus, null));
+      announce(`Removed the picture from ${nameOf(doc, focus)}`);
+      return true;
+
     case 'topic.referenceRemove':
       state.commit(setTopicReference(doc, focus, null));
       announce(`Removed reference from ${nameOf(doc, focus)}`);
       return true;
 
     case 'topic.delete': {
+      const doomed = topLevel(
+        doc,
+        selection.filter((s) => s !== doc.coreId),
+      );
+      if (doomed.length === 0) {
+        announce('The Core cannot be deleted');
+        return true;
+      }
+      // Topics with sub-topics need a choice: the whole branch, or only the topic.
+      if (ctx.app && doomed.some((id) => hasChildren(doc, id))) {
+        ctx.app.confirmDelete();
+        return true;
+      }
+      return executeCommand('topic.deleteBranch', ctx);
+    }
+
+    case 'topic.deleteKeep': {
+      const { count, moved } = removeKeepingSubTopics(ctx);
+      if (count === 0) {
+        announce('The Core cannot be deleted');
+        return true;
+      }
+      const message =
+        `Deleted ${plural(count, 'topic')}` +
+        (moved > 0 ? `, and moved ${plural(moved, 'sub-topic')} up` : '');
+      announce(`${message}. Press undo to restore.`);
+      ctx.notify?.(message, { label: 'Undo', run: () => store.getState().undo() });
+      return true;
+    }
+
+    case 'topic.deleteBranch': {
       const count = removeSelection(ctx);
       if (count === 0) {
         announce('The Core cannot be deleted');
@@ -472,6 +551,10 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
 
     case 'file.open':
       ctx.app?.file('open');
+      return true;
+
+    case 'file.importBranch':
+      ctx.app?.file('import');
       return true;
 
     case 'file.save':

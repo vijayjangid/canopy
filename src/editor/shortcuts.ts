@@ -16,11 +16,15 @@ export type CommandId =
   | 'topic.insertBelow'
   | 'topic.edit'
   | 'topic.delete'
+  | 'topic.deleteBranch'
+  | 'topic.deleteKeep'
   | 'topic.duplicate'
   | 'topic.toggleFold'
   | 'topic.reorder'
   | 'topic.reference'
   | 'topic.referenceRemove'
+  | 'topic.imageRemove'
+  | 'topic.imageAlt'
   | 'nav.arrow'
   | 'select.all'
   | 'select.escape'
@@ -58,6 +62,7 @@ export type CommandId =
   | 'export.open'
   | 'file.new'
   | 'file.open'
+  | 'file.importBranch'
   | 'file.save';
 
 export interface CommandDef {
@@ -95,6 +100,16 @@ export const COMMANDS: readonly CommandDef[] = [
     id: 'topic.delete',
     label: 'Delete branch',
     shortcuts: [{ key: 'Delete' }, { key: 'Backspace' }],
+  },
+  {
+    id: 'topic.deleteKeep',
+    label: 'Delete the topic and keep its sub-topics',
+    shortcuts: [],
+  },
+  {
+    id: 'topic.deleteBranch',
+    label: 'Delete the whole branch without asking',
+    shortcuts: [],
   },
   { id: 'topic.duplicate', label: 'Duplicate branch', shortcuts: [{ key: 'd', mod: true }] },
   { id: 'topic.toggleFold', label: 'Fold or unfold', shortcuts: [{ key: ']' }] },
@@ -160,6 +175,8 @@ export const COMMANDS: readonly CommandDef[] = [
   { id: 'props.tag', label: 'Add a tag', shortcuts: [{ key: 'g' }] },
   { id: 'topic.reference', label: 'Reference another topic', shortcuts: [{ key: 'x' }] },
   { id: 'topic.referenceRemove', label: 'Remove topic reference', shortcuts: [] },
+  { id: 'topic.imageAlt', label: 'Describe the picture (alt text)', shortcuts: [] },
+  { id: 'topic.imageRemove', label: 'Remove the picture from the topic', shortcuts: [] },
   { id: 'filter.open', label: 'Advanced filters', shortcuts: [{ key: '/' }, { key: 'f' }] },
   {
     id: 'filter.search',
@@ -176,6 +193,11 @@ export const COMMANDS: readonly CommandDef[] = [
   },
   { id: 'file.new', label: 'New map', shortcuts: [] },
   { id: 'file.open', label: 'Open a map file', shortcuts: [] },
+  {
+    id: 'file.importBranch',
+    label: 'Add a map file as a branch of the selected topic',
+    shortcuts: [],
+  },
   { id: 'file.save', label: 'Save a copy as a file', shortcuts: [] },
 ];
 
@@ -188,9 +210,13 @@ export const COMMAND_GROUPS: Record<CommandId, string> = {
   'topic.insertBelow': 'Create',
   'topic.reference': 'Create',
   'topic.referenceRemove': 'Create',
+  'topic.imageRemove': 'Topic content',
+  'topic.imageAlt': 'Topic content',
   'topic.duplicate': 'Create',
   'topic.edit': 'Edit',
   'topic.delete': 'Edit',
+  'topic.deleteKeep': 'Edit',
+  'topic.deleteBranch': 'Edit',
   'edit.undo': 'Edit',
   'edit.redo': 'Edit',
   'topic.reorder': 'Move',
@@ -230,6 +256,7 @@ export const COMMAND_GROUPS: Record<CommandId, string> = {
   'export.open': 'App',
   'file.new': 'App',
   'file.open': 'App',
+  'file.importBranch': 'App',
   'file.save': 'App',
 };
 

@@ -7,6 +7,7 @@ export type DialogName =
   | 'palette'
   | 'quickadd'
   | 'topicSearch'
+  | 'confirmDelete'
   // These two used to be dialogs. They now open in the left panel.
   | 'preferences'
   | 'export';
@@ -48,6 +49,8 @@ interface UiState {
   trailMode: TrailMode;
   /** The topic whose branch is shown alone, with everything above it collapsed into one node. */
   focusBranch: string | null;
+  /** The topic whose picture description is being typed. */
+  imageAltEditing: string | null;
   /** The topic whose reference line is picked, so it shows its delete icon. */
   referenceFocus: string | null;
   /** Counts each request to put the cursor in the Filter's search box. */
@@ -99,6 +102,7 @@ export const uiStore = createStore<UiState>(() => ({
   trailMode: 'highlight',
   focusBranch: null,
   referenceFocus: null,
+  imageAltEditing: null,
   searchNudge: 0,
   ...loadPanels(),
 }));
@@ -206,6 +210,9 @@ export const pointAtEdge = (id: string) =>
 
 export const setTrailMode = (trailMode: TrailMode) => uiStore.setState({ trailMode });
 export const setFocusBranch = (focusBranch: string | null) => uiStore.setState({ focusBranch });
+
+export const startImageAltEdit = (id: string) => uiStore.setState({ imageAltEditing: id });
+export const stopImageAltEdit = () => uiStore.setState({ imageAltEditing: null });
 
 /** Picks the reference line leaving a topic (or lets go of it). */
 export const setReferenceFocus = (referenceFocus: string | null) =>

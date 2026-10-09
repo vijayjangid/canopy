@@ -4,6 +4,9 @@ import {
   CHIP_ROW_HEIGHT,
   chipRowWidth,
   firstBaselineOf,
+  IMAGE_PAD,
+  imageOffset,
+  imageSize,
   levelPrefix,
   textLines,
   typeForDepth,
@@ -13,6 +16,7 @@ import {
 import type { Topic } from '../model';
 import { ChipRow, type ChipContext } from './Chips';
 import { StickerLayer } from './StickerLayer';
+import { TopicGlyph } from './TopicGlyph';
 import type { Look } from '../model';
 import { textWidth } from './metrics';
 
@@ -52,6 +56,8 @@ interface Props {
   /** Show the level as a dim number before the title. */
   showLevel: boolean;
   detail: Detail;
+  /** Fold buttons are drawn. Zoomed out they are kept for maps small enough to afford them. */
+  controls: boolean;
   chips: readonly ChipItem[];
   /** The topic itself, which chips read their values from. */
   topic: Topic | undefined;
@@ -66,6 +72,83 @@ interface Props {
   summary: string;
   /** Changes with the font, so lines are wrapped again even when the box stays the same. */
   epoch: number;
+}
+
+/** Describe and remove buttons on the corner of a picture. The canvas handles the presses. */
+function ImageControls({
+  id,
+  x,
+  y,
+  hasAlt,
+}: {
+  id: string;
+  x: number;
+  y: number;
+  hasAlt: boolean;
+}) {
+  return (
+    <g className="image-controls" aria-hidden="true" transform={`translate(${x} ${y})`}>
+      <g
+        className="image-control"
+        data-image-alt={id}
+        data-has-alt={hasAlt || undefined}
+        data-tip={hasAlt ? 'Edit picture description' : 'Describe picture (alt text)'}
+        transform="translate(-26 0)"
+      >
+        <circle r={11} />
+        <text textAnchor="middle" dominantBaseline="central">
+          Alt
+        </text>
+      </g>
+      <g className="image-control" data-image-delete={id} data-tip="Remove picture">
+        <circle r={11} />
+        <path d="M-3.5 -3.5L3.5 3.5M3.5 -3.5L-3.5 3.5" />
+      </g>
+    </g>
+  );
+}
+
+/** The picture on a topic, with softly rounded corners. Zoomed far out it is a plain block. */
+function TopicPicture({
+  id,
+  src,
+  x,
+  y,
+  w,
+  h,
+  full,
+  alt,
+}: {
+  id: string;
+  src: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  full: boolean;
+  alt: string | undefined;
+}) {
+  if (!full) return <rect className="topic-image-low" x={x} y={y} width={w} height={h} rx={4} />;
+  const clip = `topic-image-clip-${id}`;
+  return (
+    <>
+      <clipPath id={clip}>
+        <rect x={x} y={y} width={w} height={h} rx={6} />
+      </clipPath>
+      <image
+        className="topic-image"
+        href={src}
+        x={x}
+        y={y}
+        width={w}
+        height={h}
+        preserveAspectRatio="none"
+        clipPath={`url(#${clip})`}
+      >
+        {alt && <title>{alt}</title>}
+      </image>
+    </>
+  );
 }
 
 export const TopicNode = memo(function TopicNode({
@@ -84,6 +167,7 @@ export const TopicNode = memo(function TopicNode({
   look,
   showLevel,
   detail,
+  controls,
   chips,
   topic,
   chipContext,
@@ -95,17 +179,24 @@ export const TopicNode = memo(function TopicNode({
 }: Props) {
   const { w, h, depth } = box;
   const style = typeForDepth(depth);
+  const hasImage = topic?.image !== undefined;
   const lines = useMemo(
-    () => (detail === 'full' && !editing ? textLines(title, depth, textWidth) : []),
+    () =>
+      detail === 'full' && !editing && !(hasImage && title.trim() === '')
+        ? textLines(title, depth, textWidth)
+        : [],
     // `epoch` is not read inside, but a new font wraps the same title differently.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [detail, editing, title, depth, epoch],
+    [detail, editing, title, depth, epoch, hasImage],
   );
   const empty = title.trim().length === 0;
   const radius = cornerRadius(look, depth, h);
   const chipsH = chips.length > 0 ? CHIP_ROW_HEIGHT : 0;
   const rowH = chipsH;
-  const firstBaseline = firstBaselineOf(h, rowH, lines.length, style.lineHeight);
+  // A picture sits above the title, which is then centred in what is left of the box.
+  const above = topic ? imageOffset(topic) : 0;
+  const picture = imageSize(topic?.image);
+  const firstBaseline = above + firstBaselineOf(h - above, rowH, lines.length, style.lineHeight);
   const real = kind === 'topic';
   const count = hidden > 99 ? '99+' : String(hidden);
   const badgeText = rollup ? `${count} · ${rollup}` : count;
@@ -146,6 +237,29 @@ export const TopicNode = memo(function TopicNode({
       )}
       <rect className="topic-box" width={w} height={h} rx={radius} />
       {selected && <rect className="topic-wash" width={w} height={h} rx={radius} />}
+      {picture && topic?.image && (
+        <TopicPicture
+          id={box.id}
+          src={topic.image.src}
+          x={(w - picture.w) / 2}
+          y={IMAGE_PAD}
+          w={picture.w}
+          h={picture.h}
+          full={detail === 'full'}
+          alt={topic.image.alt}
+        />
+      )}
+      {real && detail === 'full' && picture && topic?.image && (
+        <ImageControls
+          id={box.id}
+          x={(w + picture.w) / 2 - 8}
+          y={IMAGE_PAD + 16}
+          hasAlt={!!topic.image.alt}
+        />
+      )}
+      {real && detail === 'low' && topic && chipContext && (
+        <TopicGlyph topic={topic} depth={depth} w={w} h={h} ctx={chipContext} />
+      )}
       {lines.length > 0 && (
         <text
           className="topic-text"
@@ -177,7 +291,7 @@ export const TopicNode = memo(function TopicNode({
       {real && detail === 'full' && topic?.stickers && (
         <StickerLayer stickers={topic.stickers} w={w} h={h} />
       )}
-      {real && detail === 'full' && expanded === true && (
+      {real && controls && expanded === true && (
         <g
           className="fold-toggle"
           data-fold-toggle=""
@@ -192,7 +306,7 @@ export const TopicNode = memo(function TopicNode({
           </g>
         </g>
       )}
-      {real && detail === 'full' && box.parentId !== null && (
+      {real && controls && box.parentId !== null && (
         <g
           className="fold-toggle"
           data-parent-toggle=""

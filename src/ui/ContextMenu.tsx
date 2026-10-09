@@ -194,6 +194,12 @@ function topicEntries(): Entry[] {
           cmd('Add a sticker to the line', 'edge.sticker', 'stickers', { disabled: many }),
         ]
       : []),
+    ...(doc.topics[focus]?.image
+      ? [
+          cmd('Describe picture…', 'topic.imageAlt', 'edit', { disabled: many }),
+          cmd('Remove picture', 'topic.imageRemove', 'trash', { disabled: many }),
+        ]
+      : []),
     cmd('All properties…', 'props.open', 'properties'),
 
     ...(core || uiStore.getState().focusBranch
@@ -212,7 +218,18 @@ function topicEntries(): Entry[] {
 
     ...(core
       ? []
-      : [{ kind: 'separator' } as Entry, cmd('Delete', 'topic.delete', 'trash', { danger: true })]),
+      : [
+          { kind: 'separator' } as Entry,
+          ...(hasChildren(doc, focus)
+            ? [cmd('Delete topic only', 'topic.deleteKeep', 'trash', { danger: true })]
+            : []),
+          cmd(
+            hasChildren(doc, focus) ? 'Delete whole branch…' : 'Delete',
+            'topic.delete',
+            'trash',
+            { danger: true },
+          ),
+        ]),
   ];
 }
 

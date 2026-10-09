@@ -3,7 +3,13 @@ import { appContext } from '../editor/context';
 import { isMac } from '../editor/shortcuts';
 import { setZen } from '../ui/uiStore';
 import { Icon, type IconName } from '../ui/icons';
+import { focusCanvas } from './layoutState';
 import { setTool, useEffectiveTool, type CanvasTool } from './toolStore';
+
+/** After a mouse click the map takes focus back, so its keys (V, H, Space) work straight away. */
+const backToMap = (e: { detail: number }) => {
+  if (e.detail > 0) focusCanvas();
+};
 
 interface Props {
   onFit: () => void;
@@ -45,7 +51,10 @@ export function ZoomControls({ onFit }: Props) {
             aria-pressed={tool === t.id}
             data-tip={t.tip(cmd)}
             data-tip-side="top"
-            onClick={() => setTool(t.id)}
+            onClick={(e) => {
+              setTool(t.id);
+              backToMap(e);
+            }}
           >
             <Icon name={t.icon} />
           </button>
@@ -57,7 +66,10 @@ export function ZoomControls({ onFit }: Props) {
         aria-label="Fit to screen"
         data-tip="Fit to screen (⌘0)"
         data-tip-side="top"
-        onClick={onFit}
+        onClick={(e) => {
+          onFit();
+          backToMap(e);
+        }}
       >
         <Icon name="fit" />
       </button>
@@ -66,7 +78,10 @@ export function ZoomControls({ onFit }: Props) {
         aria-label="Unfold everything"
         data-tip="Unfold everything (0)"
         data-tip-side="top"
-        onClick={() => void executeCommand('view.unfoldAll', appContext)}
+        onClick={(e) => {
+          void executeCommand('view.unfoldAll', appContext);
+          backToMap(e);
+        }}
       >
         <Icon name="braces" />
       </button>

@@ -1,4 +1,4 @@
-import { newId } from '../model';
+import { graftMap, newId } from '../model';
 import { pickMapFile, rememberOpenedMap, saveMapToFile } from '../persistence';
 import type { MapRepository } from '../persistence';
 import { announce } from '../a11y';
@@ -25,6 +25,22 @@ export async function openMapFromFile(): Promise<void> {
   canopyStore.getState().load(mapId, result.doc);
   rememberOpenedMap(mapId);
   announce(`Opened ${result.doc.meta.title}`);
+}
+
+/** Adds a map file, whole, as a new branch under the selected topic. */
+export async function importMapAsBranch(): Promise<void> {
+  const result = await pickMapFile();
+  if (result.ok === 'cancelled') return;
+  if (!result.ok) {
+    const message = result.errors[0] ?? 'This file could not be read';
+    showToast(`Could not add the file: ${message}`);
+    announce(`Could not add the file. ${message}`);
+    return;
+  }
+  const { doc, focus, commit } = canopyStore.getState();
+  const grafted = graftMap(doc, doc.topics[focus] ? focus : doc.coreId, result.doc);
+  commit(grafted.map, { select: [grafted.id], focus: grafted.id });
+  announce(`Added ${result.doc.meta.title} with ${grafted.count} topics`);
 }
 
 export async function saveMapAsFile(): Promise<void> {

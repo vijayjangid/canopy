@@ -193,3 +193,77 @@
     backdrop-filter: none;
   }
 }
+
+/* Delete confirmation: two clear choices, and a way out. */
+.dialog:has(.confirm-delete) {
+  width: min(460px, calc(100vw - 32px));
+}
+
+.confirm-delete p {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-muted);
+}
+
+.confirm-choices {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.confirm-choice {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3);
+  font: inherit;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.confirm-choice strong {
+  font-size: 14px;
+}
+
+.confirm-choice span {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.confirm-choice:hover,
+.confirm-choice:focus-visible {
+  border-color: var(--color-focus);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-focus) 25%, transparent);
+}
+
+.confirm-choice[data-danger] strong {
+  color: var(--color-danger);
+}
+
+.confirm-choice[data-danger]:hover,
+.confirm-choice[data-danger]:focus-visible {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 25%, transparent);
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-3);
+}
+
+.confirm-actions button {
+  padding: 6px 14px;
+  font: inherit;
+  color: var(--color-text);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.confirm-actions button:hover {
+  background: var(--color-hover);
+}

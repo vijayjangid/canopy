@@ -1,6 +1,9 @@
 import {
   chipRowWidth,
   firstBaselineOf,
+  IMAGE_PAD,
+  imageOffset,
+  imageSize,
   connectorPath,
   edgeBadgeSize,
   edgeMidpoint,
@@ -249,7 +252,9 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
     const rows = topicRows(topic);
     const rowH = rows.total;
     const lines = textLines(topic.title, b.depth, options.textWidth);
-    const first = firstBaselineOf(b.h, rowH, lines.length, style.lineHeight);
+    const above = imageOffset(topic);
+    const picture = imageSize(topic.image);
+    const first = above + firstBaselineOf(b.h - above, rowH, lines.length, style.lineHeight);
     const empty = topic.title.trim() === '';
     const radius = cornerRadius(theme.look, b.depth, b.h);
 
@@ -257,7 +262,16 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
     out.push(
       `<rect width="${f(b.w)}" height="${f(b.h)}" rx="${f(radius)}" fill="${paint.fill}" stroke="${paint.stroke}" stroke-width="${paint.strokeWidth}"/>`,
     );
-    const tspans = lines
+    if (picture && topic.image) {
+      const px = (b.w - picture.w) / 2;
+      const clip = `img-${b.id.replace(/[^A-Za-z0-9_-]/g, '_')}`;
+      out.push(
+        `<clipPath id="${clip}"><rect x="${f(px)}" y="${IMAGE_PAD}" width="${picture.w}" height="${picture.h}" rx="6"/></clipPath>` +
+          `<image href="${topic.image.src}" x="${f(px)}" y="${IMAGE_PAD}" width="${picture.w}" height="${picture.h}" preserveAspectRatio="none" clip-path="url(#${clip})">${topic.image.alt ? `<title>${escapeXml(topic.image.alt)}</title>` : ''}</image>`,
+      );
+    }
+    const textLinesShown = picture && empty ? [] : lines;
+    const tspans = textLinesShown
       .map(
         (l, i) =>
           `<tspan x="${f(b.w / 2)}" y="${f(first + i * style.lineHeight)}">${

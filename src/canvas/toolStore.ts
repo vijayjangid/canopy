@@ -1,5 +1,6 @@
 import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
+import { isMac } from '../editor/shortcuts';
 
 /** How the pointer behaves on the canvas: pick topics, pan the view, or zoom it. */
 export type CanvasTool = 'select' | 'pan' | 'zoom';
@@ -25,6 +26,28 @@ export const toolStore = createStore<ToolState>(() => ({
 /** The tool in use right now: a held key borrows a tool until it is let go. */
 export const effectiveTool = (s: ToolState): CanvasTool =>
   s.space ? 'pan' : s.zoomKey ? 'zoom' : s.tool;
+
+/**
+ * Takes the held modifiers from any event that carries them: keys, pointer and wheel events all
+ * do. Key events alone are not enough, because a modifier pressed while the page was not focused,
+ * or a key-up the browser never sent, would leave the tool wrong until the next key press.
+ */
+export function syncModifiers(
+  e: { metaKey: boolean; ctrlKey: boolean; altKey: boolean },
+  mac = isMac(),
+): void {
+  const zoomKey = mac ? e.metaKey : e.ctrlKey;
+  const now = toolStore.getState();
+  if (now.zoomKey !== zoomKey || now.alt !== e.altKey)
+    toolStore.setState({ zoomKey, alt: e.altKey });
+}
+
+/** Forgets every held key, for when the page cannot tell what is down any more. */
+export function releaseHeldKeys(): void {
+  const now = toolStore.getState();
+  if (now.space || now.zoomKey || now.alt)
+    toolStore.setState({ space: false, zoomKey: false, alt: false });
+}
 
 export const setTool = (tool: CanvasTool) => toolStore.setState({ tool });
 

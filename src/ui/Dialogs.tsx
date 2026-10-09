@@ -1,4 +1,5 @@
 import { CheatSheet } from './CheatSheet';
+import { DeleteConfirm } from './DeleteConfirm';
 import { Palette } from './Palette';
 import { QuickAdd } from './QuickAdd';
 import { TopicSearchDialog } from './TopicSearchDialog';
@@ -10,6 +11,7 @@ export function Dialogs() {
   const topicSearchFrom = useUi((s) => s.topicSearchFrom);
   if (dialog === 'shortcuts') return <CheatSheet />;
   if (dialog === 'quickadd') return <QuickAdd />;
+  if (dialog === 'confirmDelete') return <DeleteConfirm />;
   if (dialog === 'topicSearch') {
     return <TopicSearchDialog referenceFrom={topicSearchFrom} />;
   }

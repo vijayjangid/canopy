@@ -43,6 +43,8 @@ test('builds a map with the keyboard, edits, deletes and undoes', async ({ page 
   // Delete a branch and bring it back.
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Delete');
+  // Design has a sub-topic, so it asks whether to take the whole branch.
+  await page.getByRole('button', { name: /Delete the whole branch/ }).click();
   await expect(page.getByRole('treeitem')).toHaveCount(2);
   await page.keyboard.press('Control+z');
   await expect(page.getByRole('treeitem')).toHaveCount(4);

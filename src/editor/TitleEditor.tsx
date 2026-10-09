@@ -3,7 +3,14 @@ import { useStore } from 'zustand';
 import { announce } from '../a11y';
 import { focusCanvas } from '../canvas/layoutState';
 import { viewportStore } from '../canvas/viewportStore';
-import { topicRows, textLines, typeForDepth, TOPIC_PADDING, type TopicBox } from '../layout';
+import {
+  imageOffset,
+  topicRows,
+  textLines,
+  typeForDepth,
+  TOPIC_PADDING,
+  type TopicBox,
+} from '../layout';
 import {
   isExpansion,
   mayHaveTokens,
@@ -13,6 +20,7 @@ import {
   type Branch,
 } from '../model';
 import { useSettings } from '../settings';
+import { pastedImage, pasteImage } from './clipboard';
 import { convertTitleTokens } from './titleTokens';
 import { canopyStore, useCanopy } from '../store';
 import { textWidth } from '../canvas/metrics';
@@ -68,10 +76,12 @@ export function TitleEditor({ box }: { box: TopicBox }) {
   const lineCount = textLines(title, box.depth, textWidth).length;
   // Stickers and icons sit in a row under the title, so the title centres above them.
   const rowH = topic ? topicRows(topic).total : 0;
+  // A picture stays visible above the title, so the editor covers only the text part.
+  const above = topic ? imageOffset(topic) : 0;
   const padTop =
     rowH > 0
       ? TOPIC_PADDING.y
-      : Math.max(TOPIC_PADDING.y, (box.h - lineCount * style.lineHeight) / 2);
+      : Math.max(TOPIC_PADDING.y, (box.h - above - lineCount * style.lineHeight) / 2);
 
   // Shorthand typed so far, shown under the topic before it becomes Properties.
   const doc = useCanopy((s) => s.doc);
@@ -151,6 +161,13 @@ export function TitleEditor({ box }: { box: TopicBox }) {
           commit(next, { group: `rename:${box.id}` });
         }}
         onKeyDown={onKeyDown}
+        onPaste={(e) => {
+          // A copied picture goes on the topic being edited. Text still pastes into the title.
+          const picture = pastedImage(e.clipboardData);
+          if (!picture) return;
+          e.preventDefault();
+          void pasteImage(appContext, picture, box.id);
+        }}
         onBlur={() => {
           // Moving to another topic's editor changes `editing` first, so only end our own edit.
           if (canopyStore.getState().editing === box.id) {
@@ -161,15 +178,18 @@ export function TitleEditor({ box }: { box: TopicBox }) {
         // Sized in layout units and scaled as a whole, so text wraps exactly like the drawn topic.
         style={{
           left: box.x * vp.k + vp.x,
-          top: box.y * vp.k + vp.y,
+          top: (box.y + above) * vp.k + vp.y,
           width: box.w,
-          height: box.h,
+          height: box.h - above,
           transform: `scale(${vp.k})`,
           fontSize: style.size,
           fontWeight: style.weight,
           lineHeight: `${style.lineHeight}px`,
           padding: `${padTop}px ${TOPIC_PADDING.x}px 0`,
-          borderRadius: cornerRadius(look, box.depth, box.h),
+          borderRadius: (() => {
+            const r = cornerRadius(look, box.depth, box.h);
+            return above > 0 ? `0 0 ${r}px ${r}px` : r;
+          })(),
         }}
       />
       {expressing && (

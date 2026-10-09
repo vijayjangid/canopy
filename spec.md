@@ -133,7 +133,7 @@ Every topic can carry Properties. They are optional and invisible until used, so
 - **Note:** a small mark on a topic that has a Note.
 - **Chip density** (Settings): Off, Compact, Full. It is measured into the layout, so topics grow to hold their chips.
 - Chips are also drawn in SVG, PNG and PDF exports.
-- Chips that fade with semantic zoom are **[Planned]** with M4.2. Today the whole text drops out when zoomed far out over a large map.
+- Chips that fade with semantic zoom are **[Planned]** with M4.2. Today, zoomed far out, text and chips give way to icons for what a topic holds.
 - Each topic's accessible name includes its Properties, for example "Draft launch plan, status In progress, due Oct 9".
 
 **Status Set (default, editable)**
@@ -177,11 +177,31 @@ Every topic can carry Properties. They are optional and invisible until used, so
   - The preview supports headings, lists, task lists, code, quotes, tables, rules, bold, italic, strike and links. It builds React elements, so no HTML is ever injected, only web and mail links are allowed, and raw HTML shows as text.
   - `N` jumps to the Note tab. A topic with a Note shows a small mark on the topic and on its tab.
   - **[Planned]** inline preview of the first lines at high zoom, and a peek card on hover.
+- **Pictures [Built, new]**
+  - Pasting an image from the clipboard (`⌘V`, or Paste in the topic's context menu) puts it on the focused topic, above the title. Text or Canopy topics on the clipboard still paste as topics, so a picture is used only when no text was copied with it.
+  - The topic sizes itself to the picture: it shows at its own size, scaled down (never up) to fit at most 280 × 200 units, with the title below. A topic with a picture and no title shows no placeholder text.
+  - On paste the image is scaled so its longest side is at most 1280 px and stored in the map as a WebP data URL (PNG where the browser cannot write WebP); further steps down are tried if it is still large. If it cannot be made small enough, a message says so and nothing changes.
+  - Pasting also works while the title is being edited: the picture goes on that topic, the typed text is kept and editing carries on. A new, otherwise empty topic that gets a picture is not removed as blank.
+  - One picture per topic; pasting another replaces it (and clears its description). Undo restores the old one.
+  - **Controls:** pointing at or selecting a topic with a picture shows two round buttons on the picture's top-right corner: **Alt** and **✕**. ✕ removes the picture. Alt opens a one-line field over the picture's lower edge to type a description (up to 200 characters; Enter saves, Esc cancels, an empty text clears it). The Alt button is outlined in the accent colour when a description exists. The same actions are in the context menu ("Describe picture…", "Remove picture") and the palette (`topic.imageAlt`, `topic.imageRemove`).
+  - **Alt text:** the description is saved as `image.alt`, read out after the topic's title ("picture: …", or "has a picture" when there is none), shown as a tooltip on the picture, and written into SVG exports as the image's `<title>`.
+  - The picture is part of the topic, so it travels with Copy, Cut, Paste, Duplicate and the file, and is drawn in SVG, PNG and PDF exports. Markdown and CSV exports skip it.
+  - Only embedded PNG, JPEG, WebP and GIF pictures are accepted from a file or the clipboard, up to about 4.5 MB each. Links to outside images and SVG are refused, so opening a map never loads anything from the web or runs script.
+- **Drag and drop [Built, new]**
+  - **A picture dropped on empty canvas** becomes a new, untitled topic under the Core, with the picture on it.
+  - **A picture dropped on a topic** puts the picture on that topic (replacing any it had). Several pictures dropped on one topic: the first goes on it, and the others become sub-topics, each with its own picture. Several on empty canvas each become a new topic under the Core.
+  - **A Canopy map file (`.json` or `.canopy.json`) dropped on a topic** adds the whole map as a new last branch under it, or under the Core when dropped on empty canvas. The other map's Core becomes the top of the branch (named by the Core's title, or by the map's title when the Core still has the default name). It can be dropped any number of times.
+    - Every topic gets a new ID, so nothing clashes with the map it joins. Notes, stickers, pictures, lines, properties and fold state come along, and so do the statuses and tags its topics use that this map lacks. References between its own topics are kept; a reference to anything else cannot be, and is dropped. Its own Looks, preferences and saved Filters are not imported.
+    - Files over 40 MB are refused.
+  - Pictures and maps can be dropped together. Everything in one drop is one undo step, and the new topics are selected.
+  - **Feedback:** while files are dragged over the map, the topic they would land on is outlined (or the whole canvas, for the Core), and a label says what will happen, such as "Add picture to “Beta”". Dropping outside the map does nothing, and the browser never opens the file in place of the map. A file that is neither a picture nor a map is refused with a message, and a map file that cannot be read says why.
+  - **Without a mouse:** pasting a picture and the command "Add a map file as a branch of the selected topic" (File menu, palette) cover the same ground from the keyboard.
 - **Attachments [Cut]**
-  - Files, images and unfurled links were removed from v1 (see 12.1). Old files that contain attachments still open, and the attachments are ignored.
+  - Files and unfurled links were removed from v1 (see 12.1). Old files that contain attachments still open, and the attachments are ignored. Pasted pictures (above) are the one exception.
 - **Stickers (expressive) [Built, redesigned]**
   - A picker opens with `S`, or from the Stickers tab. It has a search box and a sheet of original, die-cut artwork (23 stickers such as Star, Heart, Launch, Done, Alert, Flag, Coffee). **Deviation:** v0.2 planned vendored open-licence packs (Fluent Emoji) and custom upload. The set is original SVG art instead, so it looks identical on every platform and in exports, and needs no third-party licence. Custom upload was dropped.
   - Stickers stick to the four corners of a topic (up to four per topic), and land with a short stamp animation (instant under reduced motion).
+  - **Each sticker is on a topic or line at most once.** The sheet in the Stickers tab shows every sticker as a switch: one that is on is ringed and tinted with a tick, and pressing a sticker puts it on, or takes it off when it is already on. There is no separate list of what is on the topic. When the topic or line is full (four, or three), the stickers that are off wait, and the ones that are on can still be pressed to take off. Files and the clipboard that repeat a sticker are read with one of each kind, keeping the first.
   - Stickers can also stick to a **Line** (see 3.10), up to three per line.
   - Stickers are decorative, but the Filter can pick topics out by sticker (3.4), so a sticker can serve as a quick personal marker. Anything that needs status or a date is a Property.
   - Dragging and rotating stickers, a Fluent-style 3D set for Playful and a high-contrast set are not planned for v1.
@@ -233,14 +253,14 @@ Settings live in the Settings tab of the left panel, in three groups. The map-le
 
 These were not in v0.2. They exist to help someone work inside a big map without losing their place.
 
-- **Trail:** the way up from the focused topic to the Core. It is either highlighted (topics and lines on the way, the rest left alone) or isolated (everything else hidden). A pill at the bottom chooses None, Highlight or Isolate, `R` turns it on or off, and a setting makes it the default. A status bar at the bottom shows the Trail as a path of topic names, each one clickable, with **Copy path** just after it. Copy path writes the path as `!!A>B>C` (separators inside a name are turned into spaces), so pasting it into a new topic rebuilds the same chain through text expansion (3.1).
+- **Trail:** the way up from the focused topic to the Core. It is either highlighted (topics and lines on the way, the rest left alone) or isolated (everything else hidden). A pill at the bottom chooses None, Highlight or Isolate, `R` turns it on or off, and a setting makes it the default. A status bar at the bottom shows the Trail as a path of topic names, each one clickable, with **Copy path** just after it. The path is shown **in full while the bar has room for it**, however many levels it has. Only when it does not fit are the middle levels folded into an ellipsis (hovering it names them), and as few as possible, keeping the first level and the most recent ones. Names are shortened only after that, the earlier levels before the topic you are on. Copy path writes the path as `!!A>B>C` (separators inside a name are turned into spaces), so pasting it into a new topic rebuilds the same chain through text expansion (3.1).
 - **Branch view:** `[`, the Fold everything above item in the context menu, or the brace button on the parent side of any topic shows only that branch. Everything above it, all the parents and their peers, becomes one dotted node ("12 topics above", with the path) at the root, so a subtree can be worked on without panning and zooming back and forth. Clicking the dotted node, pressing `[` again, or choosing Unfold everything (the status bar button, the toolbar button or `0`) returns to the whole map, so Unfold everything opens folded children and the parents together. The view fits itself when it starts and ends, and it is dropped when another map opens.
-- **Zen (`Z`):** hides every panel and bar, leaving only the map, until you press `Esc` or the Exit Zen button.
+- **Zen (`Z`):** hides every panel and bar, leaving only the map, until you press `Esc` or the Exit Zen button. The button sits in the bottom left, in the corner the toolbar (and its Zen button) occupies when it is shown.
 - **Pointer tools:** see 3.1.
 
 ### 3.10 Lines (edge labels and stickers) [Built, new]
 
-- The line from a topic to its parent can be picked (click it, or press `L` on the topic). A small bar offers quick stickers, and the Stickers tab then edits the line instead of the topic.
+- The line from a topic to its parent can be picked (click it, or press `L` on the topic). A small bar offers quick stickers, and the Stickers tab then edits the line instead of the topic. The bar's stickers are switches, like the sheet's: each is ringed while it is on the line, and a press puts it on or takes it off. Stickers that are on the line but not among the usual few are listed after them, so every one can be taken off from the bar. A **pencil** at the start of the bar opens the details panel and puts the cursor in its Label field.
 - A line can carry a short label (up to 80 characters), such as "depends on", shown on the line, and up to three stickers.
 - Lines are drawn with their label and stickers in exports.
 
@@ -248,7 +268,7 @@ These were not in v0.2. They exist to help someone work inside a big map without
 
 A Reference links a topic to **one** existing topic anywhere in the map, so two branches that share the same sub-tree can point at one copy instead of repeating it. A Reference does not move or copy anything and never changes the tree.
 
-- **Drawn as:** a dashed arrow in the accent colour, curved between the two topics, so it reads differently from the solid parent-child lines.
+- **Drawn as:** a bold dashed arrow in the accent colour, drawn above the topics, so it reads differently from the solid parent-child lines. It leaves the middle of the side of the source that faces the target and ends with an arrowhead at the middle of the facing side of the target. Topics lined up across the Flow (stacked in a Right flow, side by side in a Down flow) get a loop out of the side, so the arrow never runs over the topics between them.
 - **Create by dragging:** the link-icon Reference Handle sits above a selected topic (not shown on the Core). Drag it onto any other topic: a dashed line follows the pointer and the topic under it is highlighted. Release to connect. Releasing on empty canvas, or `Esc`, cancels.
 - **Create by search:** click the handle, press `X`, or choose "Reference to…" in the topic's context menu. A search over every topic by name or full path (for example "Case Types › Workflow › Templates") picks the target.
 - **Replace:** a topic has at most one reference, so a new one replaces the old.
@@ -276,7 +296,7 @@ These are where we should beat Miro, XMind, MindMeister, Coggle and Whimsical. T
 
 1. **Ghost-Growth Handles [Built].** Hovering a handle previews the new topic and its layout shift before you commit. Most tools only show a `+` icon. Ours shows the outcome.
 2. **Outline and Map dual view, live-synced [Planned].** Edit in either view and the other updates, with an animated cross-highlight. This is both an accessibility feature and a power-user feature. Competitors are canvas-only.
-3. **Semantic zoom (levels of detail) [Partly built].** Zoomed out, you see structure only. Zoomed in, Notes and Chips reveal themselves in place. Today there are two levels: full, and a text-free level far out on large maps, plus viewport culling.
+3. **Semantic zoom (levels of detail) [Partly built].** Zoomed out, you see structure only. Zoomed in, Notes and Chips reveal themselves in place. Today there are two levels: full, and an icon level below 35% zoom, plus viewport culling. In the icon level text is not drawn. The Core shows a house; a picture shows a picture mark; the main icon under it is the status mark when the topic has a status, else a page for a note, else a **T** for text; tags show as dots in their colours and a due date as a small square (in the warning colour when late). Fold buttons stay on maps of up to 600 topics, and the add and reference handles step aside, since they would be larger than the topics.
 4. **Flow morphing and per-branch Flow [Planned].** Layouts are animated transformations, not jumps, and each branch can use a different Flow. Few competitors support mixed layouts.
 5. **Map-native planning with shorthand entry [Built].** Type `Draft launch plan #launch /doing ^fri` and you get a topic with a tag, status and due date, without opening a form. Roll-ups on folded branches turn any map into a status view. Most mind-map tools have only tags or checkboxes, and most planners have no free-form thinking space.
 6. **Filters that follow you across views [Partly built].** One Filter applies to the map, the Trail, the next-match jumps and the exports, and the map dims instead of rearranging, so spatial memory is preserved. The Outline, Board, Table and Timeline are the views still to join.
@@ -308,6 +328,7 @@ Tokens live in `motion/`. A layout animator (`canvas/animator.ts`) tweens every 
 - **Flow morph [Planned]:** topics travel along arcs to their new positions, connectors redraw, and stagger runs from the Core outward.
 - **View switch (Map, Board, Table, Timeline) [Planned]:** topics travel to their new positions as shared elements, while content that has no counterpart fades.
 - **Delete [Built]:** the branch fades and shrinks toward its parent, with an Undo toast that goes away once the map changes again.
+  - **Deleting a topic that has sub-topics asks first.** A dialog offers *Delete the topic only* (its direct sub-topics move up to its parent, in the topic's place and in their own order, and everything below them stays), *Delete the whole branch*, and Cancel. The safer first choice has focus, and Esc cancels. With several topics selected it asks once if any of them has sub-topics. Topics with nothing below them are deleted straight away. Both ways can be undone in one step. The commands are also available without the dialog as "Delete the topic and keep its sub-topics" and "Delete the whole branch without asking", and in the right-click menu. Cut does not ask, because the branch goes to the clipboard.
 - **Re-parent drag [Built]:** the topic lifts, a drop-target line shows the exact slot, and on drop it settles.
 - **Filter and Trail [Built]:** non-matching topics fade, and the camera follows the selection (auto-pan). Smooth camera paths for **Focus / Tour** are **[Planned]**.
 - **Selection [Built]:** a ring and a light wash, and the handles fade in after a short delay to avoid flicker.
@@ -339,7 +360,7 @@ Tokens live in `motion/`. A layout animator (`canvas/animator.ts`) tweens every 
 | Add peer above | `Shift+Enter` | Built |
 | Insert a topic between this and its parent / sub-topics | `W` / `Shift+W` | Built |
 | Edit / finish | `Space` or `F2` / `⌘Enter` | Built |
-| Delete / duplicate branch | `Del` / `⌘D` | Built |
+| Delete topic (asks when it has sub-topics) / duplicate branch | `Del` / `⌘D` | Built |
 | Fold / unfold | `]` | Built (was `.`) |
 | Fold to Level N / unfold all | `1–9` / `0` | Built |
 | Fold everything above (Branch view), toggle | `[` | Built |
@@ -402,6 +423,7 @@ The file keeps schema `canopy/1`. Every change since v0.2 only removed fields or
     "stickers": [{ "id": "s_1", "key": "star" }],
     "edge": { "label": "depends on", "stickers": [{ "id": "s_2", "key": "flag" }] },
     "referenceTo": "t_9",
+    "image": { "src": "data:image/webp;base64,...", "w": 640, "h": 480, "alt": "Login screen" },
     "props": {
       "status": "doing",
       "due": { "start": null, "end": "2026-11-01" },
@@ -415,10 +437,11 @@ The file keeps schema `canopy/1`. Every change since v0.2 only removed fields or
 
 Notes:
 - The colour Mode is a device setting and is not saved in the file.
-- `props`, `note`, `stickers`, `edge` and `referenceTo` are omitted on topics without them, keeping plain maps small.
+- `props`, `note`, `stickers`, `edge`, `referenceTo` and `image` are omitted on topics without them, keeping plain maps small.
 - `referenceTo` holds the ID of the topic a Reference points to. It must name another topic in the same file. A missing or self-pointing target makes the file fail to open with a clear message.
 - Roll-ups are computed, never stored. Fold state is stored. Children are written in order, and their fractional ordering keys are rebuilt on load.
 - A Filter query can use `status`, `statusCategory`, `tags`, `stickers`, `due` (`overdue` or `week`), `dueBetween` and `match` (`all` or `any`).
+- `image` holds the pasted picture as `src` (an embedded `data:image/png|jpeg|webp|gif;base64,` URL) with its pixel size `w` and `h`, and an optional `alt` description (up to 200 characters). The display size is worked out from these and is not stored. A file whose `image` is not an embedded raster picture of a sensible size fails to open with a message.
 - **Removed since v0.2:** `roster`, `planning.roles`, `planning.customProperties`, `planning.rules`, `attachments`, and the `people`, `approval`, `priority`, `progress` and `custom` Properties. Old files that contain them still open, and the fields are dropped on the next save.
 - **Not yet present:** `flowOverride`, `style` (branch colour and shape) and `tour`, which belong to planned features.
 - Tags are referenced by key so renaming a tag updates every topic.
@@ -461,7 +484,7 @@ Last measured at the end of Phase 3 (headless Chromium): first paint 323 ms with
 
 - **Interaction:** 60 fps pan and zoom, under 100 ms from keypress to visible result for create, fold and edit.
 - **Viewport culling [Built]:** only topics and connectors intersecting the viewport (plus a margin) are mounted.
-- **Level of detail [Partly built]:** below a zoom threshold, and on maps over 600 topics, text drops out. The title-only and dot levels belong to semantic zoom (M4.2).
+- **Level of detail [Partly built]:** below 35% zoom text drops out and topics show icons (see section 5). The title-only and dot levels belong to semantic zoom (M4.2).
 - **Incremental layout [Not needed so far]:** the single-pass layout is fast enough. A Web Worker above roughly 1,000 topics is **[Planned]** only if measurements say it is needed.
 - **Fold on import:** large imports fold deeper than Level 3 by default **[Planned]**.
 - **Animation limits [Built]:** maps over 1,500 topics jump instead of animating.
@@ -552,6 +575,8 @@ A scope cut on 2026-10-08 kept planning to Status, Due date, Tags and Stickers. 
 - Auto-pan, context menu, tooltips, searchable cheat sheet, save indicator.
 - Font size, level numbers in small faded monospace, and refreshed Minimal (subtle borders, flat shadows) and Playful (flat shadows) Looks.
 - Filter by sticker, and the date-range Filter.
+- Delete asks whether to remove a branch or only the topic; stickers are one-per-kind switches with a pencil on the line bar; topics become icons when zoomed out; Exit Zen moved to the bottom left; handles follow their topic while it moves; the pointer tool keys (Space, Cmd, Alt) are tracked reliably.
+- Pictures pasted from the clipboard onto topics, and drag and drop of pictures and whole map files onto the canvas or a topic (3.5).
 - References between topics (Reference Handle with drag-to-connect, search by path, delete icon and line menu), and `⌘F` fuzzy topic search with the Filter panel as its advanced mode.
 
 ### 12.4 What remains

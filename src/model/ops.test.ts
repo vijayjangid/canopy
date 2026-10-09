@@ -5,12 +5,14 @@ import {
   createPeer,
   createSubTopic,
   deleteBranch,
+  deleteNode,
   duplicateBranch,
   foldToLevel,
   moveBranch,
   moveSibling,
   renameTopic,
   setFolded,
+  setTopicReference,
   toggleFold,
   unfoldAll,
 } from './ops';
@@ -205,5 +207,54 @@ describe('tree queries', () => {
     expect(depthOf(map, 'core')).toBe(0);
     expect(depthOf(map, 'a2')).toBe(2);
     expect(ancestorsOf(map, 'a2').map((t) => t.id)).toEqual(['a', 'core']);
+  });
+});
+
+describe('deleteNode', () => {
+  const tree = () => {
+    let map = createMap({ coreId: 'core' });
+    for (const id of ['a', 'b', 'c']) map = createSubTopic(map, 'core', { id, title: id }).map;
+    for (const id of ['b1', 'b2', 'b3']) map = createSubTopic(map, 'b', { id, title: id }).map;
+    map = createSubTopic(map, 'b2', { id: 'b2x', title: 'b2x' }).map;
+    return map;
+  };
+  const order = (map: CanopyMap, id: string) => childrenOf(map, id).map((t) => t.id);
+
+  it('lifts the sub-topics into its place, in order, and keeps what is below them', () => {
+    const map = deleteNode(tree(), 'b');
+    expect(order(map, 'core')).toEqual(['a', 'b1', 'b2', 'b3', 'c']);
+    expect(order(map, 'b2')).toEqual(['b2x']);
+    expect(map.topics['b']).toBeUndefined();
+    expect(validateMap(map)).toEqual([]);
+  });
+
+  it('works at the first and last place, and for a topic with nothing below it', () => {
+    expect(order(deleteNode(tree(), 'a'), 'core')).toEqual(['b', 'c']);
+    expect(order(deleteNode(tree(), 'c'), 'core')).toEqual(['a', 'b']);
+    let first = deleteNode(tree(), 'b1');
+    expect(order(first, 'b')).toEqual(['b2', 'b3']);
+    let map = createSubTopic(createMap({ coreId: 'core' }), 'core', { id: 'x' }).map;
+    map = createSubTopic(map, 'x', { id: 'x1' }).map;
+    first = deleteNode(map, 'x');
+    expect(order(first, 'core')).toEqual(['x1']);
+  });
+
+  it('can be repeated down a chain without losing anything', () => {
+    let map = deleteNode(tree(), 'b2');
+    map = deleteNode(map, 'b');
+    expect(order(map, 'core')).toEqual(['a', 'b1', 'b2x', 'b3', 'c']);
+    expect(validateMap(map)).toEqual([]);
+  });
+
+  it('opens a folded parent, and clears references to the removed topic', () => {
+    let map = setFolded(tree(), 'core', true);
+    map = setTopicReference(map, 'a', 'b');
+    map = deleteNode(map, 'b');
+    expect(map.topics['core']?.folded).toBe(false);
+    expect(map.topics['a']?.referenceTo).toBeUndefined();
+  });
+
+  it('never removes the Core', () => {
+    expect(() => deleteNode(tree(), 'core')).toThrow(ModelError);
   });
 });

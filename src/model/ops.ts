@@ -188,6 +188,37 @@ export function setTopicReference(
   });
 }
 
+/**
+ * Removes one topic and lifts its sub-topics into its place under its parent, in the same order,
+ * so nothing below it is lost. Anything that referenced the topic loses that reference.
+ */
+export function deleteNode(map: CanopyMap, id: TopicId): CanopyMap {
+  const topic = getTopic(map, id);
+  if (topic.parentId === null) throw new ModelError('CORE_IMMUTABLE', 'The Core cannot be deleted');
+  const lifted = childrenOf(map, id);
+  const siblings = siblingsOf(map, id);
+  const at = siblings.findIndex((t) => t.id === id);
+  const next = siblings[at + 1]?.orderKey ?? null;
+  // Keys that fall between the neighbours, one after the other, so the order is kept.
+  let before = siblings[at - 1]?.orderKey ?? null;
+  const keys = lifted.map(() => (before = keyBetween(before, next)));
+  const parentId = topic.parentId;
+  return produce(map, (draft) => {
+    lifted.forEach((kid, i) => {
+      const moved = draft.topics[kid.id];
+      if (!moved) return;
+      moved.parentId = parentId;
+      moved.orderKey = keys[i] ?? moved.orderKey;
+    });
+    delete draft.topics[id];
+    for (const other of Object.values(draft.topics)) {
+      if (other.referenceTo === id) delete other.referenceTo;
+    }
+    const parent = draft.topics[parentId];
+    if (parent) parent.folded = false;
+  });
+}
+
 export interface MoveTarget {
   parentId: TopicId;
   /** Position among the target's children, counted without the moved branch. Clamped to range. */

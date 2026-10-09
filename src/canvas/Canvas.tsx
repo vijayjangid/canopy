@@ -15,6 +15,7 @@ import {
   executeCommand,
   useCanvasKeyboard,
   useClipboard,
+  useFileDrop,
 } from '../editor';
 import {
   computeLayout,
@@ -45,7 +46,14 @@ import { useActiveFilter } from '../ui/filter';
 import { useTrail } from '../ui/trail';
 import { openContextMenu, openReferenceMenu } from '../ui/ContextMenu';
 import { isMac } from '../editor/shortcuts';
-import { effectiveTool, notePanned, toolStore, useEffectiveTool, useZoomsOut } from './toolStore';
+import {
+  effectiveTool,
+  notePanned,
+  syncModifiers,
+  toolStore,
+  useEffectiveTool,
+  useZoomsOut,
+} from './toolStore';
 import { useCanvasTools } from './useCanvasTools';
 import {
   openInspector,
@@ -75,10 +83,13 @@ import { EdgeBadge } from './EdgeBadge';
 import { PlayfulDefs } from './PlayfulDefs';
 import { EdgeEditor } from './EdgeEditor';
 import { EdgeQuickBar } from './EdgeQuickBar';
+import { ImageAltEditor } from './ImageAltEditor';
 import { createRegionStore } from './region';
 import { TopicNode, type Detail, type NodeKind } from './TopicNode';
 import { useTopicDrag } from './useTopicDrag';
 import { intersectsRect } from './viewport';
+import { useFileDropState } from './fileDropStore';
+import { editImageAlt, removeImage } from './imageActions';
 import { removeReference } from './navigation';
 import { ReferenceDelete } from './ReferenceDelete';
 import { panelObstacles } from './panelInsets';
@@ -87,8 +98,8 @@ import { viewportStore } from './viewportStore';
 import { ZoomControls } from './ZoomControls';
 import './canvas.css';
 
-/** Most topics drawn with text at once when zoomed out. */
-const TEXT_BUDGET = 600;
+/** Most topics that keep their fold buttons while zoomed out to icons. */
+const CONTROLS_BUDGET = 600;
 /** Larger maps jump between layouts instead of animating. */
 const MAX_ANIMATED_TOPICS = 1500;
 
@@ -103,6 +114,7 @@ function summaryOf(topic: CanopyTopic, ctx: ChipContext): string {
   return [
     describeProps(topic, ctx),
     stickers > 0 ? `${stickers} ${stickers === 1 ? 'sticker' : 'stickers'}` : '',
+    topic.image ? (topic.image.alt ? `picture: ${topic.image.alt}` : 'has a picture') : '',
   ]
     .filter(Boolean)
     .join(', ');
@@ -133,6 +145,15 @@ const topicIdOf = (target: EventTarget) =>
 
 const referenceFromOf = (target: EventTarget) =>
   (target as Element).closest('[data-reference-from]')?.getAttribute('data-reference-from') ?? null;
+
+const imageControlOf = (target: EventTarget) => {
+  const el = (target as Element).closest('[data-image-delete], [data-image-alt]');
+  if (!el) return null;
+  const remove = el.getAttribute('data-image-delete');
+  return remove
+    ? { kind: 'delete' as const, id: remove }
+    : { kind: 'alt' as const, id: el.getAttribute('data-image-alt') ?? '' };
+};
 
 const referenceDeleteOf = (target: EventTarget) =>
   (target as Element).closest('[data-reference-delete]')?.getAttribute('data-reference-delete') ??
@@ -265,9 +286,8 @@ export function Canvas() {
       }),
     [view.layout, flow, region.rect, connector, voice],
   );
-  // Text only drops out when zoomed far out over a lot of topics.
-  const detail: Detail =
-    region.detail === 'low' && scene.topics.length > TEXT_BUDGET ? 'low' : 'full';
+  // Zoomed out far enough that text cannot be read, topics show icons for what they hold.
+  const detail: Detail = region.detail;
   const selected = useMemo(() => new Set(picked ? selection : []), [selection, picked]);
 
   // Place of each topic among its peers, for assistive technology.
@@ -299,6 +319,8 @@ export function Canvas() {
   const tool = useEffectiveTool();
   const zoomsOut = useZoomsOut();
   useClipboard(hostRef);
+  useFileDrop(hostRef);
+  const fileDrop = useFileDropState((s) => s);
 
   useEffect(() => {
     registerCanvasElement(svgRef.current);
@@ -337,6 +359,7 @@ export function Canvas() {
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
+      syncModifiers(e);
       const rect = host.getBoundingClientRect();
       if (e.ctrlKey || e.metaKey) {
         viewportStore
@@ -389,6 +412,7 @@ export function Canvas() {
   const inspectorOpen = useUi((s) => s.inspectorOpen);
   const zen = useUi((s) => s.zen);
   const edgeFocus = useUi((s) => s.edgeFocus);
+  const imageAltEditing = useUi((s) => s.imageAltEditing);
   const referenceFocusRaw = useUi((s) => s.referenceFocus);
   const referenceFocus =
     referenceFocusRaw && doc.topics[referenceFocusRaw]?.referenceTo ? referenceFocusRaw : null;
@@ -409,6 +433,8 @@ export function Canvas() {
     if (e.button === 0 && e.ctrlKey && isMac()) return;
     e.currentTarget.focus({ preventScroll: true });
     // A held key borrows a tool: Space pans, Cmd (Ctrl) zooms. The middle button always pans.
+    // The press itself says which modifiers are down, which is surer than remembered key events.
+    syncModifiers(e);
     const tool = e.button === 1 ? 'pan' : effectiveTool(toolStore.getState());
 
     if (tool === 'pan') {
@@ -425,6 +451,12 @@ export function Canvas() {
 
     if ((e.target as Element).closest('[data-context-node]')) {
       setFocusBranch(null);
+      return;
+    }
+    const control = imageControlOf(e.target);
+    if (control) {
+      if (control.kind === 'delete') removeImage(control.id);
+      else editImageAlt(control.id);
       return;
     }
     const deleting = referenceDeleteOf(e.target);
@@ -485,6 +517,7 @@ export function Canvas() {
   };
 
   const onPointerMove = (e: PointerEvent<SVGSVGElement>) => {
+    syncModifiers(e);
     if (topicDrag.move(e)) return;
     const start = drag.current;
     if (start) {
@@ -663,7 +696,11 @@ export function Canvas() {
   const focusDrawn = scene.topics.some((b) => b.id === focus);
 
   return (
-    <div ref={hostRef} className="canvas-host">
+    <div
+      ref={hostRef}
+      className="canvas-host"
+      data-file-drop={(fileDrop.active && fileDrop.target === null) || undefined}
+    >
       <svg
         ref={svgRef}
         className="canvas-svg"
@@ -697,37 +734,13 @@ export function Canvas() {
               viewBox="0 0 8 8"
               refX="7"
               refY="4"
-              markerWidth="7"
-              markerHeight="7"
+              markerWidth="6"
+              markerHeight="6"
               orient="auto"
             >
               <path className="reference-arrow" d="M0 0L8 4L0 8Z" />
             </marker>
           </defs>
-          <g className="references">
-            {view.layout.order.map((source) => {
-              const targetId = doc.topics[source.id]?.referenceTo;
-              const target = targetId ? view.layout.boxes.get(targetId) : undefined;
-              if (!target || !targetId) return null;
-              const sourceTitle = doc.topics[source.id]?.title.trim() || 'Empty topic';
-              const targetTitle = doc.topics[targetId]?.title.trim() || 'Empty topic';
-              const d = referenceGeometry(source, target).d;
-              return (
-                <g
-                  key={`${source.id}-${targetId}`}
-                  className="reference-link"
-                  data-reference-from={source.id}
-                  data-reference-to={targetId}
-                  data-selected={referenceFocus === source.id || undefined}
-                  opacity={view.fade.get(source.id)}
-                >
-                  <title>{`Reference from ${sourceTitle} to ${targetTitle}`}</title>
-                  <path className="reference-connector" d={d} markerEnd="url(#reference-arrow)" />
-                  <path className="reference-hit" d={d} />
-                </g>
-              );
-            })}
-          </g>
           <g className="links">
             {scene.links.map((link) => {
               const dim = (dimmed !== null && !dimmed.has(link.id)) || undefined;
@@ -784,6 +797,7 @@ export function Canvas() {
                   look={look}
                   showLevel={showLevels}
                   detail={detail}
+                  controls={detail === 'full' || scene.topics.length <= CONTROLS_BUDGET}
                   chips={topic ? chipItems(topic) : NO_CHIPS}
                   topic={topic}
                   chipContext={chipContext}
@@ -796,10 +810,50 @@ export function Canvas() {
               );
             })}
           </g>
+          <g className="references">
+            {view.layout.order.map((source) => {
+              const targetId = doc.topics[source.id]?.referenceTo;
+              const target = targetId ? view.layout.boxes.get(targetId) : undefined;
+              if (!target || !targetId) return null;
+              const sourceTitle = doc.topics[source.id]?.title.trim() || 'Empty topic';
+              const targetTitle = doc.topics[targetId]?.title.trim() || 'Empty topic';
+              const d = referenceGeometry(source, target, flow).d;
+              return (
+                <g
+                  key={`${source.id}-${targetId}`}
+                  className="reference-link"
+                  data-reference-from={source.id}
+                  data-reference-to={targetId}
+                  data-selected={referenceFocus === source.id || undefined}
+                  opacity={view.fade.get(source.id)}
+                >
+                  <title>{`Reference from ${sourceTitle} to ${targetTitle}`}</title>
+                  <path className="reference-connector" d={d} markerEnd="url(#reference-arrow)" />
+                  <path className="reference-hit" d={d} />
+                </g>
+              );
+            })}
+          </g>
+          {fileDrop.active &&
+            fileDrop.target &&
+            (() => {
+              const box = view.layout.boxes.get(fileDrop.target);
+              return box ? (
+                <rect
+                  className="file-drop-target"
+                  x={box.x - 5}
+                  y={box.y - 5}
+                  width={box.w + 10}
+                  height={box.h + 10}
+                  rx={14}
+                />
+              ) : null;
+            })()}
           {referenceFocus && (
             <ReferenceDelete
               source={view.layout.boxes.get(referenceFocus)}
               target={view.layout.boxes.get(doc.topics[referenceFocus]?.referenceTo ?? '')}
+              flow={flow}
               from={referenceFocus}
             />
           )}
@@ -808,12 +862,20 @@ export function Canvas() {
         </g>
       </svg>
       <div ref={marqueeRef} className="marquee" hidden />
-      <GrowthHandles layout={layout} onCommit={commitSlot} />
+      <GrowthHandles layout={layout} drawn={view.layout} onCommit={commitSlot} />
       <FoldPeek layout={layout} />
       <FirstRunHint layout={layout} />
+      {fileDrop.active && (
+        <div className="file-drop-hint" role="status">
+          {fileDrop.label}
+        </div>
+      )}
       <DragChip />
       {editingBox && editing && <TitleEditor key={editing} box={editingBox} />}
       {edgeEditing && <EdgeEditor key={edgeEditing} id={edgeEditing} layout={layout} />}
+      {imageAltEditing && doc.topics[imageAltEditing]?.image && (
+        <ImageAltEditor key={imageAltEditing} id={imageAltEditing} layout={layout} />
+      )}
       {edgeFocus && edgeFocus === focus && !edgeEditing && !editing && (
         <EdgeQuickBar key={edgeFocus} id={edgeFocus} layout={layout} />
       )}

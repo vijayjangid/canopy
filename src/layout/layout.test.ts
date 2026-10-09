@@ -2,6 +2,7 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { createMap, createSubTopic, setFolded, type CanopyMap, type Density } from '../model';
 import { connectorPath } from './connectors';
+import { imageOffset, imageSize } from './image';
 import { createTopicMeasurer, textLines, wrapLines } from './measure';
 import { computeLayout } from './tree-layout';
 import { SPACING, type Box, type Measure } from './types';
@@ -193,5 +194,32 @@ describe('line breaks in titles', () => {
     const width = (s: string) => s.length * 8;
     expect(textLines('Design\nReview', 1, width)).toEqual(['Design', 'Review']);
     expect(textLines('One\n\nThree', 1, width)).toEqual(['One', '', 'Three']);
+  });
+});
+
+describe('pictures on topics', () => {
+  const topic = (image?: { src: string; w: number; h: number }) =>
+    ({ id: 't', parentId: 'c', orderKey: 'V', title: 'Hello', folded: false, image }) as const;
+  const measure = createTopicMeasurer((s) => s.length * 8);
+
+  it('keeps a small picture at its own size and grows the topic to hold it', () => {
+    const plain = measure(topic(), 1);
+    const withImage = measure(topic({ src: 'x', w: 120, h: 80 }), 1);
+    expect(withImage.h).toBe(plain.h + 8 + 80);
+    expect(withImage.w).toBeGreaterThanOrEqual(120 + 16);
+  });
+
+  it('scales a big picture down to the maximum, keeping its shape', () => {
+    expect(imageSize({ w: 2000, h: 500 })).toEqual({ w: 280, h: 70 });
+    expect(imageSize({ w: 500, h: 2000 })).toEqual({ w: 50, h: 200 });
+    expect(imageSize({ w: 100, h: 100 })).toEqual({ w: 100, h: 100 });
+    const huge = measure(topic({ src: 'x', w: 4000, h: 3000 }), 1);
+    expect(huge.w).toBeLessThanOrEqual(280 + 16 + 40);
+    expect(huge.h).toBeLessThanOrEqual(200 + 8 + 60);
+  });
+
+  it('adds no space without a picture', () => {
+    expect(imageOffset(topic())).toBe(0);
+    expect(imageSize(undefined)).toBeNull();
   });
 });

@@ -54,10 +54,9 @@
 .reference-connector {
   fill: none;
   stroke: var(--color-accent);
-  stroke-width: 2;
-  stroke-dasharray: 5 4;
+  stroke-width: 2.5;
+  stroke-dasharray: 7 5;
   stroke-linecap: round;
-  opacity: 0.78;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
@@ -72,13 +71,11 @@
 }
 
 .reference-link:hover .reference-connector {
-  stroke-width: 3;
-  opacity: 1;
+  stroke-width: 3.5;
 }
 
 .reference-link[data-selected] .reference-connector {
-  stroke-width: 3;
-  opacity: 1;
+  stroke-width: 3.5;
 }
 
 /* Delete icon on a picked reference line. */
@@ -115,6 +112,73 @@
 
 .topic {
   cursor: pointer;
+}
+
+.topic-image {
+  pointer-events: none;
+}
+
+.image-controls {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-instant) var(--ease-standard);
+}
+
+.topic[data-selected] .image-controls,
+.topic:hover .image-controls,
+.topic[data-focused] .image-controls {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.image-control {
+  cursor: pointer;
+}
+
+.image-control circle {
+  fill: var(--color-surface);
+  stroke: var(--color-border);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.25));
+}
+
+.image-control text {
+  font: 700 9px var(--font-ui, system-ui, sans-serif);
+  fill: var(--color-text);
+  pointer-events: none;
+}
+
+.image-control path {
+  fill: none;
+  stroke: var(--color-text);
+  stroke-width: 2;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.image-control[data-has-alt] circle {
+  stroke: var(--color-accent);
+  stroke-width: 2;
+}
+
+.image-control:hover circle {
+  fill: var(--color-accent);
+  stroke: var(--color-accent);
+}
+
+.image-control:hover text {
+  fill: var(--color-core-text);
+}
+
+.image-control:hover path {
+  stroke: var(--color-core-text);
+}
+
+.topic-image-low {
+  fill: var(--color-track);
+  pointer-events: none;
 }
 
 .topic[data-kind='ghost'],
@@ -657,27 +721,15 @@
   background: var(--color-hover);
 }
 
-.edge-quickbar-placed {
-  position: relative;
+/* A sticker that is on the line is ringed and tinted, like in the details panel. */
+.edge-quickbar-sticker[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+  box-shadow: inset 0 0 0 2px var(--color-accent);
 }
 
-.edge-quickbar-x {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  font-size: 18px;
-  line-height: 1;
-  color: var(--color-text);
-  background: color-mix(in srgb, var(--color-surface) 78%, transparent);
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity var(--motion-instant) var(--ease-standard);
-}
-
-.edge-quickbar-placed:hover .edge-quickbar-x,
-.edge-quickbar-placed:focus-visible .edge-quickbar-x {
-  opacity: 1;
+.edge-quickbar-edit svg {
+  width: 16px;
+  height: 16px;
 }
 
 .edge-quickbar button:disabled {
@@ -846,4 +898,72 @@
 
 .context-node:hover .context-box {
   stroke: var(--color-accent);
+}
+
+/* The picture description field sits over the lower edge of the picture, at the current zoom. */
+.image-alt-editor {
+  position: absolute;
+  z-index: 8;
+  box-sizing: border-box;
+  height: 30px;
+  padding: 0 12px;
+  border: 2px solid var(--color-accent);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: 500 13px/1 var(--font-map);
+  outline: none;
+  box-shadow: var(--shadow-float);
+}
+
+.image-alt-editor::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Dragging a picture or a map file over the map: the topic it would land on is outlined. */
+.file-drop-target {
+  fill: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  stroke: var(--color-accent);
+  stroke-width: 3px;
+  stroke-dasharray: 8 5;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.canvas-host[data-file-drop]::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  z-index: 3;
+  pointer-events: none;
+  border: 3px dashed var(--color-accent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--color-accent) 5%, transparent);
+}
+
+.file-drop-hint {
+  position: absolute;
+  top: 72px;
+  left: 50%;
+  z-index: 9;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-core-text);
+  white-space: nowrap;
+  pointer-events: none;
+  background: var(--color-accent);
+  border-radius: 999px;
+  box-shadow: var(--shadow-float);
+  transform: translateX(-50%);
+}
+
+/* Zoomed-out icons take the topic's text colour, so they read in every Look and Mode. */
+.topic-glyph {
+  color: var(--color-topic-text);
+  pointer-events: none;
+}
+
+.topic[data-depth='0'] .topic-glyph {
+  color: var(--color-core-text);
 }

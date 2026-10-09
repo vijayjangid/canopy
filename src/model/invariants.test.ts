@@ -5,6 +5,7 @@ import {
   createPeer,
   createSubTopic,
   deleteBranch,
+  deleteNode,
   duplicateBranch,
   foldToLevel,
   moveBranch,
@@ -19,7 +20,7 @@ import { validateMap } from './validate';
 type Command = { kind: number; a: number; b: number };
 
 const commandArb = fc.record({
-  kind: fc.nat(8),
+  kind: fc.nat(9),
   a: fc.nat(1000),
   b: fc.nat(1000),
 });
@@ -47,6 +48,8 @@ function apply(map: CanopyMap, cmd: Command): CanopyMap {
         return toggleFold(map, a);
       case 7:
         return foldToLevel(map, (cmd.b % 4) + 1);
+      case 9:
+        return deleteNode(map, a);
       default:
         return renameTopic(map, a, `T${cmd.b}`);
     }

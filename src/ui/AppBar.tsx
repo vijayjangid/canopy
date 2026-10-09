@@ -7,7 +7,13 @@ import { getRepository, type MapSummary } from '../persistence';
 import { canRedo, canUndo, canopyStore, useCanopy } from '../store';
 import { Brand } from './Logo';
 import { SaveBadge } from './SaveBadge';
-import { openMapFromFile, openStoredMap, saveMapAsFile, startNewMap } from './fileActions';
+import {
+  importMapAsBranch,
+  openMapFromFile,
+  openStoredMap,
+  saveMapAsFile,
+  startNewMap,
+} from './fileActions';
 import { Icon } from './icons';
 import { openDialog, openLeft } from './uiStore';
 import './app-bar.css';
@@ -71,6 +77,7 @@ function FileMenu() {
         <div className="menu-list" role="menu" aria-label="File">
           {item('New map', '', startNewMap)}
           {item('Open…', '', () => void openMapFromFile())}
+          {item('Add a map as a branch…', '', () => void importMapAsBranch())}
           {item('Save a copy…', '', () => void saveMapAsFile())}
           {item('Export…', '⌘E', () => openLeft('export'))}
           {maps.length > 0 && <p className="menu-heading">Your maps</p>}

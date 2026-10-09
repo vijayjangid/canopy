@@ -8,3 +8,4 @@ export * from './HintStrip';
 export * from './hints';
 export * from './clipboard';
 export * from './useClipboard';
+export * from './useFileDrop';

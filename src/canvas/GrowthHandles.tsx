@@ -18,6 +18,7 @@ import { growthStore, useGrowth } from './growthStore';
 import { useDrag } from './dragStore';
 import { useSettings } from '../settings';
 import { useEffectiveTool } from './toolStore';
+import { LOW_DETAIL_BELOW } from './region';
 import { viewportStore } from './viewportStore';
 import './growth-handles.css';
 
@@ -62,13 +63,19 @@ function titleFor(kind: GrowthKind, flow: 'right' | 'down') {
 }
 
 interface Props {
-  /** The real layout, which handles are anchored to. */
+  /** The real layout, which decides where a new topic would go. */
   layout: Layout;
+  /**
+   * The layout as drawn right now. While topics glide to new places the handles follow them, so a
+   * handle is never left behind. During a preview or a drag the real layout is used instead, so
+   * the handle under the pointer stays still.
+   */
+  drawn: Layout;
   onCommit: (slot: GrowthSlot) => void;
 }
 
 /** Round "+" buttons around a hovered topic. Hovering one previews the result, dragging one places it. */
-export function GrowthHandles({ layout, onCommit }: Props) {
+export function GrowthHandles({ layout, drawn, onCommit }: Props) {
   const doc = useCanopy((s) => s.doc);
   // Nothing is offered on a topic while none is picked.
   const focus = useCanopy((s) => (s.picked ? s.focus : ''));
@@ -105,8 +112,24 @@ export function GrowthHandles({ layout, onCommit }: Props) {
     visibility === 'never'
       ? null
       : (dragOrigin ?? refDrag?.from ?? hovered ?? (visibility === 'always' ? focus : null));
-  const box = subject && !editing && !movingTopics ? layout.boxes.get(subject) : undefined;
-  if (!subject || !box || tool !== 'select') return null;
+  const settled = slot === null && dragOrigin === null && refDrag === null;
+  // The topic is still gliding to a new place, so a handle moving under a still pointer is not a hover.
+  const realBox = subject ? layout.boxes.get(subject) : undefined;
+  const drawnBox = subject ? drawn.boxes.get(subject) : undefined;
+  const gliding =
+    realBox !== undefined &&
+    drawnBox !== undefined &&
+    (realBox.x !== drawnBox.x ||
+      realBox.y !== drawnBox.y ||
+      realBox.w !== drawnBox.w ||
+      realBox.h !== drawnBox.h);
+  const anchors = settled ? drawn : layout;
+  const box =
+    subject && !editing && !movingTopics
+      ? (anchors.boxes.get(subject) ?? layout.boxes.get(subject))
+      : undefined;
+  // Zoomed out to icons, the handles would be bigger than the topics they belong to.
+  if (!subject || !box || tool !== 'select' || vp.k < LOW_DETAIL_BELOW) return null;
   const flow = doc.prefs.flow;
   // A folded topic wears a Fold Badge, and an open one a fold toggle, where the child handle would be.
   const scale = Math.min(Math.max(vp.k, 0.8), 3);
@@ -306,7 +329,7 @@ export function GrowthHandles({ layout, onCommit }: Props) {
           kind,
           badgeSpace,
           scale,
-          layout.boxes.get(box.parentId ?? ''),
+          anchors.boxes.get(box.parentId ?? '') ?? layout.boxes.get(box.parentId ?? ''),
         );
         return (
           <button
@@ -326,7 +349,7 @@ export function GrowthHandles({ layout, onCommit }: Props) {
             style={{ left: at.x, top: at.y }}
             onPointerEnter={(e) => {
               growthStore.getState().keepAlive();
-              if (!growthStore.getState().dragOrigin) {
+              if (!growthStore.getState().dragOrigin && !gliding) {
                 growthStore.getState().setSlot(subject, withShift(kind, e.shiftKey));
               }
             }}
@@ -337,7 +360,14 @@ export function GrowthHandles({ layout, onCommit }: Props) {
               store.leave();
             }}
             onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
+            onPointerMove={(e) => {
+              onPointerMove(e);
+              // A pointer that rested on the handle while it glided into place starts the preview once it moves.
+              const store = growthStore.getState();
+              if (!press.current && !gliding && !store.slot && !store.dragOrigin) {
+                store.setSlot(subject, withShift(kind, e.shiftKey));
+              }
+            }}
             onPointerUp={(e) => onPointerUp(e, kind)}
             onPointerCancel={() => {
               press.current = null;

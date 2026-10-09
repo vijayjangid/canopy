@@ -1,15 +1,17 @@
 import { referenceGeometry, type Box } from '../layout';
+import type { Flow } from '../model';
 
 interface Props {
   from: string;
   source: Box | undefined;
   target: Box | undefined;
+  flow: Flow;
 }
 
 /** A small delete icon on the middle of a picked reference line. The canvas handles its press. */
-export function ReferenceDelete({ from, source, target }: Props) {
+export function ReferenceDelete({ from, source, target, flow }: Props) {
   if (!source || !target) return null;
-  const { mid } = referenceGeometry(source, target);
+  const { mid } = referenceGeometry(source, target, flow);
   return (
     <g
       className="reference-delete"

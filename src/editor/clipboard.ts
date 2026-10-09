@@ -8,8 +8,10 @@ import {
   countBranches,
   getTopic,
   pasteBranches,
+  setTopicImage,
   type Branch,
 } from '../model';
+import { imageFromBlob } from './imageImport';
 import { removeSelection, type CommandContext } from './commands';
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
@@ -46,8 +48,37 @@ export function readClipboard(data: DataTransfer): Branch[] {
   return branchesFromOutline(data.getData('text/plain'));
 }
 
-/** Pastes inside the focused topic, or next to it with `asPeer`. */
+/** The first picture on the clipboard, when what was copied is a picture and not text or topics. */
+export function pastedImage(data: DataTransfer): Blob | null {
+  if (data.getData(BRANCHES_MIME) || data.getData('text/plain').trim() !== '') return null;
+  for (const item of Array.from(data.items ?? [])) {
+    if (item.kind === 'file' && item.type.startsWith('image/')) return item.getAsFile();
+  }
+  return Array.from(data.files ?? []).find((f) => f.type.startsWith('image/')) ?? null;
+}
+
+/** Puts a picture on the focused topic. The topic grows to fit it, up to a fixed maximum. */
+export async function pasteImage(ctx: CommandContext, blob: Blob, topicId?: string): Promise<void> {
+  const focus = topicId ?? ctx.store.getState().focus;
+  try {
+    const image = await imageFromBlob(blob);
+    const { doc, commit } = ctx.store.getState();
+    // The topic may have been deleted while the picture was being read.
+    if (!doc.topics[focus]) return;
+    commit(setTopicImage(doc, focus, image));
+    ctx.announce(`Added a picture to ${doc.topics[focus]?.title.trim() || 'the topic'}`);
+  } catch (error) {
+    ctx.notify?.(error instanceof Error ? error.message : 'That picture could not be pasted.');
+  }
+}
+
+/** Pastes inside the focused topic, or next to it with `asPeer`. A pasted picture goes on the topic. */
 export function pasteClipboard(ctx: CommandContext, data: DataTransfer, asPeer: boolean): boolean {
+  const picture = pastedImage(data);
+  if (picture) {
+    void pasteImage(ctx, picture);
+    return true;
+  }
   const branches = readClipboard(data);
   if (branches.length === 0) return false;
 
@@ -76,6 +107,17 @@ export async function copyFromMenu(ctx: CommandContext, cut: boolean): Promise<v
 
 /** Paste from a menu. Uses the system clipboard when allowed, and the last copy otherwise. */
 export async function pasteFromMenu(ctx: CommandContext, asPeer: boolean): Promise<void> {
+  try {
+    for (const item of await navigator.clipboard.read()) {
+      const type = item.types.find((t) => t.startsWith('image/'));
+      if (type && !item.types.includes('text/plain')) {
+        await pasteImage(ctx, await item.getType(type));
+        return;
+      }
+    }
+  } catch {
+    // Reading pictures can be refused or unsupported. Text paste below still works.
+  }
   let text = '';
   try {
     text = await navigator.clipboard.readText();

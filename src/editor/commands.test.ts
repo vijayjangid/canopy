@@ -199,6 +199,84 @@ describe('deleting', () => {
     expect(s.focus).toBe('b');
   });
 
+  describe('topics with sub-topics', () => {
+    /** A context that records the question asked instead of showing a dialog. */
+    function asking() {
+      const t = setup();
+      let asked = 0;
+      t.ctx.app = { confirmDelete: () => void asked++ } as NonNullable<CommandContext['app']>;
+      return { ...t, asked: () => asked };
+    }
+
+    it('asks before deleting a topic that has sub-topics, and changes nothing yet', () => {
+      const t = asking();
+      t.focusOn('a');
+      t.run('topic.delete');
+      expect(t.asked()).toBe(1);
+      expect(t.titles('core')).toEqual(['A', 'B', 'C']);
+      expect(t.titles('a')).toEqual(['A1', 'A2']);
+    });
+
+    it('does not ask for a topic with nothing below it', () => {
+      const t = asking();
+      t.focusOn('c');
+      t.run('topic.delete');
+      expect(t.asked()).toBe(0);
+      expect(t.titles('core')).toEqual(['A', 'B']);
+    });
+
+    it('asks when any of several selected topics has sub-topics', () => {
+      const t = asking();
+      t.focusOn('c', 'a');
+      t.run('topic.delete');
+      expect(t.asked()).toBe(1);
+      expect(t.titles('core')).toEqual(['A', 'B', 'C']);
+    });
+
+    it('deletes the whole branch when told to', () => {
+      const t = asking();
+      t.focusOn('a');
+      t.run('topic.deleteBranch');
+      expect(t.titles('core')).toEqual(['B', 'C']);
+      expect(t.store.getState().doc.topics['a1']).toBeUndefined();
+    });
+
+    it('deletes only the topic and lifts its sub-topics into its place', () => {
+      const t = asking();
+      t.focusOn('a');
+      t.run('topic.deleteKeep');
+      expect(t.titles('core')).toEqual(['A1', 'A2', 'B', 'C']);
+      expect(t.store.getState().selection).toEqual(['a1', 'a2']);
+      t.store.getState().undo();
+      expect(t.titles('core')).toEqual(['A', 'B', 'C']);
+      expect(t.titles('a')).toEqual(['A1', 'A2']);
+    });
+
+    it('lifts several selected topics, even when one sits inside another', () => {
+      const t = asking();
+      t.focusOn('a', 'a1', 'b');
+      t.run('topic.deleteKeep');
+      expect(t.titles('core')).toEqual(['A2', 'B1', 'C']);
+      expect(t.store.getState().doc.topics['a']).toBeUndefined();
+      expect(t.store.getState().doc.topics['a1']).toBeUndefined();
+    });
+
+    it('leaves a topic with nothing below it simply deleted', () => {
+      const t = asking();
+      t.focusOn('c');
+      t.run('topic.deleteKeep');
+      expect(t.titles('core')).toEqual(['A', 'B']);
+    });
+
+    it('never removes the Core this way either', () => {
+      const t = asking();
+      t.focusOn('core');
+      t.run('topic.deleteKeep');
+      expect(t.store.getState().doc.topics['a']).toBeDefined();
+      expect(t.messages.at(-1)).toMatch(/Core cannot be deleted/);
+    });
+  });
+
   it('refuses to delete the Core', () => {
     const { store, run, focusOn, messages } = setup();
     focusOn('core');

@@ -59,8 +59,8 @@
 
 .zen-exit {
   position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
+  bottom: var(--space-4);
+  left: var(--space-4);
   z-index: 7;
   display: inline-flex;
   gap: 8px;
@@ -130,6 +130,8 @@
   list-style: none;
 }
 
+/* Names are shown in full. They only shorten once the whole bar is out of room, and then the
+   earlier levels give way first, so the topic you are on stays readable the longest. */
 .trail-path li {
   display: inline-flex;
   flex: 0 1 auto;
@@ -138,22 +140,51 @@
   gap: 2px;
 }
 
-.trail-path li:last-child {
-  flex-shrink: 0;
-  max-width: 50%;
+.trail-path li:not(:last-child) {
+  flex-shrink: 8;
 }
 
 .trail-path button,
 .trail-current,
 .trail-gap {
   min-width: 0;
-  max-width: 22ch;
+  max-width: 100%;
   padding: 1px 4px;
   overflow: hidden;
   font: inherit;
   text-overflow: ellipsis;
   white-space: nowrap;
   border-radius: 4px;
+}
+
+/* The same list laid out off screen at full width, to find out whether it fits. */
+.status-bar {
+  position: relative;
+}
+
+.trail-ghost {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: max-content;
+  height: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.trail-ghost li,
+.trail-ghost li:not(:last-child) {
+  flex: none;
+}
+
+.trail-name {
+  padding: 1px 4px;
+  font: inherit;
+  white-space: nowrap;
+}
+
+.trail-name[data-current] {
+  font-weight: 600;
 }
 
 .trail-path button {
@@ -173,7 +204,6 @@
 }
 
 .trail-current {
-  max-width: 100%;
   font-weight: 600;
   color: var(--color-text);
 }

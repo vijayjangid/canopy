@@ -16,6 +16,7 @@ export * from './rollup';
 export * from './filter';
 export * from './fuzzy';
 export * from './expand';
+export * from './graft';
 export * from './tokens';
 export * from './table';
 export * from './branchView';

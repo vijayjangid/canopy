@@ -39,6 +39,7 @@ function extrasOf(topic: Topic): TopicExtras {
   const out: TopicExtras = {};
   if (topic.note) out.note = topic.note;
   if (topic.referenceTo) out.referenceTo = topic.referenceTo;
+  if (topic.image) out.image = topic.image;
   if (topic.stickers?.length) out.stickers = topic.stickers;
   if (topic.props && Object.keys(topic.props).length > 0) out.props = topic.props;
   if (topic.edge && (topic.edge.label || topic.edge.stickers?.length)) out.edge = topic.edge;
