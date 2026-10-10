@@ -10,7 +10,6 @@ import {
   levelPrefix,
   STICKER_RIM,
   STICKER_SHADOW_OFFSET,
-  stickerBlob,
   textLines,
   TOPIC_PADDING,
   typeForDepth,
@@ -25,6 +24,10 @@ import type { Look } from '../model';
 import { textWidth } from './metrics';
 
 export type Detail = 'full' | 'low';
+
+/** The layers of a sticker, bottom to top. The rim and shadow reach past the face by the rim. */
+const STICKER_LAYERS = ['shadow', 'rim', 'face'] as const;
+const grow = (layer: (typeof STICKER_LAYERS)[number]) => (layer === 'face' ? 0 : STICKER_RIM);
 
 /** A left curly brace, centred on the origin. Mirrored for the side that holds the sub-topics. */
 const BRACE =
@@ -274,7 +277,7 @@ export const TopicNode = memo(function TopicNode({
       )}
       {lines.length > 0 && look === 'playful' && (
         <g className="sticker-blob" aria-hidden="true">
-          {(['shadow', 'rim', 'face'] as const).map((layer) => (
+          {STICKER_LAYERS.map((layer) => (
             <g
               key={layer}
               className={`sticker-${layer}`}
@@ -284,20 +287,13 @@ export const TopicNode = memo(function TopicNode({
                   : undefined
               }
             >
-              {stickerBlob(
-                lines,
-                TOPIC_PADDING.x,
-                firstBaseline,
-                style,
-                showLevel && depth > 0 ? levelPrefix(depth, position) : '',
-                textWidth,
-                layer === 'face' ? 0 : STICKER_RIM,
-                chipsH > 0
-                  ? { width: chipRowWidth(chips), top: h - chipsH, height: chipsH }
-                  : undefined,
-              ).map((r, i) => (
-                <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h} rx={r.r} />
-              ))}
+              <rect
+                x={-grow(layer)}
+                y={-grow(layer)}
+                width={w + grow(layer) * 2}
+                height={h + grow(layer) * 2}
+                rx={radius + grow(layer)}
+              />
             </g>
           ))}
         </g>
@@ -318,7 +314,7 @@ export const TopicNode = memo(function TopicNode({
         <g
           className="topic-chips"
           aria-hidden="true"
-          transform={`translate(${TOPIC_PADDING.x} ${h - chipsH})`}
+          transform={`translate(${(w - chipRowWidth(chips)) / 2} ${h - chipsH})`}
         >
           <ChipRow
             items={chips}

@@ -14,6 +14,8 @@ test('right-clicking a topic offers its actions and adds a sub-topic', async ({ 
   for (const name of ['Add sub-topic', 'Add peer below', 'Cut', 'Copy', 'Duplicate', 'Add tag…']) {
     await expect(menu.getByRole('menuitem', { name: new RegExp(`^${name}`) })).toBeVisible();
   }
+  // The menu fades in, and a check taken part way through would read washed-out colours.
+  await menu.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await menu.getByRole('menuitem', { name: /^Add sub-topic/ }).click();
   await expect(menu).toHaveCount(0);

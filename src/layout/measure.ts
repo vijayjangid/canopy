@@ -72,64 +72,6 @@ export const STICKER_RIM = 3.5;
 /** The flat shadow under a sticker, like the sticker set's: the same shape, nudged down and right. */
 export const STICKER_SHADOW_OFFSET = { x: 0.8, y: 1.6 };
 
-export interface BlobRect {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  r: number;
-}
-
-/** The row of chips under a title, which the sticker has to cover as well. */
-export interface ChipRowSpan {
-  width: number;
-  top: number;
-  height: number;
-}
-
-/**
- * The pills behind sticker lettering, one per line, and one more for the chip row when there is
- * one. Text and chips start at `left`, so the pills share that left edge and overlap where they
- * meet, which makes one blob that follows the shape of the content.
- */
-export function stickerBlob(
-  lines: string[],
-  left: number,
-  firstBaseline: number,
-  style: TypeStyle,
-  prefix: string,
-  textWidth: TextWidth,
-  grow = 0,
-  chipRow?: ChipRowSpan,
-): BlobRect[] {
-  const padX = style.size * 0.55 + grow;
-  const padY = style.size * 0.4 + grow;
-  const rects = lines.map((line, i) => {
-    const width = textWidth(line, style) + (i === 0 ? prefixWidth(prefix, style) : 0) + padX * 2;
-    const h = style.lineHeight + padY * 2;
-    return {
-      x: left - padX,
-      y: firstBaseline + i * style.lineHeight - h / 2,
-      w: width,
-      h,
-      r: Math.min(h * 0.4, width / 2),
-    };
-  });
-  if (chipRow && chipRow.width > 0) {
-    // Same side padding as the title pills, so the blob's left edge runs straight down.
-    const width = chipRow.width + padX * 2;
-    const h = chipRow.height + (3 + grow) * 2;
-    rects.push({
-      x: left - padX,
-      y: chipRow.top - 3 - grow,
-      w: width,
-      h,
-      r: Math.min(h * 0.4, width / 2),
-    });
-  }
-  return rects;
-}
-
 /** Titles and chips start `x` from a topic's left edge. */
 export const TOPIC_PADDING = { x: 14, y: 9 };
 export const TOPIC_MIN = { w: 72, h: 36 };

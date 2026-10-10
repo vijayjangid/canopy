@@ -156,7 +156,7 @@ test('tags on the Core stay readable against its solid colour', async ({ page })
   await expect(dot).toHaveAttribute('fill', '#5b4bdb');
 });
 
-test('titles and chips start at the same left edge, in every theme', async ({ page }) => {
+test('titles are left-aligned and chips are centred, in every theme', async ({ page }) => {
   await page.goto('/?demo=14&plan=1');
   for (const name of ['Minimal', 'High contrast', 'Playful']) {
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
@@ -165,16 +165,43 @@ test('titles and chips start at the same left edge, in every theme', async ({ pa
     // A topic with a row of chips under its title.
     const topic = page.locator('.topic[data-depth="1"]:has(.topic-chips)').first();
     await expect(topic).toBeVisible();
-    // Both are laid out from the same left padding, so compare the layout, not glyph edges.
-    const [titleX, chipsX] = await Promise.all([
-      topic.locator('.topic-text tspan').first().getAttribute('x'),
-      topic
-        .locator('.topic-chips')
-        .getAttribute('transform')
-        .then((t) => /translate\(([\d.]+)/.exec(t ?? '')?.[1]),
-    ]);
-    expect(titleX).toBe('14');
-    expect(chipsX).toBe('14');
     await expect(topic.locator('.topic-text')).toHaveAttribute('text-anchor', 'start');
+    expect(await topic.locator('.topic-text tspan').first().getAttribute('x')).toBe('14');
+    // The chip row has equal space on both sides of it, measured on the layout, not on glyphs.
+    const [box, chips] = await Promise.all([
+      topic.locator('.topic-box').evaluate((el) => Number(el.getAttribute('width'))),
+      topic.locator('.topic-chips').evaluate((el) => {
+        const x = Number(/translate\(([-\d.]+)/.exec(el.getAttribute('transform') ?? '')?.[1]);
+        const row = (el as unknown as SVGGraphicsElement).getBBox();
+        return { x, width: row.x + row.width };
+      }),
+    ]);
+    expect(chips.x).toBeGreaterThan(0);
+    expect(Math.abs(chips.x * 2 + chips.width - box)).toBeLessThan(2);
   }
+});
+
+test('a Playful sticker is as wide and tall as its topic', async ({ page }) => {
+  await page.goto('/?demo=14&plan=1');
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page.getByRole('group', { name: 'Theme' }).getByRole('button', { name: 'Playful' }).click();
+  await page
+    .getByRole('group', { name: 'Property chips' })
+    .getByRole('button', { name: 'Full' })
+    .click();
+  await page.getByRole('button', { name: 'Close panel' }).click();
+  const sizes = await page.locator('.topic[data-kind="topic"]').evaluateAll((els) =>
+    els.map((el) => {
+      const box = el.querySelector('.topic-box');
+      const face = el.querySelector('.sticker-face rect');
+      return {
+        box: [Number(box?.getAttribute('width')), Number(box?.getAttribute('height'))],
+        face: [Number(face?.getAttribute('width')), Number(face?.getAttribute('height'))],
+      };
+    }),
+  );
+  expect(sizes.length).toBeGreaterThan(5);
+  for (const { box, face } of sizes) expect(face).toEqual(box);
+  // A short title in a wide topic (one with chips) must not leave the sticker narrower than it.
+  expect(sizes.some((s) => (s.box[0] ?? 0) > 100)).toBe(true);
 });

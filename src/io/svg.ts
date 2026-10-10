@@ -12,7 +12,6 @@ import {
   levelPrefix,
   STICKER_RIM,
   STICKER_SHADOW_OFFSET,
-  stickerBlob,
   seedOf,
   textLines,
   TOPIC_PADDING,
@@ -280,24 +279,9 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
         .join('');
     const box = `text-anchor="start" dominant-baseline="central" font-size="${f(style.size)}" font-weight="${paint.weight}"`;
     if (paint.sticker && textLinesShown.length > 0) {
+      // The sticker is the topic's own box, so it is as wide and tall as the topic.
       const blobOf = (grow: number) =>
-        stickerBlob(
-          textLinesShown,
-          TOPIC_PADDING.x,
-          first,
-          style,
-          doc.prefs.showLevels && b.depth > 0 ? levelPrefix(b.depth, b.position) : '',
-          options.textWidth,
-          grow,
-          options.chips !== false && rows.chips.length > 0
-            ? { width: chipRowWidth(rows.chips), top: b.h - rows.total, height: rows.total }
-            : undefined,
-        )
-          .map(
-            (r) =>
-              `<rect x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}" rx="${f(r.r)}"/>`,
-          )
-          .join('');
+        `<rect x="${f(-grow)}" y="${f(-grow)}" width="${f(b.w + grow * 2)}" height="${f(b.h + grow * 2)}" rx="${f(radius + grow)}"/>`;
       const face = mixHex(paint.text, theme.stickerFaceBase, theme.stickerTint);
       out.push(
         `<g transform="translate(${STICKER_SHADOW_OFFSET.x} ${STICKER_SHADOW_OFFSET.y})" fill="${theme.stickerShadow}" opacity="${theme.stickerShadowOpacity}" filter="url(#sticker-wiggle)">${blobOf(STICKER_RIM)}</g>` +
@@ -310,7 +294,7 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
     );
     if (options.chips !== false && rows.chips.length > 0) {
       out.push(
-        `<g transform="translate(${TOPIC_PADDING.x} ${f(b.h - rows.total)})">${chipsMarkup(
+        `<g transform="translate(${f((b.w - chipRowWidth(rows.chips)) / 2)} ${f(b.h - rows.total)})">${chipsMarkup(
           rows.chips,
           topic,
           b.depth === 0 && theme.look !== 'playful' ? contextOnCore(chipContext) : chipContext,
