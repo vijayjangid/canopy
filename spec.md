@@ -47,7 +47,7 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 | One branch with everything above it folded | **Branch view** | The rest of the map becomes one dotted node |
 | Horizontal / Vertical / Radial | **Flow** (Right, Down built. Left, Both, Radial planned) | Settable per map. Per-branch override is planned |
 | Light / dark | **Colour mode** | Light, Dark, Auto. A device setting, in the top bar |
-| Minimal / High contrast / Playful | **Theme** | A preset of colour, shape and font. Independent of the colour mode |
+| Standard / High contrast / Playful | **Theme** | A preset of colour, shape and font. Independent of the colour mode |
 | Global settings | **Settings** | Map-level (saved in the file) and device-level (kept in this browser) |
 | Plain-text alternate view | **Outline** | Live-synced with the canvas |
 | Pick out topics by Property or sticker | **Filter** | Dims non-matching topics (for example "Blocked", "Due this week", the Star sticker) |
@@ -212,7 +212,7 @@ Every topic can carry Properties. They are optional and invisible until used, so
 
 - **Colour mode:** Light, Dark, Auto (follows the OS). It is a device setting, kept in this browser and set from the top bar. In Dark mode the canvas is the darkest surface, so topics and panels read as lighter layers on it.
 - **Themes** (set in Settings). Each theme is a preset of colour, shape and font. The font, text size and line style are not separate settings.
-  - *Minimal:* a clean system sans-serif, a neutral palette, very subtle card borders and a flat, hard-edged shadow under each card for elevation, one accent. The Core is a solid block in the accent colour with light text (inverted in Dark mode). In Dark mode the canvas dots are very faint.
+  - *Standard:* a clean system sans-serif, a neutral palette, very subtle card borders and a flat, hard-edged shadow under each card for elevation, one accent. The Core is a solid block in the accent colour with light text (inverted in Dark mode). In Dark mode the canvas dots are very faint.
   - *High Contrast:* a serif font (Source Serif 4), black on white or white on black, thicker strokes, and a different corner shape per level, so level is not carried by colour. Colour contrast passes the automated check in both modes. A strict 7:1 measurement is not automated.
   - *Playful:* a handwritten font (Kalam). Every topic is a **sticker** rather than a card: a light face tinted with the level's colour, inside a wavy white rim, over a flat offset shadow like the one under the sticker set. The title is set in the level's colour, which follows the level (the Core, then five colours that repeat). In Dark mode the rim becomes charcoal and the face a dark tint, both lighter than the canvas. Lines are drawn with a slight hand-drawn wobble, stable per line so they do not shimmer, and the layout settles with a small overshoot. The sticker covers the title and the chip row under it as one blob.
 - **Text:** one weight for every level, with the level shown by size (18, 15 and 14 px). The Playful theme sets its text a little larger. The app chrome stays in the system font.
@@ -221,7 +221,7 @@ Every topic can carry Properties. They are optional and invisible until used, so
 - **Colour by level:** only Playful colours by level. A manual per-branch colour override is **[Planned, low priority]**.
 - **Selection:** the selected topic is marked with the interactive colour. In Playful its outline, tinted face and text all switch to the interactive colour instead of keeping the level colour.
 - **Trail:** the topics on the way up to the Core keep their normal borders and set their text in the interactive colour, and the lines on the way march toward the Core.
-- Chips adopt the active theme: soft and flat in Minimal, bordered with shapes in High Contrast, rounded and tactile in Playful.
+- Chips adopt the active theme: soft and flat in Standard, bordered with shapes in High Contrast, rounded and tactile in Playful.
 
 ### 3.7 Settings (global settings) [Built, reduced]
 
@@ -459,7 +459,7 @@ Notes:
 - **Export [Built, deviation]:** SVG built from the layout, PNG through a canvas, PDF through the print dialog, CSV from the table data.
 - **Persistence [Built]:** IndexedDB (Dexie) written after edits (3.12), plus files in and out with the File System Access API and a download fallback. Patch-based autosave is planned.
 - **Theming [Built]:** design tokens (CSS variables) for colour mode × theme, so combinations don't multiply code. Fonts are bundled (`@fontsource`), so the app works offline.
-- **Quality [Built, partly]:** unit tests (Vitest, 263 including property-based tree tests), end-to-end tests (Playwright, with axe in every theme and colour mode) and a benchmark script. The visual-regression suite is not set up.
+- **Quality [Built, partly]:** unit tests (Vitest, 263 including property-based tree tests), end-to-end tests (Playwright, with axe in every theme and colour mode) a benchmark script, and a script that makes the README screenshots again (`npm run screenshots`). The visual-regression suite is not set up.
 
 ### 9.1 Decision: React Flow vs custom renderer
 
@@ -498,12 +498,12 @@ v0.2 planned vendored open-licence packs (Fluent Emoji, Noto Emoji, Phosphor). T
 
 - **Stickers:** 23 original die-cut SVG stickers drawn in code (`stickers/art.tsx`), with names in `stickers/catalog.ts`. They look the same on every platform and in every export, and need no licence. A larger or themed pack can be added later by extending the catalog.
 - **Interface icons:** a small set of icons drawn for the app (`ui/icons.tsx`).
-- **Fonts:** bundled through `@fontsource`, so the app works offline: Kalam (Playful), Source Serif 4 (High Contrast), JetBrains Mono (the level numbers) and Bricolage Grotesque (the app name). Minimal uses the system sans-serif. All are Google Fonts under the SIL Open Font License, listed with their copyright holders in `THIRD_PARTY_NOTICES.md`.
+- **Fonts:** bundled through `@fontsource`, so the app works offline: Kalam (Playful), Source Serif 4 (High Contrast), JetBrains Mono (the level numbers) and Bricolage Grotesque (the app name). Standard uses the system sans-serif. All are Google Fonts under the SIL Open Font License, listed with their copyright holders in `THIRD_PARTY_NOTICES.md`.
 - **Still to do:** an About screen with the credits list (M5.9). Custom sticker upload, which v0.2 kept in scope, is dropped.
 
 ## 10. Delivery phases
 
-1. **Foundation [Done]:** Map data model, Core/Topic CRUD, the Right and Down Flows, full keyboard model, Growth Handles with ghost preview, fold/unfold, copy/paste, autosave, undo/redo, colour mode and the Minimal theme, JSON import and export.
+1. **Foundation [Done]:** Map data model, Core/Topic CRUD, the Right and Down Flows, full keyboard model, Growth Handles with ghost preview, fold/unfold, copy/paste, autosave, undo/redo, colour mode and the Standard theme, JSON import and export.
 2. **Expression [Done, simplified]:** Notes, Stickers, all Themes, Settings, PNG/SVG/PDF export, Command Palette. Attachments were cut.
 3. **Planning [Done, reduced]:** Properties (Status, Due date, Tags), Chips, Quick-Add and inline shorthand, roll-ups, Filters, CSV export. People, Roster, Approval, Priority and Progress were cut.
 4. **Interface rework and navigation aids [Done, unplanned]:** floating panels, inspector, Trail, Branch view, Zen, pointer tools, lines, insert between, context menu, status bar, text expansion (section 12).
@@ -573,7 +573,7 @@ A scope cut on 2026-10-08 kept planning to Status, Due date, Tags and Stickers. 
 - Insert a topic between levels (`W`, `Shift+W`, the in-line handle).
 - Text expansion with `!!`, and removal of empty new topics.
 - Auto-pan, context menu, tooltips, searchable cheat sheet, save indicator.
-- Level numbers in small faded monospace, and the three themes (Minimal with subtle borders and flat shadows, High Contrast, and Playful with sticker topics).
+- Level numbers in small faded monospace, and the three themes (Standard with subtle borders and flat shadows, High Contrast, and Playful with sticker topics).
 - Filter by sticker, and the date-range Filter.
 - Delete asks whether to remove a branch or only the topic; stickers are one-per-kind switches with a pencil on the line bar; topics become icons when zoomed out; Exit Zen moved to the bottom left; handles follow their topic while it moves; the pointer tool keys (Space, Cmd, Alt) are tracked reliably.
 - Pictures pasted from the clipboard onto topics, and drag and drop of pictures and whole map files onto the canvas or a topic (3.5).

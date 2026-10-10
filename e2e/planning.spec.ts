@@ -62,7 +62,7 @@ test('there is a single selection mark while a new topic is edited', async ({ pa
 
 test('chips pass accessibility checks in every Look', async ({ page }) => {
   await page.goto('/?demo=18&plan=1');
-  for (const look of ['Minimal', 'High contrast', 'Playful']) {
+  for (const look of ['Standard', 'High contrast', 'Playful']) {
     const panel = await openMapPanel(page, 'Settings');
     await panel.getByRole('group', { name: 'Theme' }).getByRole('button', { name: look }).click();
     await page.keyboard.press('Escape');
@@ -266,7 +266,7 @@ test('every Look keeps chips, stickers and the Filter pill accessible in dark mo
     .getByRole('button', { name: 'Due this week' })
     .click();
   await page.keyboard.press('Escape');
-  for (const look of ['Minimal', 'High contrast', 'Playful']) {
+  for (const look of ['Standard', 'High contrast', 'Playful']) {
     const panel = await openMapPanel(page, 'Settings');
     await panel.getByRole('group', { name: 'Theme' }).getByRole('button', { name: look }).click();
     await page.keyboard.press('Escape');

@@ -280,6 +280,88 @@ test('reference lines are faded, and show in full for the topics they join and w
   await expect.poll(() => opacityOf(line)).toBe(1);
 });
 
+test('Delete removes a picked reference line, and Backspace too, and nothing else', async ({
+  page,
+}) => {
+  await page.goto('/?demo=14');
+  const research = await idOf(page, 'Research');
+  await reference(page, 'Research', 'Documentation');
+  await reference(page, 'Research', 'Feedback');
+  const lines = linksFrom(page, research);
+  await expect(lines).toHaveCount(2);
+  const topics = await page.locator('.topic[data-kind="topic"]').count();
+
+  // Click a line: it is picked, and the map has the keyboard, so Delete takes the line away.
+  const point = await spotOn(lines.first());
+  await page.mouse.click(point.x, point.y);
+  await expect(page.locator('.reference-delete')).toHaveCount(1);
+  await page.keyboard.press('Delete');
+  await expect(lines).toHaveCount(1);
+  await expect(page.locator('.reference-delete')).toHaveCount(0);
+  // No topic was deleted along with it.
+  await expect(page.locator('.topic[data-kind="topic"]')).toHaveCount(topics);
+
+  const rest = await spotOn(lines.first());
+  await page.mouse.click(rest.x, rest.y);
+  await page.keyboard.press('Backspace');
+  await expect(lines).toHaveCount(0);
+  await expect(page.locator('.topic[data-kind="topic"]')).toHaveCount(topics);
+});
+
+test('a reference line can be reached, picked and removed with the keyboard alone', async ({
+  page,
+}) => {
+  await page.goto('/?demo=14');
+  const research = await idOf(page, 'Research');
+  await reference(page, 'Research', 'Documentation');
+  await reference(page, 'Research', 'Feedback');
+  const lines = linksFrom(page, research);
+  await expect(lines).toHaveCount(2);
+
+  await page.getByRole('treeitem', { name: 'Research', exact: true }).first().click();
+  await page.mouse.move(2, 300);
+  await page.keyboard.press('Shift+X');
+  await expect(page.locator('.reference-link[data-selected]')).toHaveCount(1);
+  await expect(page.locator('.reference-delete')).toHaveCount(1);
+  // The live region says which line it is, and what to press.
+  await expect(page.getByRole('status', { name: 'Announcements' })).toContainText(
+    /Reference line 1 of 2/,
+  );
+
+  // Escape puts it down, and leaves the topic selected.
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.reference-link[data-selected]')).toHaveCount(0);
+  await expect(
+    page.getByRole('treeitem', { name: 'Research', exact: true }).first(),
+  ).toHaveAttribute('aria-selected', 'true');
+
+  // Pick the second line, and remove it.
+  await page.keyboard.press('Shift+X');
+  await page.keyboard.press('Shift+X');
+  await expect(page.locator('.reference-link[data-selected]')).toHaveAttribute(
+    'data-reference-to',
+    /.+/,
+  );
+  await page.keyboard.press('Delete');
+  await expect(lines).toHaveCount(1);
+  await expect(page.getByRole('treeitem', { name: 'Research', exact: true }).first()).toBeVisible();
+});
+
+test('moving the selection puts a picked line down, so Delete cannot hit the wrong thing', async ({
+  page,
+}) => {
+  await page.goto('/?demo=14');
+  await reference(page, 'Research', 'Documentation');
+  const lines = page.locator('.reference-link');
+  await page.getByRole('treeitem', { name: 'Research', exact: true }).first().click();
+  await page.keyboard.press('Shift+X');
+  await expect(page.locator('.reference-delete')).toHaveCount(1);
+  // Move to a topic with the arrow keys: the line is put down.
+  await page.keyboard.press('ArrowUp');
+  await expect(page.locator('.reference-delete')).toHaveCount(0);
+  await expect(lines).toHaveCount(1);
+});
+
 test('search keeps its results bounded on a large map', async ({ page }) => {
   await page.goto('/?demo=5000');
   await page.getByRole('tree', { name: 'Mind map' }).focus();

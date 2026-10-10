@@ -28,7 +28,7 @@ test('each theme brings its own font', async ({ page }) => {
   const first = page.locator('.topic[data-depth="1"] .topic-box').first();
   const widths: Record<string, string | null> = {};
   for (const [theme, voice] of [
-    ['Minimal', 'clean'],
+    ['Standard', 'clean'],
     ['High contrast', 'editorial'],
     ['Playful', 'sketch'],
   ] as const) {
@@ -61,7 +61,7 @@ test('the Look follows Auto mode and the map', async ({ page }) => {
   await expect(html(page)).toHaveAttribute('data-scheme', 'light');
 });
 
-for (const look of ['Minimal', 'High contrast', 'Playful']) {
+for (const look of ['Standard', 'High contrast', 'Playful']) {
   for (const scheme of ['light', 'dark'] as const) {
     test(`${look} (${scheme}) has no accessibility violations`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: scheme });
@@ -158,7 +158,7 @@ test('tags on the Core stay readable against its solid colour', async ({ page })
 
 test('titles and chips are centred in the topic, in every theme', async ({ page }) => {
   await page.goto('/?demo=14&plan=1');
-  for (const name of ['Minimal', 'High contrast', 'Playful']) {
+  for (const name of ['Standard', 'High contrast', 'Playful']) {
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     await page.getByRole('group', { name: 'Theme' }).getByRole('button', { name }).click();
     await page.getByRole('button', { name: 'Close panel' }).click();

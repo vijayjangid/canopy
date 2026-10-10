@@ -6,7 +6,7 @@ export interface ExportTheme {
   look: Look;
   bg: string;
   accent: string;
-  /** Border of first-level topics in the Minimal Look. */
+  /** Border of first-level topics in the Standard theme. */
   level1: string;
   selection: string;
   topicBg: string;

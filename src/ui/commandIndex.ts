@@ -37,7 +37,7 @@ const mapPref =
   };
 
 const LOOK_NAMES: Record<MapPrefs['look'], string> = {
-  minimal: 'Minimal',
+  minimal: 'Standard',
   contrast: 'High contrast',
   playful: 'Playful',
 };

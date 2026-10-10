@@ -190,6 +190,24 @@ export function addTopicReference(map: CanopyMap, sourceId: TopicId, targetId: T
   });
 }
 
+/** One reference line: the topic it leaves and the topic it points at. */
+export interface ReferenceLine {
+  from: TopicId;
+  to: TopicId;
+}
+
+/**
+ * Every reference line that touches a topic: the ones it makes, in the order it made them, then
+ * the ones that point at it, in the order of the topics.
+ */
+export function referenceLinesOf(map: CanopyMap, id: TopicId): ReferenceLine[] {
+  const out = (map.topics[id]?.references ?? []).map((to) => ({ from: id, to }));
+  const into = Object.values(map.topics).flatMap((t) =>
+    t.id !== id && t.references?.includes(id) ? [{ from: t.id, to: id }] : [],
+  );
+  return [...out, ...into];
+}
+
 /** Removes one reference from a topic. Does nothing when it is not there. */
 export function removeTopicReference(
   map: CanopyMap,

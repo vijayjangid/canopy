@@ -16,7 +16,7 @@ export function ReferenceDelete({ from, source, target, to }: Props) {
       className="reference-delete"
       data-reference-delete={from}
       data-reference-to={to}
-      data-tip="Remove reference"
+      data-tip="Remove reference (Del)"
       aria-hidden="true"
       transform={`translate(${mid.x} ${mid.y})`}
     >

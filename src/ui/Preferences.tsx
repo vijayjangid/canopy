@@ -65,7 +65,7 @@ const lookOption = (value: MapPrefs['look'], label: string): Option<MapPrefs['lo
   font: VOICES[LOOK_VOICE[value]].stack,
 });
 const LOOKS: Array<Option<MapPrefs['look']>> = [
-  lookOption('minimal', 'Minimal'),
+  lookOption('minimal', 'Standard'),
   lookOption('contrast', 'High contrast'),
   lookOption('playful', 'Playful'),
 ];

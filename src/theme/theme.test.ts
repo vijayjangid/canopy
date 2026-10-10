@@ -99,3 +99,14 @@ describe('map preferences', () => {
     expect(parseFile(file).ok).toBe(false);
   });
 });
+
+describe('the Standard theme', () => {
+  it('is stored as `minimal`, so files saved before the rename still open', () => {
+    const map = setPrefs(createMap({ coreId: 'core' }), { look: 'minimal' });
+    const file = JSON.parse(JSON.stringify(toFile(map)));
+    expect(file.prefs.look).toBe('minimal');
+    const result = parseFile(file);
+    expect(result.ok && result.map.prefs.look).toBe('minimal');
+    expect(LOOK_VOICE.minimal).toBe('clean');
+  });
+});

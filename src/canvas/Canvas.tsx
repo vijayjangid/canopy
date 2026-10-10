@@ -36,6 +36,7 @@ import {
   planningOf,
   today,
   type CanopyMap,
+  type ReferenceLine,
   type Topic as CanopyTopic,
   type Rollup,
 } from '../model';
@@ -63,7 +64,6 @@ import {
   setReferenceFocus,
   startEdgeEdit,
   useUi,
-  type ReferenceLine,
 } from '../ui/uiStore';
 import { describeProps, type ChipContext } from './Chips';
 import { createLayoutAnimator, sameTopics } from './animator';
@@ -423,6 +423,11 @@ export function Canvas() {
   const edgeFocus = useUi((s) => s.edgeFocus);
   const imageAltEditing = useUi((s) => s.imageAltEditing);
   const referenceFocusRaw = useUi((s) => s.referenceFocus);
+  // A picked line is put down when the selection moves, so Delete never acts on the wrong thing.
+  const selectionKey = `${focus}|${selection.join(',')}`;
+  useEffect(() => {
+    setReferenceFocus(null);
+  }, [selectionKey]);
   const referenceFocus =
     referenceFocusRaw &&
     doc.topics[referenceFocusRaw.from]?.references?.includes(referenceFocusRaw.to)

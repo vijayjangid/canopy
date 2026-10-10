@@ -19,6 +19,8 @@ import {
   setFolded,
   setTopicImage,
   clearTopicReferences,
+  referenceLinesOf,
+  removeTopicReference,
   siblingsOf,
   subtreeOf,
   unfoldAll,
@@ -26,7 +28,7 @@ import {
   type TopicId,
 } from '../model';
 import type { CanopyStore } from '../store';
-import type { DialogName } from '../ui/uiStore';
+import { setReferenceFocus, uiStore, type DialogName } from '../ui/uiStore';
 import { navigate, type Arrow } from './navigation';
 import type { CommandId } from './shortcuts';
 
@@ -241,6 +243,29 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
       announce(`Removed the picture from ${nameOf(doc, focus)}`);
       return true;
 
+    case 'topic.referencePick': {
+      const lines = referenceLinesOf(doc, focus);
+      if (lines.length === 0) {
+        announce(`${nameOf(doc, focus)} has no reference lines`);
+        return true;
+      }
+      const now = uiStore.getState().referenceFocus;
+      const at = now ? lines.findIndex((l) => l.from === now.from && l.to === now.to) : -1;
+      const next = lines[at + 1];
+      if (!next) {
+        setReferenceFocus(null);
+        announce('No reference line picked');
+        return true;
+      }
+      setReferenceFocus(next);
+      const place = `${at + 2} of ${lines.length}`;
+      announce(
+        `Reference line ${place}, from ${nameOf(doc, next.from)} to ${nameOf(doc, next.to)}. ` +
+          'Delete removes it, Shift X picks the next, Escape puts it down.',
+      );
+      return true;
+    }
+
     case 'topic.referenceRemove':
       if (!doc.topics[focus]?.references?.length) {
         announce('This topic has no references');
@@ -251,6 +276,19 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
       return true;
 
     case 'topic.delete': {
+      // With a reference line picked, Delete removes that line and leaves every topic alone.
+      const line = uiStore.getState().referenceFocus;
+      if (line) {
+        if (doc.topics[line.from]?.references?.includes(line.to)) {
+          store.getState().commit(removeTopicReference(doc, line.from, line.to));
+          setReferenceFocus(null);
+          const message = `Removed the reference from ${nameOf(doc, line.from)} to ${nameOf(doc, line.to)}`;
+          announce(`${message}. Press undo to restore.`);
+          ctx.notify?.(message, { label: 'Undo', run: () => store.getState().undo() });
+          return true;
+        }
+        setReferenceFocus(null);
+      }
       const doomed = topLevel(
         doc,
         selection.filter((s) => s !== doc.coreId),
@@ -376,6 +414,11 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
     }
 
     case 'select.escape': {
+      if (uiStore.getState().referenceFocus) {
+        setReferenceFocus(null);
+        announce('Put the reference line down');
+        return true;
+      }
       if (state.editing) state.cancelEdit();
       else if (selection.length > 1) state.select([focus]);
       else {

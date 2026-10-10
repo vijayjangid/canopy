@@ -23,6 +23,7 @@ export type CommandId =
   | 'topic.reorder'
   | 'topic.reference'
   | 'topic.referenceRemove'
+  | 'topic.referencePick'
   | 'topic.imageRemove'
   | 'topic.imageAlt'
   | 'nav.arrow'
@@ -172,6 +173,11 @@ export const COMMANDS: readonly CommandDef[] = [
   { id: 'props.due', label: 'Set a due date', shortcuts: [{ key: 'd' }] },
   { id: 'props.tag', label: 'Add a tag', shortcuts: [{ key: 'g' }] },
   { id: 'topic.reference', label: 'Reference another topic', shortcuts: [{ key: 'x' }] },
+  {
+    id: 'topic.referencePick',
+    label: 'Pick a reference line of this topic, then Delete removes it',
+    shortcuts: [{ key: 'x', shift: true }],
+  },
   { id: 'topic.referenceRemove', label: 'Remove topic references', shortcuts: [] },
   { id: 'topic.imageAlt', label: 'Describe the picture (alt text)', shortcuts: [] },
   { id: 'topic.imageRemove', label: 'Remove the picture from the topic', shortcuts: [] },
@@ -208,6 +214,7 @@ export const COMMAND_GROUPS: Record<CommandId, string> = {
   'topic.insertBelow': 'Create',
   'topic.reference': 'Create',
   'topic.referenceRemove': 'Create',
+  'topic.referencePick': 'Create',
   'topic.imageRemove': 'Topic content',
   'topic.imageAlt': 'Topic content',
   'topic.duplicate': 'Create',

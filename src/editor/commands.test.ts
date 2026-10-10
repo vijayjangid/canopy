@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createViewportStore } from '../canvas/viewportStore';
 import { computeLayout, type Layout, type Measure } from '../layout';
 import {
+  addTopicReference,
   childrenOf,
   createMap,
   createSubTopic,
@@ -10,6 +11,7 @@ import {
   type Flow,
 } from '../model';
 import { createCanopyStore } from '../store';
+import { setReferenceFocus, uiStore } from '../ui/uiStore';
 import {
   executeCommand,
   nearestVisible,
@@ -390,5 +392,100 @@ describe('selection and history commands', () => {
     expect(store.getState().doc.topics['c']).toBeDefined();
     run('edit.redo');
     expect(store.getState().doc.topics['c']).toBeUndefined();
+  });
+});
+
+describe('reference lines from the keyboard', () => {
+  /** B points at A and at C, and C points at B. */
+  const withReferences = () => {
+    const t = setup();
+    let doc = t.store.getState().doc;
+    doc = addTopicReference(doc, 'b', 'a');
+    doc = addTopicReference(doc, 'b', 'c');
+    doc = addTopicReference(doc, 'c', 'b');
+    t.store.getState().commit(doc);
+    setReferenceFocus(null);
+    return t;
+  };
+
+  it('Delete removes a picked line and leaves every topic alone', () => {
+    const { store, run, focusOn, messages } = withReferences();
+    focusOn('b');
+    setReferenceFocus({ from: 'b', to: 'a' });
+    expect(run('topic.delete')).toBe(true);
+    const doc = store.getState().doc;
+    // Only that line went. The selected topic and the other lines are still there.
+    expect(doc.topics['b']).toBeDefined();
+    expect(doc.topics['b']?.references).toEqual(['c']);
+    expect(doc.topics['c']?.references).toEqual(['b']);
+    expect(uiStore.getState().referenceFocus).toBeNull();
+    expect(messages.at(-1)).toMatch(/Removed the reference from B to A/);
+    // One undo brings it back.
+    store.getState().undo();
+    expect(store.getState().doc.topics['b']?.references).toEqual(['a', 'c']);
+  });
+
+  it('removes a line that points at the selected topic, from the other end', () => {
+    const { store, run, focusOn } = withReferences();
+    focusOn('b');
+    setReferenceFocus({ from: 'c', to: 'b' });
+    run('topic.delete');
+    expect(store.getState().doc.topics['c']?.references).toBeUndefined();
+    expect(store.getState().doc.topics['b']).toBeDefined();
+  });
+
+  it('deletes the topic as before when no line is picked', () => {
+    const { store, run, focusOn } = withReferences();
+    focusOn('c');
+    setReferenceFocus(null);
+    run('topic.delete');
+    expect(store.getState().doc.topics['c']).toBeUndefined();
+  });
+
+  it('ignores a picked line that is already gone, and then deletes the topic as usual', () => {
+    const { store, run, focusOn } = withReferences();
+    focusOn('c');
+    setReferenceFocus({ from: 'b', to: 'nowhere' });
+    run('topic.delete');
+    expect(uiStore.getState().referenceFocus).toBeNull();
+    expect(store.getState().doc.topics['c']).toBeUndefined();
+  });
+
+  it('Escape puts a picked line down before it does anything else', () => {
+    const { store, run, focusOn, released } = withReferences();
+    focusOn('b');
+    setReferenceFocus({ from: 'b', to: 'a' });
+    run('select.escape');
+    expect(uiStore.getState().referenceFocus).toBeNull();
+    expect(released()).toBe(0);
+    expect(store.getState().selection).toEqual(['b']);
+    // A second Escape does what it always did.
+    run('select.escape');
+    expect(released()).toBe(1);
+  });
+
+  it('Shift X steps through the lines of the focused topic, then puts them down', () => {
+    const { run, focusOn, messages } = withReferences();
+    focusOn('b');
+    run('topic.referencePick');
+    expect(uiStore.getState().referenceFocus).toEqual({ from: 'b', to: 'a' });
+    expect(messages.at(-1)).toMatch(/Reference line 1 of 3, from B to A/);
+    run('topic.referencePick');
+    expect(uiStore.getState().referenceFocus).toEqual({ from: 'b', to: 'c' });
+    // The third is the one that points at B.
+    run('topic.referencePick');
+    expect(uiStore.getState().referenceFocus).toEqual({ from: 'c', to: 'b' });
+    expect(messages.at(-1)).toMatch(/Reference line 3 of 3, from C to B/);
+    run('topic.referencePick');
+    expect(uiStore.getState().referenceFocus).toBeNull();
+    expect(messages.at(-1)).toBe('No reference line picked');
+  });
+
+  it('says so when the topic has no lines', () => {
+    const { run, focusOn, messages } = withReferences();
+    focusOn('a1');
+    run('topic.referencePick');
+    expect(uiStore.getState().referenceFocus).toBeNull();
+    expect(messages.at(-1)).toBe('A1 has no reference lines');
   });
 });

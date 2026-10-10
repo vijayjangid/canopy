@@ -17,4 +17,4 @@ All four fonts are published on Google Fonts and bundled through the `@fontsourc
 | JetBrains Mono      | The level numbers                          | Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)     |
 | Bricolage Grotesque | The Canopy name in the top bar             | Copyright 2022 The Bricolage Grotesque Project Authors (https://github.com/ateliertriay/bricolage) |
 
-The Minimal theme and the app interface use the system font, so nothing is bundled for them.
+The Standard theme and the app interface use the system font, so nothing is bundled for them.

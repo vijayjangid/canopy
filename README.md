@@ -93,7 +93,7 @@ Three **Themes**, each a ready-made preset of colour, shape and font, in Light, 
   </tr>
 </table>
 
-- **Minimal:** the default. A clean system font, soft borders and the interactive colour for emphasis.
+- **Standard:** the default. A clean system font, soft borders and the interactive colour for emphasis.
 - **High Contrast:** black on white, thick strokes, a serif font and a different corner shape per level, so level is never carried by colour alone.
 - **Playful:** every topic is a **sticker**. The title is set in a handwritten font, in its level's colour, on a tinted face inside a wavy white rim with a flat shadow. In Dark mode the stickers turn charcoal on the darkest canvas. Lines are drawn slightly wobbly, like a hand-drawn map.
 - **Colour mode:** Auto, Light or Dark, one click from the top bar. It belongs to your device, not to the map.
@@ -111,7 +111,7 @@ Three **Themes**, each a ready-made preset of colour, shape and font, in Light, 
 Big maps print badly: a tidy tree grows tall and thin, and shrinks to an unreadable sliver on a page. The **Compact layout** option moves topics around so the map fills an **A4** page, then shrinks it only as far as it has to.
 
 <div align="center">
-<img src="docs/screenshots/compact-before-after.png" alt="The same 133-topic map on A4: the standard layout at 21% size, the compact layout at 63% size" width="920" />
+<img src="docs/screenshots/compact-before-after.png" alt="The same 153-topic map on A4: the standard layout at 18% size, the compact layout at 57% size" width="920" />
 </div>
 
 <table>
@@ -127,7 +127,7 @@ Big maps print badly: a tidy tree grows tall and thin, and shrinks to an unreada
 
 The top topic can also split its branches onto **both sides**, and the layout tries portrait and landscape to see which scales larger. A map that already fits at full size is left exactly as drawn. Branches with a labelled line keep their room for the label.
 
-**Where it works.** PNG, SVG and PDF, with **Best fit**, **Portrait** or **Landscape** pages. It also works with **Only the selected branches**. The map on screen is never changed, and the preview tells you the page and the size, for example _A4 landscape, 63% size_.
+**Where it works.** PNG, SVG and PDF, with **Best fit**, **Portrait** or **Landscape** pages. It also works with **Only the selected branches**. The map on screen is never changed, and the preview tells you the page and the size, for example _A4 landscape, 57% size_.
 
 </td>
   </tr>
@@ -181,15 +181,27 @@ Then open the address Vite prints (usually <http://localhost:5173>).
 
 ### Scripts
 
-| Command            | What it does                                              |
-| ------------------ | --------------------------------------------------------- |
-| `npm run dev`      | Start the dev server.                                     |
-| `npm run build`    | Typecheck, then build to `dist/`.                         |
-| `npm run preview`  | Serve the production build locally.                       |
-| `npm test`         | Unit and component tests (Vitest).                        |
-| `npm run test:e2e` | End-to-end tests with an accessibility scan (Playwright). |
-| `npm run check`    | Typecheck, lint, format check and unit tests in one go.   |
-| `npm run bench`    | Performance benchmark for large maps.                     |
+| Command               | What it does                                              |
+| --------------------- | --------------------------------------------------------- |
+| `npm run dev`         | Start the dev server.                                     |
+| `npm run build`       | Typecheck, then build to `dist/`.                         |
+| `npm run preview`     | Serve the production build locally.                       |
+| `npm test`            | Unit and component tests (Vitest).                        |
+| `npm run test:e2e`    | End-to-end tests with an accessibility scan (Playwright). |
+| `npm run check`       | Typecheck, lint, format check and unit tests in one go.   |
+| `npm run bench`       | Performance benchmark for large maps.                     |
+| `npm run screenshots` | Make the pictures in `docs/screenshots/` again.           |
+
+### Updating the screenshots
+
+The pictures in this README are made by a script, so they can be made again whenever the look of the app changes:
+
+```sh
+npm run screenshots              # all of them, in about 12 seconds
+npm run screenshots -- -g hero   # only the ones whose name matches
+```
+
+It starts the dev server if one is not running, builds a demo map, and writes the pictures into [`docs/screenshots/`](docs/screenshots). The demo maps are plain data in [`scripts/screenshots/maps.ts`](scripts/screenshots/maps.ts), and each picture is one test in [`scripts/screenshots/screenshots.spec.ts`](scripts/screenshots/screenshots.spec.ts). Look at the new pictures, then commit them. The script also prints the sizes quoted in the Compact layout section above, so update those numbers if they changed. It is not part of `npm test`.
 
 ### Hosting
 

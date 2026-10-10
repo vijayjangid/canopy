@@ -1,6 +1,6 @@
 import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
-import { NO_FILTER, type FilterSelection } from '../model';
+import { NO_FILTER, type FilterSelection, type ReferenceLine } from '../model';
 
 export type DialogName =
   | 'shortcuts'
@@ -13,12 +13,6 @@ export type DialogName =
   | 'export';
 
 /** Parts of the details panel on the right. */
-/** One reference line: the topic it leaves and the topic it points at. */
-export interface ReferenceLine {
-  from: string;
-  to: string;
-}
-
 export type InspectorTab = 'properties' | 'note' | 'stickers';
 
 /** Tabs of the panel on the left. */

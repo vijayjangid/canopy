@@ -110,7 +110,7 @@ canopy/
     persistence/  IndexedDB, File System Access, autosave
     a11y/         announcer, tree semantics helpers
   public/stickers/
-  tests/  e2e/  bench/
+  tests/  e2e/  bench/  scripts/  (screenshots for the README)
 ```
 
 As built, the layout above holds with these differences: `settings/` (device settings), `stickers/` (original artwork and the catalog) and `dev/` (demo maps) were added, `views/` holds only a placeholder, `a11y/` holds the announcer, and `public/stickers/` was not needed because the artwork is code.
@@ -188,7 +188,7 @@ Done when: layouts have no overlaps on generated trees and the 5,000-topic full 
 - [x] Pan (drag, wheel), zoom (Ctrl/Cmd+wheel, pinch, `⌘+`, `⌘-`), zoom controls. (The separate fit-to-screen button and `⌘0` were removed later: Unfold everything fits the map.)
 - [x] Viewport culling with a margin, plus text dropping out when zoomed far out over more than 600 topics.
 - [x] Focus and selection rendering that follows the Look tokens (halo stays visible at any zoom).
-- [x] Basic Minimal Look and Light/Dark Mode tokens (Dark follows the OS for now, the toggle is M1.9).
+- [x] Basic Standard Look and Light/Dark Mode tokens (Dark follows the OS for now, the toggle is M1.9).
 
 Done when: a 5,000-topic benchmark map pans and zooms at the target frame rate with culling.
 
@@ -229,9 +229,9 @@ Measured at 5,000 topics: fold 59 ms, unfold 129 ms.
 
 Feedback applied: growth handles now appear only when hovering the selected (focused) topic, so browsing the map stays quiet. The Preferences option `always` shows them on the focused topic, `never` hides them.
 
-### M1.9 Mode, Minimal Look and JSON import/export (done)
+### M1.9 Mode, Standard Look and JSON import/export (done)
 - [x] Light, Dark and Auto Mode with a toggle in the top bar, remembered on this device (`settings/appSettings.ts`).
-- [x] Minimal Look tokens for both Modes. A fuller design review of spacing and type scale is part of M2.1 with the other Looks.
+- [x] Standard Look tokens for both Modes. A fuller design review of spacing and type scale is part of M2.1 with the other Looks.
 - [x] JSON save (file picker or download) and open (file chooser), with readable errors for bad files and a round-trip e2e test.
 - [x] Top bar: editable map title, Maps list, New, Open, Save, shortcuts, Mode.
 - [x] First-run hint under the Core until the first idea is added.
@@ -260,9 +260,9 @@ Done when: Phase 1 acceptance criteria in section 5.1 pass.
 Goal: make maps rich and beautiful, and shareable as images and documents.
 
 ### M2.1 Themes and Settings (done, with gaps)
-- [x] Token sets for the themes (Minimal, High Contrast, Playful), each a preset of colour, shape and font: Minimal uses the system sans-serif, High Contrast Source Serif 4 and Playful Kalam, self-hosted (`theme/looks.css`, `theme/voices.ts`). The font applies to the map only; the app chrome stays in the system font.
+- [x] Token sets for the themes (Standard, High Contrast, Playful), each a preset of colour, shape and font: Standard uses the system sans-serif, High Contrast Source Serif 4 and Playful Kalam, self-hosted (`theme/looks.css`, `theme/voices.ts`). The font applies to the map only; the app chrome stays in the system font.
 - [x] Curved connectors in every theme, and the Playful wobble (stable per connector, so it does not shimmer).
-- [x] Colour in Playful follows the level (the Core, then five colours that repeat), and Minimal and High Contrast stay neutral. Overriding a branch colour by hand is not built.
+- [x] Colour in Playful follows the level (the Core, then five colours that repeat), and Standard and High Contrast stay neutral. Overriding a branch colour by hand is not built.
 - [x] Settings (`⌘,`, or the Settings tab of the left panel) with map-level and device-level choices: Theme, Layout, Spacing, Property chips, Level numbers; Auto-pan, Trail, Text expansion, empty-topic removal, hints, handles. The colour mode sits in the top bar, and animation follows the system's reduced-motion setting. This replaced the Preferences dialog in the interface rework (7A).
 - [x] High Contrast: black on white and white on black, 2.5 px borders, and a different corner shape per level so level is not carried by colour. axe colour contrast passes in both colour modes. A strict 7:1 measurement is not automated.
 - [x] Playful motion: layout changes settle with a small overshoot.
@@ -395,7 +395,7 @@ This work was not in the original plan. It came from using the app and was done 
 - [x] Undo and Redo as explicit icon buttons in the top bar that dim when there is nothing to step through, with the shortcut in the tooltip.
 - [x] A context menu for topics, lines and empty canvas, also from the keyboard (menu key, `Shift+F10`).
 - [x] Tooltips with shortcuts, a searchable cheat sheet, and the hint strip fed from the registry.
-- [x] Themes refined: Minimal has very subtle card borders and a flat shadow, Playful draws every topic as a die-cut sticker with a flat shadow (no glow), the Dark canvas is the darkest surface with faint dots, and level numbers are small, faded and monospace.
+- [x] Themes refined: Standard has very subtle card borders and a flat shadow, Playful draws every topic as a die-cut sticker with a flat shadow (no glow), the Dark canvas is the darkest surface with faint dots, and level numbers are small, faded and monospace.
 - [x] Level numbers in Settings.
 
 **Navigation aids**

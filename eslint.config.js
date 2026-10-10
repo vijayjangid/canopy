@@ -16,7 +16,7 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.browser } },
   },
   {
-    files: ['*.config.{ts,js}', 'e2e/**', 'bench/**'],
+    files: ['*.config.{ts,js}', 'e2e/**', 'bench/**', 'scripts/**'],
     languageOptions: { globals: { ...globals.node } },
   },
   {
