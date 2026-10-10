@@ -158,30 +158,57 @@ export function deleteBranch(map: CanopyMap, id: TopicId): CanopyMap {
   return produce(map, (draft) => {
     for (const t of doomed) delete draft.topics[t.id];
     for (const remaining of Object.values(draft.topics)) {
-      if (remaining.referenceTo && doomedIds.has(remaining.referenceTo)) {
-        delete remaining.referenceTo;
-      }
+      dropReferences(remaining, (to) => doomedIds.has(to));
     }
   });
 }
 
-/** Points a topic at another topic without changing either topic's place in the tree. */
-export function setTopicReference(
-  map: CanopyMap,
-  sourceId: TopicId,
-  targetId: TopicId | null,
-): CanopyMap {
+/** Takes out of a topic the references that `drop` says to, and the list itself when it empties. */
+function dropReferences(topic: Topic, drop: (to: TopicId) => boolean): void {
+  if (!topic.references) return;
+  const kept = topic.references.filter((to) => !drop(to));
+  if (kept.length === topic.references.length) return;
+  if (kept.length > 0) topic.references = kept;
+  else delete topic.references;
+}
+
+/**
+ * Points a topic at another topic without changing either topic's place in the tree. A topic can
+ * point at several, and several can point at one. Pointing at a topic it already points at does
+ * nothing.
+ */
+export function addTopicReference(map: CanopyMap, sourceId: TopicId, targetId: TopicId): CanopyMap {
   const source = getTopic(map, sourceId);
   if (targetId === sourceId) {
     throw new ModelError('INVALID_ARGUMENT', 'A topic cannot reference itself');
   }
-  if (targetId !== null) getTopic(map, targetId);
-  if (source.referenceTo === (targetId ?? undefined)) return map;
+  getTopic(map, targetId);
+  if (source.references?.includes(targetId)) return map;
   return produce(map, (draft) => {
     const topic = draft.topics[sourceId];
-    if (!topic) return;
-    if (targetId === null) delete topic.referenceTo;
-    else topic.referenceTo = targetId;
+    if (topic) topic.references = [...(topic.references ?? []), targetId];
+  });
+}
+
+/** Removes one reference from a topic. Does nothing when it is not there. */
+export function removeTopicReference(
+  map: CanopyMap,
+  sourceId: TopicId,
+  targetId: TopicId,
+): CanopyMap {
+  if (!getTopic(map, sourceId).references?.includes(targetId)) return map;
+  return produce(map, (draft) => {
+    const topic = draft.topics[sourceId];
+    if (topic) dropReferences(topic, (to) => to === targetId);
+  });
+}
+
+/** Removes every reference a topic makes. */
+export function clearTopicReferences(map: CanopyMap, sourceId: TopicId): CanopyMap {
+  if (!getTopic(map, sourceId).references) return map;
+  return produce(map, (draft) => {
+    const topic = draft.topics[sourceId];
+    if (topic) delete topic.references;
   });
 }
 
@@ -209,7 +236,7 @@ export function deleteNode(map: CanopyMap, id: TopicId): CanopyMap {
     });
     delete draft.topics[id];
     for (const other of Object.values(draft.topics)) {
-      if (other.referenceTo === id) delete other.referenceTo;
+      dropReferences(other, (to) => to === id);
     }
     const parent = draft.topics[parentId];
     if (parent) parent.folded = false;

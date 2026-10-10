@@ -11,7 +11,6 @@ import {
   STICKER_RIM,
   STICKER_SHADOW_OFFSET,
   textLines,
-  TOPIC_PADDING,
   typeForDepth,
   type ChipItem,
   type TopicBox,
@@ -211,7 +210,7 @@ export const TopicNode = memo(function TopicNode({
   const badge =
     flow === 'right' ? { x: w + 6, y: h / 2 - 10 } : { x: w / 2 - badgeW / 2, y: h + 6 };
   const titleLines = lines.map((line, i) => (
-    <tspan key={i} x={TOPIC_PADDING.x} y={firstBaseline + i * style.lineHeight}>
+    <tspan key={i} x={w / 2} y={firstBaseline + i * style.lineHeight}>
       {i === 0 && showLevel && depth > 0 && (
         <tspan className="level-prefix">{levelPrefix(depth, position)}</tspan>
       )}
@@ -302,7 +301,7 @@ export const TopicNode = memo(function TopicNode({
         <text
           className="topic-text"
           data-empty={empty || undefined}
-          textAnchor="start"
+          textAnchor="middle"
           dominantBaseline="central"
           fontSize={style.size}
           fontWeight={style.weight}

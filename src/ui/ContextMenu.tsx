@@ -32,7 +32,7 @@ export const openContextMenu = (x: number, y: number, where: Where) =>
 export const closeContextMenu = () => menuStore.setState({ at: null });
 
 /** The menu for a reference line, opened by right-clicking it. */
-export function openReferenceMenu(x: number, y: number, from: string): void {
+export function openReferenceMenu(x: number, y: number, from: string, to: string): void {
   menuStore.setState({
     at: {
       x,
@@ -44,14 +44,17 @@ export function openReferenceMenu(x: number, y: number, from: string): void {
           kind: 'item',
           label: 'Go to referenced topic',
           icon: 'arrow-right',
-          run: () => {
-            const to = canopyStore.getState().doc.topics[from]?.referenceTo;
-            if (to) navigateToTopic(to);
-          },
+          run: () => navigateToTopic(to),
         },
         {
           kind: 'item',
-          label: 'Change reference…',
+          label: 'Go to the topic it leaves',
+          icon: 'chevron-left',
+          run: () => navigateToTopic(from),
+        },
+        {
+          kind: 'item',
+          label: 'Add another reference…',
           icon: 'link',
           run: () => appContext.app?.topicSearch(from),
         },
@@ -61,7 +64,7 @@ export function openReferenceMenu(x: number, y: number, from: string): void {
           label: 'Remove reference',
           icon: 'trash',
           danger: true,
-          run: () => removeReference(from),
+          run: () => removeReference(from, to),
         },
       ],
     },
@@ -126,12 +129,7 @@ function topicEntries(): Entry[] {
   return [
     head('Add'),
     cmd('Add sub-topic', 'topic.addChild', 'sub-topic', { disabled: many }),
-    cmd(
-      doc.topics[focus]?.referenceTo ? 'Change reference…' : 'Reference to…',
-      'topic.reference',
-      'link',
-      { disabled: many },
-    ),
+    cmd('Reference to…', 'topic.reference', 'link', { disabled: many }),
     ...(core
       ? []
       : [

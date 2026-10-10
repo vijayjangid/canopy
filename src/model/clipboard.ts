@@ -21,7 +21,7 @@ function extrasOf(topic: Topic): TopicExtras | undefined {
   if (topic.stickers) extras.stickers = topic.stickers;
   if (topic.props) extras.props = topic.props;
   if (topic.edge) extras.edge = topic.edge;
-  if (topic.referenceTo) extras.referenceTo = topic.referenceTo;
+  if (topic.references?.length) extras.references = [...topic.references];
   if (topic.image) extras.image = topic.image;
   return Object.keys(extras).length > 0 ? extras : undefined;
 }
@@ -231,8 +231,11 @@ export function pasteBranches(
       if (!item) break;
       const extras = item.branch.extras;
       const transferableExtras = extras ? { ...extras } : undefined;
-      if (transferableExtras?.referenceTo && !map.topics[transferableExtras.referenceTo]) {
-        delete transferableExtras.referenceTo;
+      if (transferableExtras?.references) {
+        // A reference only comes along when its target is in this map.
+        const kept = transferableExtras.references.filter((to) => map.topics[to]);
+        if (kept.length > 0) transferableExtras.references = kept;
+        else delete transferableExtras.references;
       }
       draft.topics[item.id] = {
         id: item.id,

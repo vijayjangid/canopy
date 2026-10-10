@@ -59,8 +59,8 @@ export interface TopicImage {
 export interface TopicExtras {
   /** The line to the parent: its label and stickers. */
   edge?: EdgeData;
-  /** A non-hierarchical link to another topic in this map. */
-  referenceTo?: TopicId;
+  /** Non-hierarchical links to other topics in this map, in the order they were made. */
+  references?: TopicId[];
   /** A picture shown above the title. */
   image?: TopicImage;
   /** Markdown. */

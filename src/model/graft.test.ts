@@ -11,7 +11,7 @@ import {
   setNote,
   setProps,
   setFolded,
-  setTopicReference,
+  addTopicReference,
   subtreeOf,
   validateMap,
   type CanopyMap,
@@ -23,7 +23,7 @@ function source(): CanopyMap {
   map = createSubTopic(map, 's', { id: 'sa', title: 'A' }).map;
   map = createSubTopic(map, 's', { id: 'sb', title: 'B' }).map;
   map = createSubTopic(map, 'sa', { id: 'sa1', title: 'A1' }).map;
-  map = setTopicReference(map, 'sb', 'sa1');
+  map = addTopicReference(map, 'sb', 'sa1');
   map = setNote(map, 'sa', 'A note');
   map = addSticker(map, 'sa', 'star');
   map = setEdgeLabel(map, 'sa', 'depends on');
@@ -66,7 +66,7 @@ describe('graftMap', () => {
     expect(a?.note).toBe('A note');
     expect(a?.stickers).toHaveLength(1);
     expect(a?.edge?.label).toBe('depends on');
-    expect(b?.referenceTo).toBe(a1?.id);
+    expect(b?.references).toEqual([a1?.id]);
     expect(map.topics['sa1']).toBeUndefined();
   });
 
@@ -79,10 +79,10 @@ describe('graftMap', () => {
     // `ghost` does not exist in the imported map, so the reference cannot be kept.
     const dangling = {
       ...loose,
-      topics: { ...loose.topics, q: { ...loose.topics['q']!, referenceTo: 'sa1' } },
+      topics: { ...loose.topics, q: { ...loose.topics['q']!, references: ['sa1'] } },
     };
     const { map, id } = graftMap(base, 'core', dangling);
-    expect(subtreeOf(map, id).every((t) => t.referenceTo === undefined)).toBe(true);
+    expect(subtreeOf(map, id).every((t) => t.references === undefined)).toBe(true);
     expect(validateMap(map)).toEqual([]);
   });
 

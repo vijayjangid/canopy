@@ -160,11 +160,21 @@ export function readExtras(node: Record<string, unknown>, path: string, fail: Fa
     }
   }
 
+  // Older files hold one reference as `referenceTo`. Both forms are read as a list.
+  const refs: string[] = [];
   if (node['referenceTo'] !== undefined) {
     if (isString(node['referenceTo']) && node['referenceTo'].length > 0) {
-      out.referenceTo = node['referenceTo'];
+      refs.push(node['referenceTo']);
     } else fail(`${path}.referenceTo must be a non-empty topic id`);
   }
+  if (node['references'] !== undefined) {
+    const list = node['references'];
+    if (Array.isArray(list) && list.every((r) => isString(r) && r.length > 0)) {
+      refs.push(...(list as string[]));
+    } else fail(`${path}.references must be a list of topic ids`);
+  }
+  const unique = [...new Set(refs)];
+  if (unique.length > 0) out.references = unique;
 
   if (node['image'] !== undefined) {
     const image = readImage(node['image']);

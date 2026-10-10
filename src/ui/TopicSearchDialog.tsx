@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { ancestorsOf, setTopicReference } from '../model';
+import { addTopicReference, ancestorsOf } from '../model';
 import { canopyStore } from '../store';
 import { navigateToTopic } from '../canvas/navigation';
 import type { PaletteEntry } from './commandIndex';
@@ -13,7 +13,11 @@ export function TopicSearchDialog({ referenceFrom }: { referenceFrom: string }) 
       referenceFrom && !doc.topics[referenceFrom]
         ? []
         : Object.values(doc.topics)
-            .filter((topic) => topic.id !== referenceFrom)
+            .filter(
+              (topic) =>
+                topic.id !== referenceFrom &&
+                !doc.topics[referenceFrom]?.references?.includes(topic.id),
+            )
             .map((topic) => {
               const path = ancestorsOf(doc, topic.id)
                 .reverse()
@@ -27,7 +31,7 @@ export function TopicSearchDialog({ referenceFrom }: { referenceFrom: string }) 
                 run: () => {
                   if (referenceFrom) {
                     const state = canopyStore.getState();
-                    state.commit(setTopicReference(state.doc, referenceFrom, topic.id));
+                    state.commit(addTopicReference(state.doc, referenceFrom, topic.id));
                   } else navigateToTopic(topic.id);
                 },
               };

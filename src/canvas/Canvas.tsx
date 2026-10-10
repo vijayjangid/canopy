@@ -63,6 +63,7 @@ import {
   setReferenceFocus,
   startEdgeEdit,
   useUi,
+  type ReferenceLine,
 } from '../ui/uiStore';
 import { describeProps, type ChipContext } from './Chips';
 import { createLayoutAnimator, sameTopics } from './animator';
@@ -143,8 +144,13 @@ const edgeIdOf = (target: EventTarget) =>
 const topicIdOf = (target: EventTarget) =>
   (target as Element).closest('[data-topic-id]')?.getAttribute('data-topic-id') ?? null;
 
-const referenceFromOf = (target: EventTarget) =>
-  (target as Element).closest('[data-reference-from]')?.getAttribute('data-reference-from') ?? null;
+/** The reference line under a pointer, by the topic it leaves and the topic it points at. */
+const referenceLineOf = (target: EventTarget): ReferenceLine | null => {
+  const el = (target as Element).closest('[data-reference-from]');
+  const from = el?.getAttribute('data-reference-from');
+  const to = el?.getAttribute('data-reference-to');
+  return from && to ? { from, to } : null;
+};
 
 const imageControlOf = (target: EventTarget) => {
   const el = (target as Element).closest('[data-image-delete], [data-image-alt]');
@@ -155,9 +161,12 @@ const imageControlOf = (target: EventTarget) => {
     : { kind: 'alt' as const, id: el.getAttribute('data-image-alt') ?? '' };
 };
 
-const referenceDeleteOf = (target: EventTarget) =>
-  (target as Element).closest('[data-reference-delete]')?.getAttribute('data-reference-delete') ??
-  null;
+const referenceDeleteOf = (target: EventTarget): ReferenceLine | null => {
+  const el = (target as Element).closest('[data-reference-delete]');
+  const from = el?.getAttribute('data-reference-delete');
+  const to = el?.getAttribute('data-reference-to');
+  return from && to ? { from, to } : null;
+};
 
 export function Canvas() {
   const doc = useCanopy((s) => s.doc);
@@ -167,6 +176,7 @@ export function Canvas() {
   const editing = useCanopy((s) => s.editing);
   const mapId = useCanopy((s) => s.mapId);
   const slot = useGrowth((s) => s.slot);
+  const hoverId = useGrowth((s) => s.hoverId);
   const ghostIds = useGrowth((s) => s.ghostIds);
   const faded = useDrag((s) => s.faded);
   const hasSize = useStore(viewportStore, (s) => s.size.w > 0);
@@ -414,7 +424,10 @@ export function Canvas() {
   const imageAltEditing = useUi((s) => s.imageAltEditing);
   const referenceFocusRaw = useUi((s) => s.referenceFocus);
   const referenceFocus =
-    referenceFocusRaw && doc.topics[referenceFocusRaw]?.referenceTo ? referenceFocusRaw : null;
+    referenceFocusRaw &&
+    doc.topics[referenceFocusRaw.from]?.references?.includes(referenceFocusRaw.to)
+      ? referenceFocusRaw
+      : null;
   useEffect(() => {
     if (!autoPan || !hasSize || fittedFor.current !== mapId) return;
     const box = layout.boxes.get(focus);
@@ -460,12 +473,12 @@ export function Canvas() {
     }
     const deleting = referenceDeleteOf(e.target);
     if (deleting) {
-      removeReference(deleting);
+      removeReference(deleting.from, deleting.to);
       return;
     }
-    const referenceFrom = referenceFromOf(e.target);
-    if (referenceFrom && !topicIdOf(e.target)) {
-      setReferenceFocus(referenceFrom);
+    const referenceLine = referenceLineOf(e.target);
+    if (referenceLine && !topicIdOf(e.target)) {
+      setReferenceFocus(referenceLine);
       return;
     }
     setReferenceFocus(null);
@@ -628,10 +641,10 @@ export function Canvas() {
     e.preventDefault();
     // The browser also sends this event after the menu key, which has already opened the menu.
     if (Date.now() - keyboardMenuAt.current < 400) return;
-    const referenceFrom = topicIdOf(e.target) ? null : referenceFromOf(e.target);
-    if (referenceFrom) {
-      setReferenceFocus(referenceFrom);
-      openReferenceMenu(e.clientX, e.clientY, referenceFrom);
+    const referenceLine = topicIdOf(e.target) ? null : referenceLineOf(e.target);
+    if (referenceLine) {
+      setReferenceFocus(referenceLine);
+      openReferenceMenu(e.clientX, e.clientY, referenceLine.from, referenceLine.to);
       return;
     }
     openMenuFor(topicIdOf(e.target) ?? edgeIdOf(e.target), e.clientX, e.clientY);
@@ -691,6 +704,16 @@ export function Canvas() {
     );
   };
 
+  // Reference lines are faded so they do not read over the text of topics they pass. The lines of a
+  // topic that is pointed at, picked or being edited are shown in full.
+  const lit = useMemo(() => {
+    const ids = new Set<string>();
+    if (hoverId) ids.add(hoverId);
+    if (picked) for (const id of selection) ids.add(id);
+    if (picked) ids.add(focus);
+    if (editing) ids.add(editing);
+    return ids;
+  }, [hoverId, picked, selection, focus, editing]);
   const editingBox = editing ? view.layout.boxes.get(editing) : undefined;
   const focusDrawn = scene.topics.some((b) => b.id === focus);
 
@@ -730,14 +753,14 @@ export function Canvas() {
           <defs>
             <marker
               id="reference-arrow"
-              viewBox="0 0 8 8"
-              refX="7"
-              refY="4"
-              markerWidth="6"
-              markerHeight="6"
+              viewBox="0 0 10 10"
+              refX="8.5"
+              refY="5"
+              markerWidth="5"
+              markerHeight="5"
               orient="auto"
             >
-              <path className="reference-arrow" d="M0 0L8 4L0 8Z" />
+              <path className="reference-arrow" d="M2 1.2L8.5 5L2 8.8" />
             </marker>
           </defs>
           <g className="links">
@@ -809,29 +832,34 @@ export function Canvas() {
               );
             })}
           </g>
-          <g className="references">
-            {view.layout.order.map((source) => {
-              const targetId = doc.topics[source.id]?.referenceTo;
-              const target = targetId ? view.layout.boxes.get(targetId) : undefined;
-              if (!target || !targetId) return null;
-              const sourceTitle = doc.topics[source.id]?.title.trim() || 'Empty topic';
-              const targetTitle = doc.topics[targetId]?.title.trim() || 'Empty topic';
-              const d = referenceGeometry(source, target, flow).d;
-              return (
-                <g
-                  key={`${source.id}-${targetId}`}
-                  className="reference-link"
-                  data-reference-from={source.id}
-                  data-reference-to={targetId}
-                  data-selected={referenceFocus === source.id || undefined}
-                  opacity={view.fade.get(source.id)}
-                >
-                  <title>{`Reference from ${sourceTitle} to ${targetTitle}`}</title>
-                  <path className="reference-connector" d={d} markerEnd="url(#reference-arrow)" />
-                  <path className="reference-hit" d={d} />
-                </g>
-              );
-            })}
+          <g className="references" data-has-active={lit.size > 0 || undefined}>
+            {view.layout.order.flatMap((source) =>
+              (doc.topics[source.id]?.references ?? []).map((targetId) => {
+                const target = view.layout.boxes.get(targetId);
+                if (!target) return null;
+                const sourceTitle = doc.topics[source.id]?.title.trim() || 'Empty topic';
+                const targetTitle = doc.topics[targetId]?.title.trim() || 'Empty topic';
+                const d = referenceGeometry(source, target).d;
+                return (
+                  <g
+                    key={`${source.id}-${targetId}`}
+                    className="reference-link"
+                    data-reference-from={source.id}
+                    data-reference-to={targetId}
+                    data-selected={
+                      (referenceFocus?.from === source.id && referenceFocus.to === targetId) ||
+                      undefined
+                    }
+                    data-active={lit.has(source.id) || lit.has(targetId) || undefined}
+                    opacity={view.fade.get(source.id)}
+                  >
+                    <title>{`Reference from ${sourceTitle} to ${targetTitle}`}</title>
+                    <path className="reference-connector" d={d} markerEnd="url(#reference-arrow)" />
+                    <path className="reference-hit" d={d} />
+                  </g>
+                );
+              }),
+            )}
           </g>
           {fileDrop.active &&
             fileDrop.target &&
@@ -850,10 +878,10 @@ export function Canvas() {
             })()}
           {referenceFocus && (
             <ReferenceDelete
-              source={view.layout.boxes.get(referenceFocus)}
-              target={view.layout.boxes.get(doc.topics[referenceFocus]?.referenceTo ?? '')}
-              flow={flow}
-              from={referenceFocus}
+              source={view.layout.boxes.get(referenceFocus.from)}
+              target={view.layout.boxes.get(referenceFocus.to)}
+              from={referenceFocus.from}
+              to={referenceFocus.to}
             />
           )}
           {branch && <ContextNodeView node={branch.context} />}

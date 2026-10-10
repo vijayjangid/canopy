@@ -41,7 +41,7 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 | Visible form of a Property | **Chip** | Compact pill on the topic (status shape, due date, tags, note mark) |
 | Workflow states | **Status Set** | Ordered states, each in a category (see 3.4) |
 | Hover add-buttons | **Growth Handles** | Child to the right or below, a peer below, and one that inserts a topic between two levels. The handle above the topic is the **Reference Handle** |
-| Link to another topic | **Reference** | A dashed arrow from one topic to an existing topic elsewhere in the map, so a shared branch is linked instead of copied |
+| Link to another topic | **Reference** | A dashed arrow from one topic to an existing topic elsewhere in the map, so a shared branch is linked instead of copied. A topic can have several, and a topic can be pointed at by several |
 | The line from a topic up to its parent | **Line** | Can carry a label and up to three stickers |
 | The way from a topic up to the Core | **Trail** | Highlighted, or isolated, with a status bar that shows it as a path |
 | One branch with everything above it folded | **Branch view** | The rest of the map becomes one dotted node |
@@ -265,14 +265,15 @@ These were not in v0.2. They exist to help someone work inside a big map without
 
 ### 3.10a References [Built, new]
 
-A Reference links a topic to **one** existing topic anywhere in the map, so two branches that share the same sub-tree can point at one copy instead of repeating it. A Reference does not move or copy anything and never changes the tree.
+A Reference links a topic to an existing topic anywhere in the map, so two branches that share the same sub-tree can point at one copy instead of repeating it. A topic can make **several** References (many out) and several topics can point at the same one (many in). A Reference does not move or copy anything and never changes the tree.
 
-- **Drawn as:** a bold dashed arrow in the accent colour, drawn above the topics, so it reads differently from the solid parent-child lines. It uses the sides the parent-child connectors leave free: the middle of the top or bottom side in a Right flow, the middle of the left or right side in a Down flow. It leaves the side that faces the target and ends with an arrowhead at the middle of the facing side of the target. Topics level with each other across the Flow loop out past both, and topics stacked along the Flow bow out to one side so the arrow does not run over the ones between them.
+- **Drawn as:** a dashed line in the accent colour, drawn above the topics, so it reads differently from the solid parent-child lines. It ends in an open "V" arrowhead, which reads well at any angle. Each line is one gentle arc, the shortest curve between the two topics, like a flight path: it leaves the edge of one topic and reaches the edge of the other, bowing a little to the left of the way it travels. Two topics that reference each other therefore get two arcs on opposite sides, instead of one drawn over the other.
+- **Faded:** lines are drawn faded, so one that passes over a topic does not make its text hard to read. A line is shown in full when the pointer is over it, when it is picked, or when a topic at either end of it is pointed at, picked or being edited.
 - **Create by dragging:** the link-icon Reference Handle sits above a selected topic (not shown on the Core). Drag it onto any other topic: a dashed line follows the pointer and the topic under it is highlighted. Release to connect. Releasing on empty canvas, or `Esc`, cancels.
-- **Create by search:** click the handle, press `X`, or choose "Reference to…" in the topic's context menu. A search over every topic by name or full path (for example "Case Types › Workflow › Templates") picks the target.
-- **Replace:** a topic has at most one reference, so a new one replaces the old.
-- **Remove:** click the arrow to pick it and a delete icon appears on its middle. Click the icon to remove the Reference (undo restores it). Right-clicking the arrow offers *Go to referenced topic*, *Change reference…* and *Remove reference*. Clicking elsewhere puts the icon away.
-- **Integrity:** deleting a topic (or its branch) removes every Reference that pointed into it. A Reference to a missing topic or to itself is rejected when a file is opened. Copy and paste keeps a Reference when the target is in the same map and drops it otherwise.
+- **Create by search:** click the handle, press `X`, or choose "Reference to…" in the topic's context menu. A search over every topic by name or full path (for example "Case Types › Workflow › Templates") picks the target. Topics the source already points at are not offered again.
+- **Add more:** making another Reference from the same topic adds a line and keeps the others. Pointing at a topic it already references does nothing.
+- **Remove:** click a line to pick it and a red delete icon appears on its middle. Click the icon to remove that one Reference (undo restores it) and leave the others. Right-clicking a line offers *Go to referenced topic*, *Go to the topic it leaves*, *Add another reference…* and *Remove reference*. The *Remove topic references* command takes away every Reference a topic makes. Clicking elsewhere puts the icon away.
+- **Integrity:** deleting a topic (or its branch) removes every Reference that pointed into it and keeps the rest. A Reference to a missing topic or to itself is rejected when a file is opened. Copy and paste keeps the References whose targets are in the same map and drops the others.
 
 ### 3.11 Editing aids [Built, new]
 
@@ -421,7 +422,7 @@ The file keeps schema `canopy/1`. Every change since v0.2 only removed fields or
     "note": "Markdown text",
     "stickers": [{ "id": "s_1", "key": "star" }],
     "edge": { "label": "depends on", "stickers": [{ "id": "s_2", "key": "flag" }] },
-    "referenceTo": "t_9",
+    "references": ["t_9", "t_12"],
     "image": { "src": "data:image/webp;base64,...", "w": 640, "h": 480, "alt": "Login screen" },
     "props": {
       "status": "doing",
@@ -436,8 +437,8 @@ The file keeps schema `canopy/1`. Every change since v0.2 only removed fields or
 
 Notes:
 - The colour mode is a device setting and is not saved in the file. The theme's font and line style come from the theme, so the file does not store them.
-- `props`, `note`, `stickers`, `edge`, `referenceTo` and `image` are omitted on topics without them, keeping plain maps small.
-- `referenceTo` holds the ID of the topic a Reference points to. It must name another topic in the same file. A missing or self-pointing target makes the file fail to open with a clear message.
+- `props`, `note`, `stickers`, `edge`, `references` and `image` are omitted on topics without them, keeping plain maps small.
+- `references` holds the IDs of the topics a topic points to, in the order they were made. Each must name another topic in the same file. A missing or self-pointing target makes the file fail to open with a clear message. A single `referenceTo` ID, as written by older files, is read as a one-item list.
 - Roll-ups are computed, never stored. Fold state is stored. Children are written in order, and their fractional ordering keys are rebuilt on load.
 - A Filter query can use `status`, `statusCategory`, `tags`, `stickers`, `due` (`overdue` or `week`), `dueBetween` and `match` (`all` or `any`).
 - `image` holds the pasted picture as `src` (an embedded `data:image/png|jpeg|webp|gif;base64,` URL) with its pixel size `w` and `h`, and an optional `alt` description (up to 200 characters). The display size is worked out from these and is not stored. A file whose `image` is not an embedded raster picture of a sensible size fails to open with a message.

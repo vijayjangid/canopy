@@ -1,19 +1,20 @@
-import { ancestorsOf, setFolded, setTopicReference } from '../model';
+import { ancestorsOf, removeTopicReference, setFolded } from '../model';
 import { canopyStore } from '../store';
 import { announce } from '../a11y';
 import { setFocusBranch, setReferenceFocus } from '../ui/uiStore';
 import { focusCanvas, layoutState } from './layoutState';
 import { viewportStore } from './viewportStore';
 
-/** Takes away the reference that leaves a topic. */
-export function removeReference(from: string): void {
+/** Takes away one reference line, from a topic to the topic it points at. */
+export function removeReference(from: string, to: string): void {
   const { doc, commit } = canopyStore.getState();
-  if (!doc.topics[from]?.referenceTo) return;
-  const target = doc.topics[doc.topics[from].referenceTo];
-  commit(setTopicReference(doc, from, null));
+  if (!doc.topics[from]?.references?.includes(to)) return;
+  commit(removeTopicReference(doc, from, to));
   setReferenceFocus(null);
   const name = (title: string | undefined) => title?.trim() || 'Empty topic';
-  announce(`Removed reference from ${name(doc.topics[from].title)} to ${name(target?.title)}`);
+  announce(
+    `Removed reference from ${name(doc.topics[from].title)} to ${name(doc.topics[to]?.title)}`,
+  );
 }
 
 /** Selects a topic, unfolds its path and brings it into view. */

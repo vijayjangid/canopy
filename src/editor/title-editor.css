@@ -5,7 +5,7 @@
   box-sizing: border-box;
   resize: none;
   overflow: hidden;
-  text-align: left;
+  text-align: center;
   font-family: var(--font-map);
   color: var(--color-topic-text);
   /* The topic underneath keeps its fill, border and selection mark, so nothing is drawn twice. */

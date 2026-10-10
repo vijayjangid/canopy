@@ -18,7 +18,7 @@ function isBlank(doc: CanopyMap, id: TopicId): boolean {
     !topic.note &&
     !topic.stickers?.length &&
     !topic.image &&
-    !topic.referenceTo &&
+    !topic.references?.length &&
     !topic.props &&
     !hasChildren(doc, id)
   );

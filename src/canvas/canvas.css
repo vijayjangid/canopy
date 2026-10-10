@@ -57,6 +57,18 @@
   stroke-dasharray: 7 5;
   stroke-linecap: round;
   pointer-events: none;
+  /* Faded at rest, so a line that passes over a topic does not make its text hard to read. */
+  opacity: var(--reference-rest, 0.3);
+  transition:
+    opacity var(--motion-quick) var(--ease-standard),
+    stroke-width var(--motion-quick) var(--ease-standard);
+}
+
+/* In full when the line is pointed at or picked, or a topic at either end of it is. */
+.reference-link:hover .reference-connector,
+.reference-link[data-selected] .reference-connector,
+.reference-link[data-active] .reference-connector {
+  opacity: 1;
 }
 
 .reference-hit {
@@ -76,36 +88,42 @@
   stroke-width: 3.5;
 }
 
-/* Delete icon on a picked reference line. */
+/* Delete icon on a picked reference line. It is red, like the other ways to destroy something. */
 .reference-delete {
   cursor: pointer;
 }
 
 .reference-delete circle {
   fill: var(--color-surface);
-  stroke: var(--color-accent);
+  stroke: var(--color-danger);
   stroke-width: 2;
   vector-effect: non-scaling-stroke;
+  transition: fill var(--motion-instant) var(--ease-standard);
 }
 
 .reference-delete path {
   fill: none;
-  stroke: var(--color-accent);
+  stroke: var(--color-danger);
   stroke-width: 2;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
 }
 
 .reference-delete:hover circle {
-  fill: var(--color-accent);
+  fill: var(--color-danger);
 }
 
 .reference-delete:hover path {
-  stroke: var(--color-core-text);
+  stroke: var(--color-surface);
 }
 
+/* An open "V" rather than a solid triangle, so the head reads well at any angle. */
 .reference-arrow {
-  fill: var(--color-accent);
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .topic {
@@ -569,8 +587,7 @@
 }
 
 .canvas-svg[data-filter] .topic,
-.canvas-svg[data-filter] .connector,
-.canvas-svg[data-filter] .reference-connector {
+.canvas-svg[data-filter] .connector {
   transition: opacity var(--motion-standard) var(--ease-standard);
 }
 

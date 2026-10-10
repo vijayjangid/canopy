@@ -13,6 +13,12 @@ export type DialogName =
   | 'export';
 
 /** Parts of the details panel on the right. */
+/** One reference line: the topic it leaves and the topic it points at. */
+export interface ReferenceLine {
+  from: string;
+  to: string;
+}
+
 export type InspectorTab = 'properties' | 'note' | 'stickers';
 
 /** Tabs of the panel on the left. */
@@ -50,7 +56,7 @@ interface UiState {
   /** The topic whose picture description is being typed. */
   imageAltEditing: string | null;
   /** The topic whose reference line is picked, so it shows its delete icon. */
-  referenceFocus: string | null;
+  referenceFocus: ReferenceLine | null;
 }
 
 const PANELS_KEY = 'canopy.panels.v2';
@@ -186,8 +192,12 @@ export const startImageAltEdit = (id: string) => uiStore.setState({ imageAltEdit
 export const stopImageAltEdit = () => uiStore.setState({ imageAltEditing: null });
 
 /** Picks the reference line leaving a topic (or lets go of it). */
-export const setReferenceFocus = (referenceFocus: string | null) =>
-  uiStore.setState((s) => (s.referenceFocus === referenceFocus ? s : { referenceFocus }));
+export const setReferenceFocus = (referenceFocus: ReferenceLine | null) =>
+  uiStore.setState((s) => {
+    const now = s.referenceFocus;
+    const same = now?.from === referenceFocus?.from && now?.to === referenceFocus?.to;
+    return same ? s : { referenceFocus };
+  });
 
 export const setFilterText = (text: string) =>
   uiStore.setState((s) => ({ filterSel: { ...s.filterSel, text } }));

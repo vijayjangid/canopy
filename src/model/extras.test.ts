@@ -19,7 +19,10 @@ import {
   setImageAlt,
   setProps,
   setTopicImage,
-  setTopicReference,
+  addTopicReference,
+  clearTopicReferences,
+  removeTopicReference,
+  validateMap,
   toggleEdgeSticker,
   toggleSticker,
   stringifyFile,
@@ -158,55 +161,98 @@ describe('lines', () => {
 });
 
 describe('topic references', () => {
-  it('points to an existing topic and clears the reference', () => {
-    let map = createSubTopic(base(), 'core', { id: 'b', title: 'B' }).map;
-    map = setTopicReference(map, 'a', 'b');
-    expect(map.topics['a']?.referenceTo).toBe('b');
-    expect(setTopicReference(map, 'a', 'b')).toBe(map);
-    expect(setTopicReference(map, 'a', null).topics['a']?.referenceTo).toBeUndefined();
+  const two = () => createSubTopic(base(), 'core', { id: 'b', title: 'B' }).map;
+  const three = () => createSubTopic(two(), 'core', { id: 'c', title: 'C' }).map;
+
+  it('points to an existing topic and takes the reference away', () => {
+    let map = addTopicReference(two(), 'a', 'b');
+    expect(map.topics['a']?.references).toEqual(['b']);
+    expect(addTopicReference(map, 'a', 'b')).toBe(map);
+    map = removeTopicReference(map, 'a', 'b');
+    expect(map.topics['a']?.references).toBeUndefined();
+    expect(removeTopicReference(map, 'a', 'b')).toBe(map);
   });
 
-  it('removes incoming references when their target branch is deleted', () => {
-    let map = createSubTopic(base(), 'core', { id: 'b', title: 'B' }).map;
-    map = setTopicReference(map, 'a', 'b');
-    expect(deleteBranch(map, 'b').topics['a']?.referenceTo).toBeUndefined();
+  it('lets one topic point at several, and several point at one', () => {
+    let map = addTopicReference(three(), 'a', 'b');
+    map = addTopicReference(map, 'a', 'c');
+    expect(map.topics['a']?.references).toEqual(['b', 'c']);
+    map = addTopicReference(map, 'b', 'c');
+    expect(map.topics['c']).toBeDefined();
+    // Taking away one leaves the other.
+    expect(removeTopicReference(map, 'a', 'b').topics['a']?.references).toEqual(['c']);
+    expect(clearTopicReferences(map, 'a').topics['a']?.references).toBeUndefined();
+    expect(clearTopicReferences(map, 'a').topics['b']?.references).toEqual(['c']);
+    expect(validateMap(map)).toEqual([]);
   });
 
-  it('round-trips references through the file format', () => {
-    const map = setTopicReference(
-      createSubTopic(base(), 'core', { id: 'b', title: 'B' }).map,
-      'a',
-      'b',
-    );
+  it('refuses a topic pointing at itself', () => {
+    expect(() => addTopicReference(two(), 'a', 'a')).toThrow();
+  });
+
+  it('removes incoming references when their target branch is deleted, keeping the others', () => {
+    let map = addTopicReference(three(), 'a', 'b');
+    map = addTopicReference(map, 'a', 'c');
+    expect(deleteBranch(map, 'b').topics['a']?.references).toEqual(['c']);
+    expect(deleteBranch(deleteBranch(map, 'b'), 'c').topics['a']?.references).toBeUndefined();
+  });
+
+  it('round-trips several references through the file format', () => {
+    const map = addTopicReference(addTopicReference(three(), 'a', 'b'), 'a', 'c');
     const result = parseFile(JSON.parse(stringifyFile(map)));
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.map.topics['a']?.referenceTo).toBe('b');
+    if (result.ok) expect(result.map.topics['a']?.references).toEqual(['b', 'c']);
   });
 
-  it('keeps references on same-map paste and drops dangling references elsewhere', () => {
-    const map = setTopicReference(
-      createSubTopic(base(), 'core', { id: 'b', title: 'B' }).map,
-      'a',
-      'b',
-    );
-    const branches = branchesFromJson(branchesToJson(copyBranches(map, ['a']))) ?? [];
-    const copiedHere = pasteBranches(map, branches, { kind: 'child', parentId: 'core' });
-    expect(copiedHere.map.topics[copiedHere.ids[0] ?? '']?.referenceTo).toBe('b');
-    const copiedElsewhere = pasteBranches(base(), branches, { kind: 'child', parentId: 'core' });
-    expect(copiedElsewhere.map.topics[copiedElsewhere.ids[0] ?? '']?.referenceTo).toBeUndefined();
-  });
-
-  it('rejects references to missing topics and self references', () => {
-    const file = (referenceTo: string) => ({
+  it('opens a file from before references were a list', () => {
+    const file = (extra: Record<string, unknown>) => ({
       schema: 'canopy/1',
       core: {
         id: 'core',
         title: 'Core',
-        children: [{ id: 'a', title: 'A', referenceTo, children: [] }],
+        children: [
+          { id: 'a', title: 'A', ...extra, children: [] },
+          { id: 'b', title: 'B', children: [] },
+          { id: 'c', title: 'C', children: [] },
+        ],
       },
     });
-    expect(parseFile(file('missing')).ok).toBe(false);
-    expect(parseFile(file('a')).ok).toBe(false);
+    const old = parseFile(file({ referenceTo: 'b' }));
+    expect(old.ok && old.map.topics['a']?.references).toEqual(['b']);
+    // Both forms together are read as one list, without repeats.
+    const both = parseFile(file({ referenceTo: 'b', references: ['b', 'c'] }));
+    expect(both.ok && both.map.topics['a']?.references).toEqual(['b', 'c']);
+  });
+
+  it('keeps references on same-map paste and drops dangling references elsewhere', () => {
+    const map = addTopicReference(addTopicReference(three(), 'a', 'b'), 'a', 'c');
+    const branches = branchesFromJson(branchesToJson(copyBranches(map, ['a']))) ?? [];
+    const copiedHere = pasteBranches(map, branches, { kind: 'child', parentId: 'core' });
+    expect(copiedHere.map.topics[copiedHere.ids[0] ?? '']?.references).toEqual(['b', 'c']);
+    const copiedElsewhere = pasteBranches(base(), branches, { kind: 'child', parentId: 'core' });
+    expect(copiedElsewhere.map.topics[copiedElsewhere.ids[0] ?? '']?.references).toBeUndefined();
+  });
+
+  it('keeps the references that still point somewhere when only some do', () => {
+    const map = addTopicReference(addTopicReference(three(), 'a', 'b'), 'a', 'c');
+    const branches = branchesFromJson(branchesToJson(copyBranches(map, ['a']))) ?? [];
+    // A map that has B but not C.
+    const target = createSubTopic(base(), 'core', { id: 'b', title: 'B' }).map;
+    const pasted = pasteBranches(target, branches, { kind: 'child', parentId: 'core' });
+    expect(pasted.map.topics[pasted.ids[0] ?? '']?.references).toEqual(['b']);
+  });
+
+  it('rejects references to missing topics and self references', () => {
+    const file = (references: string[]) => ({
+      schema: 'canopy/1',
+      core: {
+        id: 'core',
+        title: 'Core',
+        children: [{ id: 'a', title: 'A', references, children: [] }],
+      },
+    });
+    expect(parseFile(file(['missing'])).ok).toBe(false);
+    expect(parseFile(file(['a'])).ok).toBe(false);
   });
 });
 

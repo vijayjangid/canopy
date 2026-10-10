@@ -105,74 +105,81 @@ export function connectorPath(
 }
 
 /** Gap between a reference arrow's tip and the topic it points at, so the tip is never hidden. */
-const REFERENCE_TIP_GAP = 4;
-/** How far a loop between topics in one row or column swings out past them. */
-const REFERENCE_LOOP = 56;
+const REFERENCE_TIP_GAP = 6;
+/** Gap between a reference line's start and the topic it leaves. */
+const REFERENCE_START_GAP = 2;
+/** How far the line bows from the straight way between two topics, as a share of that distance. */
+const REFERENCE_BOW = 0.12;
+const REFERENCE_BOW_MIN = 14;
+const REFERENCE_BOW_MAX = 70;
 
 type Point = { x: number; y: number };
 
-const transpose = (b: Box): Box => ({ x: b.y, y: b.x, w: b.h, h: b.w });
-const swap = (p: Point): Point => ({ x: p.y, y: p.x });
+const centreOf = (b: Box): Point => ({ x: b.x + b.w / 2, y: b.y + b.h / 2 });
 
-/**
- * The geometry for a Right flow, where the hierarchy uses the left and right sides of a topic and
- * the reference uses the middle of its free top or bottom side. A Down flow is this, transposed.
- */
-function referenceRight(source: Box, target: Box): { p1: Point; c1: Point; c2: Point; p2: Point } {
-  const sourceMid = source.x + source.w / 2;
-  const targetMid = target.x + target.w / 2;
-  const below = target.y >= source.y + source.h;
-  const above = target.y + target.h <= source.y;
+const inside = (b: Box, p: Point, margin: number): boolean =>
+  p.x > b.x - margin && p.x < b.x + b.w + margin && p.y > b.y - margin && p.y < b.y + b.h + margin;
 
-  if (!below && !above) {
-    // Level with each other: leave and arrive by the bottom sides, dipping below both.
-    const edge = Math.max(source.y + source.h, target.y + target.h);
-    return {
-      p1: { x: sourceMid, y: source.y + source.h },
-      c1: { x: sourceMid, y: edge + REFERENCE_LOOP },
-      c2: { x: targetMid, y: edge + REFERENCE_LOOP },
-      p2: { x: targetMid, y: target.y + target.h + REFERENCE_TIP_GAP },
-    };
+const quad = (p0: Point, c: Point, p2: Point, t: number): Point => {
+  const u = 1 - t;
+  return {
+    x: u * u * p0.x + 2 * u * t * c.x + t * t * p2.x,
+    y: u * u * p0.y + 2 * u * t * c.y + t * t * p2.y,
+  };
+};
+
+/** The `t` where the curve, starting inside `box`, crosses its edge, found by halving. */
+function leaves(box: Box, margin: number, at: (t: number) => Point): number {
+  let lo = 0; // inside the box
+  let hi = 0.5; // outside the box
+  for (let i = 0; i < 14; i++) {
+    const mid = (lo + hi) / 2;
+    if (inside(box, at(mid), margin)) lo = mid;
+    else hi = mid;
   }
-
-  const s = below ? 1 : -1;
-  const p1 = { x: sourceMid, y: below ? source.y + source.h : source.y };
-  const p2 = { x: targetMid, y: (below ? target.y : target.y + target.h) - s * REFERENCE_TIP_GAP };
-  const k = Math.max(32, Math.abs(p2.y - p1.y) / 2);
-  // Stacked in one column: bow out to the right, so the arrow does not run over the topics between.
-  const stacked = source.x < target.x + target.w && target.x < source.x + source.w;
-  const bow = stacked ? Math.max(source.w, target.w) / 2 + REFERENCE_LOOP / 2 : 0;
-  return {
-    p1,
-    c1: { x: p1.x + bow, y: p1.y + s * k },
-    c2: { x: p2.x + bow, y: p2.y - s * k },
-    p2,
-  };
+  return hi;
 }
 
 /**
- * A curved, non-hierarchical link from the middle of the free side of `source` to the middle of
- * the free side of `target`, and the point halfway along it. Those are the sides the connectors
- * leave alone: top and bottom in a Right flow, left and right in a Down flow.
+ * A reference line: the shortest sensible curve between two topics, like a flight path. It is one
+ * gentle arc between their middles, trimmed to where it leaves `source` and where it reaches
+ * `target`, so it never skims along an edge. It bows to the left of the way it travels, so two
+ * topics that point at each other do not draw over one another. Also gives the point halfway along
+ * the line, for the delete icon.
  */
-export function referenceGeometry(
-  source: Box,
-  target: Box,
-  flow: Flow = 'right',
-): { d: string; mid: Point } {
-  const down = flow === 'down';
-  const g = down
-    ? referenceRight(transpose(source), transpose(target))
-    : referenceRight(source, target);
-  const [p1, c1, c2, p2] = down
-    ? [swap(g.p1), swap(g.c1), swap(g.c2), swap(g.p2)]
-    : [g.p1, g.c1, g.c2, g.p2];
+export function referenceGeometry(source: Box, target: Box): { d: string; mid: Point } {
+  const p0 = centreOf(source);
+  const p2 = centreOf(target);
+  const dx = p2.x - p0.x;
+  const dy = p2.y - p0.y;
+  const length = Math.hypot(dx, dy) || 1;
+  const bow = Math.min(REFERENCE_BOW_MAX, Math.max(REFERENCE_BOW_MIN, length * REFERENCE_BOW));
+  // To the left of the way it travels, on screen where y runs down. A quadratic curve's middle is
+  // half as far from the chord as its control point.
+  const c: Point = {
+    x: (p0.x + p2.x) / 2 + (dy / length) * bow * 2,
+    y: (p0.y + p2.y) / 2 - (dx / length) * bow * 2,
+  };
+
+  const at = (t: number) => quad(p0, c, p2, t);
+  let a = leaves(source, REFERENCE_START_GAP, at);
+  let b = 1 - leaves(target, REFERENCE_TIP_GAP, (t) => at(1 - t));
+  // Topics that touch leave no room for a line between them, so show a short one between the middles.
+  if (a >= b) [a, b] = [0.4, 0.6];
+
+  // The part of the curve from `a` to `b` is itself a quadratic curve.
+  const w = { p0: (1 - a) * (1 - b), c: a * (1 - b) + b * (1 - a), p2: a * b };
+  const q0 = at(a);
+  const q2 = at(b);
+  const qc: Point = {
+    x: w.p0 * p0.x + w.c * c.x + w.p2 * p2.x,
+    y: w.p0 * p0.y + w.c * c.y + w.p2 * p2.y,
+  };
   return {
-    d: `M${f(p1.x)} ${f(p1.y)}C${f(c1.x)} ${f(c1.y)} ${f(c2.x)} ${f(c2.y)} ${f(p2.x)} ${f(p2.y)}`,
-    // Middle of a cubic curve.
-    mid: { x: (p1.x + 3 * c1.x + 3 * c2.x + p2.x) / 8, y: (p1.y + 3 * c1.y + 3 * c2.y + p2.y) / 8 },
+    d: `M${f(q0.x)} ${f(q0.y)}Q${f(qc.x)} ${f(qc.y)} ${f(q2.x)} ${f(q2.y)}`,
+    mid: quad(q0, qc, q2, 0.5),
   };
 }
 
-export const referencePath = (source: Box, target: Box, flow: Flow = 'right'): string =>
-  referenceGeometry(source, target, flow).d;
+export const referencePath = (source: Box, target: Box): string =>
+  referenceGeometry(source, target).d;

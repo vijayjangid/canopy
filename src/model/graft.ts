@@ -67,7 +67,7 @@ export function graftMap(map: CanopyMap, parentId: TopicId, source: CanopyMap): 
     for (const t of topics) {
       const id = ids.get(t.id) as TopicId;
       const isRoot = t.id === source.coreId;
-      const { referenceTo, ...rest } = t;
+      const { references, ...rest } = t;
       const topic: Topic = {
         ...rest,
         id,
@@ -76,8 +76,8 @@ export function graftMap(map: CanopyMap, parentId: TopicId, source: CanopyMap): 
         title: isRoot ? graftTitle(source) : t.title,
         folded: t.folded && childrenOf(source, t.id).length > 0,
       };
-      const target = referenceTo ? ids.get(referenceTo) : undefined;
-      if (target) topic.referenceTo = target;
+      const targets = (references ?? []).flatMap((to) => ids.get(to) ?? []);
+      if (targets.length > 0) topic.references = targets;
       delete (topic as Partial<Topic>).edge;
       if (t.edge && !isRoot) topic.edge = t.edge;
       draft.topics[id] = topic;

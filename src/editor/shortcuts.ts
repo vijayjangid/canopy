@@ -172,7 +172,7 @@ export const COMMANDS: readonly CommandDef[] = [
   { id: 'props.due', label: 'Set a due date', shortcuts: [{ key: 'd' }] },
   { id: 'props.tag', label: 'Add a tag', shortcuts: [{ key: 'g' }] },
   { id: 'topic.reference', label: 'Reference another topic', shortcuts: [{ key: 'x' }] },
-  { id: 'topic.referenceRemove', label: 'Remove topic reference', shortcuts: [] },
+  { id: 'topic.referenceRemove', label: 'Remove topic references', shortcuts: [] },
   { id: 'topic.imageAlt', label: 'Describe the picture (alt text)', shortcuts: [] },
   { id: 'topic.imageRemove', label: 'Remove the picture from the topic', shortcuts: [] },
   { id: 'filter.open', label: 'Search and filter', shortcuts: [{ key: '/' }, { key: 'f' }] },

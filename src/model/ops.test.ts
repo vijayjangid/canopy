@@ -12,7 +12,7 @@ import {
   moveSibling,
   renameTopic,
   setFolded,
-  setTopicReference,
+  addTopicReference,
   toggleFold,
   unfoldAll,
 } from './ops';
@@ -248,10 +248,10 @@ describe('deleteNode', () => {
 
   it('opens a folded parent, and clears references to the removed topic', () => {
     let map = setFolded(tree(), 'core', true);
-    map = setTopicReference(map, 'a', 'b');
+    map = addTopicReference(map, 'a', 'b');
     map = deleteNode(map, 'b');
     expect(map.topics['core']?.folded).toBe(false);
-    expect(map.topics['a']?.referenceTo).toBeUndefined();
+    expect(map.topics['a']?.references).toBeUndefined();
   });
 
   it('never removes the Core', () => {

@@ -4,7 +4,7 @@ import { announce } from '../a11y';
 import { appContext } from '../editor';
 import { formatShortcut, COMMANDS, type CommandId } from '../editor/shortcuts';
 import type { Layout } from '../layout';
-import { hasChildren, setTopicReference } from '../model';
+import { addTopicReference, hasChildren } from '../model';
 import { canopyStore, useCanopy } from '../store';
 import {
   GROWTH_KINDS,
@@ -241,7 +241,7 @@ export function GrowthHandles({ layout, drawn, onCommit }: Props) {
       return;
     }
     const { doc: current, commit } = canopyStore.getState();
-    commit(setTopicReference(current, subject, target));
+    commit(addTopicReference(current, subject, target));
     const name = (id: string) => current.topics[id]?.title.trim() || 'Empty topic';
     announce(`${name(subject)} now references ${name(target)}`);
   };

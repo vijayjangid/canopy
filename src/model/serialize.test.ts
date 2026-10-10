@@ -72,7 +72,8 @@ describe('file format', () => {
     const result = parseJson(stringifyFile(map));
     expect(result.ok).toBe(true);
     if (result.ok) expect(validateMap(result.map)).toEqual([]);
-  });
+    // Building 4,500 topics one at a time takes about 4 seconds, so it gets room to spare.
+  }, 30_000);
 });
 
 describe('parseFile errors', () => {

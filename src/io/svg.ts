@@ -14,7 +14,6 @@ import {
   STICKER_SHADOW_OFFSET,
   seedOf,
   textLines,
-  TOPIC_PADDING,
   typeForDepth,
   topicRows,
   type Layout,
@@ -270,14 +269,14 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
       textLinesShown
         .map(
           (l, i) =>
-            `<tspan x="${TOPIC_PADDING.x}" y="${f(first + i * style.lineHeight)}">${
+            `<tspan x="${f(b.w / 2)}" y="${f(first + i * style.lineHeight)}">${
               i === 0 && doc.prefs.showLevels && b.depth > 0
                 ? `<tspan fill="${prefixFill}" fill-opacity="${prefixOpacity}" font-family="${escapeXml(LEVEL_FONT_STACK)}" font-size="${f(style.size * LEVEL_PREFIX_SCALE)}" font-weight="400">${levelPrefix(b.depth, b.position)}</tspan>`
                 : ''
             }${escapeXml(l)}</tspan>`,
         )
         .join('');
-    const box = `text-anchor="start" dominant-baseline="central" font-size="${f(style.size)}" font-weight="${paint.weight}"`;
+    const box = `text-anchor="middle" dominant-baseline="central" font-size="${f(style.size)}" font-weight="${paint.weight}"`;
     if (paint.sticker && textLinesShown.length > 0) {
       // The sticker is the topic's own box, so it is as wide and tall as the topic.
       const blobOf = (grow: number) =>

@@ -156,7 +156,7 @@ test('tags on the Core stay readable against its solid colour', async ({ page })
   await expect(dot).toHaveAttribute('fill', '#5b4bdb');
 });
 
-test('titles are left-aligned and chips are centred, in every theme', async ({ page }) => {
+test('titles and chips are centred in the topic, in every theme', async ({ page }) => {
   await page.goto('/?demo=14&plan=1');
   for (const name of ['Minimal', 'High contrast', 'Playful']) {
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
@@ -165,8 +165,12 @@ test('titles are left-aligned and chips are centred, in every theme', async ({ p
     // A topic with a row of chips under its title.
     const topic = page.locator('.topic[data-depth="1"]:has(.topic-chips)').first();
     await expect(topic).toBeVisible();
-    await expect(topic.locator('.topic-text')).toHaveAttribute('text-anchor', 'start');
-    expect(await topic.locator('.topic-text tspan').first().getAttribute('x')).toBe('14');
+    await expect(topic.locator('.topic-text')).toHaveAttribute('text-anchor', 'middle');
+    const [width, titleX] = await Promise.all([
+      topic.locator('.topic-box').evaluate((el) => Number(el.getAttribute('width'))),
+      topic.locator('.topic-text tspan').first().getAttribute('x'),
+    ]);
+    expect(Number(titleX)).toBeCloseTo(width / 2, 1);
     // The chip row has equal space on both sides of it, measured on the layout, not on glyphs.
     const [box, chips] = await Promise.all([
       topic.locator('.topic-box').evaluate((el) => Number(el.getAttribute('width'))),

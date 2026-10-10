@@ -18,7 +18,7 @@ import {
   movableRoots,
   setFolded,
   setTopicImage,
-  setTopicReference,
+  clearTopicReferences,
   siblingsOf,
   subtreeOf,
   unfoldAll,
@@ -242,8 +242,12 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
       return true;
 
     case 'topic.referenceRemove':
-      state.commit(setTopicReference(doc, focus, null));
-      announce(`Removed reference from ${nameOf(doc, focus)}`);
+      if (!doc.topics[focus]?.references?.length) {
+        announce('This topic has no references');
+        return true;
+      }
+      state.commit(clearTopicReferences(doc, focus));
+      announce(`Removed the references from ${nameOf(doc, focus)}`);
       return true;
 
     case 'topic.delete': {
