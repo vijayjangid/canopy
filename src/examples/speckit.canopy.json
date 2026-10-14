@@ -1,0 +1,95 @@
+{
+  "schema": "canopy/1",
+  "meta": {
+    "title": "SpecKit",
+    "created": "2026-10-14T19:24:54.928Z",
+    "modified": "2026-10-14T19:24:54.928Z"
+  },
+  "prefs": {
+    "flow": "right",
+    "density": "comfortable",
+    "showLevels": false,
+    "look": "minimal",
+    "chips": "compact"
+  },
+  "core": {
+    "id": "t_dr6njltlwv",
+    "title": "/Constitution",
+    "stickers": [
+      {
+        "id": "s_04mgpllum9",
+        "key": "home"
+      }
+    ],
+    "children": [
+      {
+        "id": "t_2ji7p071x0",
+        "title": "/Specify",
+        "children": [
+          {
+            "id": "t_3eo0x6iirv",
+            "title": "/Plan",
+            "children": [
+              {
+                "id": "t_kdytky7xae",
+                "title": "/Tasks",
+                "children": [
+                  {
+                    "id": "t_yjqt5s930d",
+                    "title": "/Implement",
+                    "children": [
+                      {
+                        "id": "t_zecjd4rozx",
+                        "title": "/Converge",
+                        "stickers": [
+                          {
+                            "id": "s_19wmul1l60",
+                            "key": "celebrate"
+                          }
+                        ],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "id": "t_2iqlc2irw9",
+                    "title": "/Analyze",
+                    "stickers": [
+                      {
+                        "id": "s_f8qbojcezf",
+                        "key": "warning"
+                      }
+                    ],
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "t_1227jvg8mo",
+                "title": "/Checklist",
+                "stickers": [
+                  {
+                    "id": "s_4f6u33nd20",
+                    "key": "warning"
+                  }
+                ],
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "t_n09as9ipw6",
+            "title": "/Clarify",
+            "stickers": [
+              {
+                "id": "s_r1i4bw21m3",
+                "key": "warning"
+              }
+            ],
+            "children": []
+          }
+        ]
+      }
+    ]
+  }
+}

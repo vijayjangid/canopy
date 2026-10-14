@@ -57,7 +57,7 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 
 ### Information architecture
 
-- **Top bar [Built]:** a File menu (New, Open, Save a copy, recent maps), the map title with a save indicator, undo and redo as icon buttons, the colour mode switch (Auto, Light, Dark), and the Search (⌘F) and shortcut sheet buttons. Theme and Flow live in the left panel.
+- **Top bar [Built]:** a File menu (New, Open, Save a copy, the built-in SpecKit example, and your maps), the map title with a save indicator, undo and redo as icon buttons, the colour mode switch (Auto, Light, Dark), and the Search (⌘F) and shortcut sheet buttons. Theme and Flow live in the left panel.
 - **Canvas [Built]:** the infinite map.
 - **Left panel [Built]:** a strip of four tabs that opens into a floating panel: Settings (theme, layout and behaviour), Filter, Tags and Export. Its tabs sit on the header line, each with its icon and name, and a bar under the open one slides in. The Outline is planned to join it.
 - **Right inspector [Built]:** floating details panel that opens when a topic is clicked and closes with its own button. Tabs: Details and Note, set and animated like the left panel's. The Details tab starts directly with the Properties fields (Status, Due date and Tags, with no heading), followed by the Stickers section, which has a small caption heading with a line after it, like the group titles in Settings, and is always open. When a line is picked, the Stickers section edits the line.
@@ -285,6 +285,7 @@ A Reference links a topic to an existing topic anywhere in the map, so two branc
 ### 3.12 Saving [Built, changed]
 
 - A map is stored in IndexedDB shortly after it is edited, and when the page is hidden. A map that has only been opened or just created is **not** stored, so reloading an untouched Untitled map does not leave empty maps behind. The first edit, including giving it a title, stores it.
+- The File menu's **Examples** section opens a fresh, editable copy of the built-in SpecKit map. The bundled example itself is never changed.
 - Opening or starting a different map finishes saving the one that was being edited, under its own identity.
 - The title bar shows a save indicator with the time of the last save.
 - File > Open and Save a copy move maps in and out as `.canopy.json` files, with a download fallback when the browser cannot choose a file.

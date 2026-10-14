@@ -1,9 +1,10 @@
-import { graftMap, newId } from '../model';
+import { graftMap, newId, parseJson } from '../model';
 import { pickMapFile, rememberOpenedMap, saveMapToFile } from '../persistence';
 import type { MapRepository } from '../persistence';
 import { announce } from '../a11y';
 import { canopyStore } from '../store';
 import { showToast } from './toast';
+import speckitFile from '../examples/speckit.canopy.json?raw';
 
 /**
  * Starts an empty map with its Core already open for naming. Autosave stores it once it is
@@ -16,6 +17,21 @@ export function startNewMap(): void {
   const { setEditing, doc } = canopyStore.getState();
   setEditing(doc.coreId);
   announce('New map. Type a name for the central topic');
+}
+
+/** Opens a fresh, editable copy of the built-in SpecKit example. */
+export function openSpecKitExample(): void {
+  const result = parseJson(speckitFile);
+  if (!result.ok) {
+    const message = result.errors[0] ?? 'The example map is invalid';
+    showToast(`Could not open the SpecKit example: ${message}`);
+    announce(`Could not open the SpecKit example. ${message}`);
+    return;
+  }
+  const mapId = newId('m_');
+  canopyStore.getState().load(mapId, result.map);
+  rememberOpenedMap(mapId);
+  announce('Opened a copy of the SpecKit example');
 }
 
 export async function openMapFromFile(): Promise<void> {

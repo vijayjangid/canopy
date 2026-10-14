@@ -42,6 +42,7 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 
 - **Growth handles** appear on hover. Click to add, or drag to drop with a magnetic snap and a **ghost preview** of exactly where the new topic will land. Turn on **Preview on hover** in Settings to see the ghost while merely pointing at a `+` (off by default).
 - **New map** (File menu) opens with its central topic ready to name, so you can start typing at once.
+- **Example map:** choose **SpecKit example** under **Examples** in the File menu to open a fresh, editable copy without changing the built-in sample.
 - `Tab` adds a sub-topic, `Enter` a peer, `W` inserts a topic **between** a topic and its parent. No dragging needed.
 - **Text expansion:** type `!!Research>Interviews>Synthesis` for a chain, or `!!A, B, C` for peers. One undo puts the text back.
 - **Paste an outline** (indented text or Markdown bullets) onto any topic and it unfurls into a branch.

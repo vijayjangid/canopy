@@ -61,6 +61,19 @@ test('starts a new map and shows a first-run hint until the first idea', async (
   await expect(page.getByRole('treeitem')).toHaveCount(2);
 });
 
+test('opens a fresh, editable copy of the SpecKit example', async ({ page }) => {
+  await page.goto('/');
+  await fileMenu(page, 'SpecKit example');
+  await expect(page.getByRole('button', { name: 'File menu: SpecKit' })).toBeVisible();
+  await expect(tree(page).getByRole('treeitem', { name: '/Specify', exact: true })).toBeVisible();
+  await expect(tree(page).getByRole('treeitem', { name: /^\/Converge, 1 sticker$/ })).toBeVisible();
+
+  await renameMap(page, 'My SpecKit copy');
+  await fileMenu(page, 'SpecKit example');
+  await expect(page.getByRole('button', { name: 'File menu: SpecKit' })).toBeVisible();
+  await expect(tree(page).getByRole('treeitem')).toHaveCount(9);
+});
+
 test('saves a map to a file and opens it again', async ({ page }) => {
   // Force the plain download path, which works the same in every browser.
   await page.addInitScript(() => {

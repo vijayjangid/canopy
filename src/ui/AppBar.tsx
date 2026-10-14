@@ -11,6 +11,7 @@ import { SaveBadge } from './SaveBadge';
 import {
   importMapAsBranch,
   openMapFromFile,
+  openSpecKitExample,
   openStoredMap,
   saveMapAsFile,
   startNewMap,
@@ -121,6 +122,8 @@ function MapMenu() {
           {item('Add a map as a branch…', '', () => void importMapAsBranch())}
           {item('Save a copy…', '', () => void saveMapAsFile())}
           {item('Export…', '⌘E', () => openLeft('export'))}
+          <p className="menu-heading">Examples</p>
+          {item('SpecKit example', '', openSpecKitExample)}
           {maps.length > 0 && <p className="menu-heading">Your maps</p>}
           {maps.map((m) => (
             <button
