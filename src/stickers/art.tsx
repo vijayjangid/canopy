@@ -1,185 +1,329 @@
-import type { ReactElement } from 'react';
+import { useId, type ReactElement } from 'react';
 
 /** One drawn part of a sticker, on a 32 by 32 grid. */
-type Part =
+type Part = (
   | { t: 'path'; d: string; fill?: string; stroke?: string; w?: number }
   | { t: 'circle'; cx: number; cy: number; r: number; fill?: string; stroke?: string; w?: number }
-  | { t: 'rect'; x: number; y: number; width: number; height: number; rx?: number; fill?: string };
-
-const star = (cx: number, cy: number, outer: number, inner: number) =>
-  Array.from({ length: 10 }, (_, i) => {
-    const angle = (Math.PI / 5) * i - Math.PI / 2;
-    const r = i % 2 === 0 ? outer : inner;
-    return `${i === 0 ? 'M' : 'L'}${(cx + r * Math.cos(angle)).toFixed(2)} ${(cy + r * Math.sin(angle)).toFixed(2)}`;
-  }).join('') + 'Z';
+  | { t: 'rect'; x: number; y: number; width: number; height: number; rx?: number; fill?: string }
+  | {
+      t: 'text';
+      x: number;
+      y: number;
+      value: string;
+      size: number;
+      fontWeight: number;
+      fontFamily?: string;
+      stroke?: string;
+      w?: number;
+      scaleX?: number;
+      scaleY?: number;
+      fill?: string;
+    }
+) & { cutout?: boolean; gradient?: readonly [string, string, string] };
 
 const WHITE = '#ffffff';
+const STROKE_WIDTH = 2;
+const SYMBOL_STROKE_WIDTH = 2.5;
+const DIE_CUT_OUTLINE_WIDTH = 5.5;
+const HANDWRITTEN_FONT = "'Kalam', 'Comic Sans MS', cursive";
+const COLORS = {
+  yellow: '#ffc857',
+  yellowLight: '#fff4bf',
+  coral: '#ef476f',
+  coralLight: '#ffd6de',
+  orange: '#ff8c42',
+  blue: '#4d8dff',
+  blueLight: '#eaf3ff',
+  blueDark: '#315a9b',
+  green: '#2ecc71',
+  purple: '#8b5cf6',
+  slate: '#627386',
+  ink: '#4a4e69',
+  brown: '#8d5a3b',
+} as const;
+const WEEKDAY_GRADIENTS = {
+  monday: ['#39c6ff', '#4d8dff', '#875cf6'],
+  tuesday: ['#35b9f4', '#5286ee', '#945ceb'],
+  wednesday: ['#4cabeb', '#5d84f0', '#a15de5'],
+  thursday: ['#5b9fe4', '#667fe7', '#a961db'],
+  friday: ['#6a95db', '#6e7fde', '#b662d1'],
+  saturday: ['#7a8bd2', '#7778d5', '#c067c8'],
+  sunday: ['#8b80c8', '#806fca', '#c66bbf'],
+} as const;
 
-/** Bold flat artwork. Each sticker gets a white die-cut edge and a soft shadow when drawn. */
+const dieCutText = (label: string, color: string, size = 20): Part[] => [
+  {
+    t: 'text',
+    x: 16,
+    y: 16,
+    value: label,
+    size,
+    fontWeight: 900,
+    fontFamily: HANDWRITTEN_FONT,
+    stroke: color,
+    w: 0.8,
+    fill: color,
+  },
+];
+
+const dieCutGradientText = (
+  label: string,
+  gradient: readonly [string, string, string],
+  size = 16,
+): Part[] => [
+  {
+    t: 'text',
+    x: 16,
+    y: 16,
+    value: label,
+    size,
+    fontWeight: 900,
+    fontFamily: HANDWRITTEN_FONT,
+    w: 0.8,
+    scaleX: 0.8,
+    scaleY: 1.25,
+    gradient,
+  },
+];
+
+/** Original flat artwork with a white die-cut edge and soft shadow. */
 export const STICKER_ART: Record<string, Part[]> = {
-  star: [{ t: 'path', d: star(16, 16.5, 13, 5.6), fill: '#ffc933' }],
-  heart: [
+  love: [
     {
       t: 'path',
       d: 'M16 28C6 20 3 15 3 10.5 3 7 5.8 4.5 9 4.5c3 0 5.5 1.8 7 4.5 1.5-2.7 4-4.5 7-4.5 3.2 0 6 2.5 6 6 0 4.5-3 9.5-13 17.5Z',
-      fill: '#ff4d6d',
+      fill: COLORS.coral,
     },
-    { t: 'path', d: 'M8 10c.5-1.5 1.6-2.2 3-2.2', stroke: '#ffd0da', w: 2, fill: 'none' },
-  ],
-  bolt: [{ t: 'path', d: 'M19 2 7 18h7l-2 12 13-17h-8Z', fill: '#ffd23f' }],
-  flag: [
-    { t: 'rect', x: 6, y: 3, width: 3, height: 26, rx: 1.5, fill: '#4a4e69' },
-    { t: 'path', d: 'M9 5c5-2.5 9 2.5 16 0v11c-7 2.5-11-2.5-16 0Z', fill: '#ef476f' },
-  ],
-  done: [
-    { t: 'circle', cx: 16, cy: 16, r: 13, fill: '#2ecc71' },
-    { t: 'path', d: 'm9.5 16.5 4.5 4.5 8.5-9.5', stroke: WHITE, w: 3.5, fill: 'none' },
-  ],
-  no: [
-    { t: 'circle', cx: 16, cy: 16, r: 13, fill: '#ef476f' },
-    { t: 'path', d: 'm10.5 10.5 11 11m0-11-11 11', stroke: WHITE, w: 3.5, fill: 'none' },
-  ],
-  question: [
-    { t: 'circle', cx: 16, cy: 16, r: 13, fill: '#4d8dff' },
     {
       t: 'path',
-      d: 'M12 12.5c0-2.5 1.8-4 4-4s4 1.5 4 3.5c0 3-4 3.2-4 6',
-      stroke: WHITE,
-      w: 3,
+      d: 'M8 10c.7-1.7 2-2.3 3.6-2.3',
+      stroke: COLORS.coralLight,
+      w: STROKE_WIDTH,
       fill: 'none',
     },
-    { t: 'circle', cx: 16, cy: 23, r: 1.9, fill: WHITE },
   ],
-  alert: [
-    { t: 'circle', cx: 16, cy: 16, r: 13, fill: '#ff9f1c' },
-    { t: 'path', d: 'M16 8.5v9', stroke: WHITE, w: 3.5, fill: 'none' },
-    { t: 'circle', cx: 16, cy: 23, r: 2, fill: WHITE },
-  ],
-  fire: [
+  bug: [
     {
       t: 'path',
-      d: 'M16 2c1 6.5 8 9.5 8 18 0 5.5-3.5 9-8 9s-8-3.5-8-9c0-4 2-6 3-9 2 2 2.5 3.5 3 4 .5-4 .5-8 2-13Z',
-      fill: '#ff7b25',
+      d: 'M13 8 11 4m8 4 2-4M10 13l-4-2m3 7H4m6 5-4 3m16-13 4-2m-3 7h5m-6 5 4 3',
+      stroke: COLORS.ink,
+      w: STROKE_WIDTH,
+      fill: 'none',
     },
     {
       t: 'path',
-      d: 'M16 18c2.5 2 3.5 4 3.5 6 0 2-1.5 3.5-3.5 3.5S12.5 26 12.5 24c0-2.5 2-3.5 3.5-6Z',
-      fill: '#ffd23f',
+      d: 'M16 7c6 0 9 5 9 12s-4 11-9 11-9-4-9-11 3-12 9-12Z',
+      fill: COLORS.coral,
     },
+    { t: 'path', d: 'M16 10v18', stroke: COLORS.ink, w: STROKE_WIDTH, fill: 'none' },
+    { t: 'circle', cx: 16, cy: 7, r: 3.6, fill: COLORS.ink },
+    { t: 'circle', cx: 14.7, cy: 6.5, r: 0.8, fill: WHITE },
+    { t: 'circle', cx: 17.3, cy: 6.5, r: 0.8, fill: WHITE },
+    { t: 'circle', cx: 12, cy: 15, r: 1.4, fill: WHITE },
+    { t: 'circle', cx: 20, cy: 15, r: 1.4, fill: WHITE },
+    { t: 'circle', cx: 12, cy: 22, r: 1.4, fill: WHITE },
+    { t: 'circle', cx: 20, cy: 22, r: 1.4, fill: WHITE },
   ],
   idea: [
-    { t: 'circle', cx: 16, cy: 13, r: 10, fill: '#ffd23f' },
-    { t: 'rect', x: 11.5, y: 22, width: 9, height: 6, rx: 2, fill: '#8d99ae' },
-    { t: 'path', d: 'M12.5 13c0-2 1.5-3.5 3.5-3.5', stroke: '#fff4bf', w: 2, fill: 'none' },
+    { t: 'circle', cx: 16, cy: 13, r: 10, fill: COLORS.yellow },
+    { t: 'rect', x: 11.5, y: 22, width: 9, height: 6, rx: 2, fill: COLORS.slate },
+    {
+      t: 'path',
+      d: 'M12.5 13c0-2 1.5-3.5 3.5-3.5',
+      stroke: COLORS.yellowLight,
+      w: STROKE_WIDTH,
+      fill: 'none',
+    },
+    { t: 'path', d: 'M12.5 25h7', stroke: COLORS.ink, w: STROKE_WIDTH, fill: 'none' },
   ],
-  rocket: [
-    { t: 'path', d: 'M12 17 6 24l6.5-1.5ZM20 17l6 7-6.5-1.5Z', fill: '#ef476f' },
-    { t: 'path', d: 'M16 2c5 4 6.5 11 5 19h-10C9.5 13 11 6 16 2Z', fill: '#5b8def' },
-    { t: 'circle', cx: 16, cy: 12, r: 3, fill: WHITE },
-    { t: 'path', d: 'M13 22l3 8 3-8Z', fill: '#ffb703' },
+  celebrate: [
+    { t: 'path', d: 'M10 5h12v7c0 5-2.5 8-6 8s-6-3-6-8Z', fill: COLORS.yellow },
+    {
+      t: 'path',
+      d: 'M10 7H5c0 4 2 6 5.5 6m11.5-6h5c0 4-2 6-5.5 6',
+      stroke: COLORS.orange,
+      w: STROKE_WIDTH,
+      fill: 'none',
+    },
+    { t: 'rect', x: 14, y: 20, width: 4, height: 4, fill: COLORS.orange },
+    { t: 'rect', x: 10, y: 24, width: 12, height: 4, rx: 1.5, fill: COLORS.yellow },
+    {
+      t: 'path',
+      d: 'm5 3 1.2 2.5L9 6l-2.8 1L5 10 4 7l-3-1 3-.5Zm21 10 1.1 2.4L30 16l-2.9 1-1.1 2.5-1-2.5-3-1 3-.6Z',
+      fill: COLORS.blue,
+    },
   ],
-  happy: [
-    { t: 'circle', cx: 16, cy: 16, r: 13, fill: '#ffd23f' },
-    { t: 'circle', cx: 11.5, cy: 13, r: 1.9, fill: '#5a3d00' },
-    { t: 'circle', cx: 20.5, cy: 13, r: 1.9, fill: '#5a3d00' },
-    { t: 'path', d: 'M9.5 18.5c2 5 11 5 13 0', stroke: '#5a3d00', w: 2.6, fill: 'none' },
+  check: [
+    { t: 'rect', x: 4.5, y: 5, width: 23, height: 22, rx: 4.5, fill: COLORS.green },
+    {
+      t: 'path',
+      d: 'M10.5 16.2 14 19.7 21.5 12',
+      stroke: WHITE,
+      w: SYMBOL_STROKE_WIDTH,
+      fill: 'none',
+      cutout: false,
+    },
+  ],
+  cross: [
+    { t: 'circle', cx: 16, cy: 16, r: 13, fill: COLORS.coral },
+    {
+      t: 'path',
+      d: 'm11 11 10 10m0-10L11 21',
+      stroke: WHITE,
+      w: SYMBOL_STROKE_WIDTH,
+      fill: 'none',
+      cutout: false,
+    },
+  ],
+  question: [
+    {
+      t: 'path',
+      d: 'M16 2.5C8.5 2.5 3 7.6 3 14.2c0 4.9 3.1 9 7.8 10.7l-.4 1.6c-.2.7.5 1.2 1.1.7l3.5-2.4c.3.1.7.2 1 .2 7.6 0 13-4.9 13-11.2C29 7.4 23.6 2.5 16 2.5Z',
+      fill: COLORS.blue,
+    },
+    {
+      t: 'path',
+      d: 'M13.2 11.7c0-2.1 1.4-3.5 3.5-3.5s3.5 1.4 3.5 3.5c0 1.8-1.1 2.8-2.1 3.6-1 .8-1.4 1.5-1.4 2.8',
+      stroke: WHITE,
+      w: SYMBOL_STROKE_WIDTH,
+      fill: 'none',
+      cutout: false,
+    },
+    { t: 'circle', cx: 16.7, cy: 21.8, r: 1.05, fill: WHITE, cutout: false },
+  ],
+  warning: [
+    {
+      t: 'path',
+      d: 'M13.2 4.8c1.2-2.1 4.4-2.1 5.6 0l10 18c1.2 2.1-.3 4.7-2.8 4.7H6c-2.5 0-4-2.6-2.8-4.7Z',
+      fill: COLORS.yellow,
+      stroke: COLORS.orange,
+      w: STROKE_WIDTH,
+    },
+    {
+      t: 'path',
+      d: 'M16 13v5.5',
+      stroke: COLORS.ink,
+      w: SYMBOL_STROKE_WIDTH,
+      fill: 'none',
+      cutout: false,
+    },
+    { t: 'circle', cx: 16, cy: 22.3, r: 1.25, fill: COLORS.ink, cutout: false },
+  ],
+  flag: [
+    { t: 'rect', x: 6, y: 3, width: 3, height: 26, rx: 1.5, fill: COLORS.ink },
+    { t: 'path', d: 'M9 5c5-2.5 9 2.5 16 0v11c-7 2.5-11-2.5-16 0Z', fill: COLORS.coral },
+    {
+      t: 'path',
+      d: 'M12 7c3-1 5 .6 7 1',
+      stroke: COLORS.coralLight,
+      w: STROKE_WIDTH,
+      fill: 'none',
+    },
   ],
   pin: [
-    { t: 'path', d: 'M11 3h10l-1 9 4 4H8l4-4Z', fill: '#ef476f' },
-    { t: 'path', d: 'M16 16v13', stroke: '#6b7280', w: 2.6, fill: 'none' },
-  ],
-  bell: [
     {
       t: 'path',
-      d: 'M16 3c-5 0-7.5 4-7.5 9 0 6-2.5 8-2.5 9.5h20c0-1.5-2.5-3.5-2.5-9.5 0-5-2.5-9-7.5-9Z',
-      fill: '#ffc933',
+      d: 'M16 29s-10-10.5-10-17a10 10 0 1 1 20 0c0 6.5-10 17-10 17Z',
+      fill: COLORS.coral,
     },
-    { t: 'circle', cx: 16, cy: 25.5, r: 3, fill: '#ff9f1c' },
+    { t: 'circle', cx: 16, cy: 12, r: 4, fill: COLORS.yellow },
+    { t: 'circle', cx: 16, cy: 12, r: 1.5, fill: COLORS.yellowLight },
   ],
-  win: [
-    { t: 'path', d: 'M9 3h14v8c0 5-3 8-7 8s-7-3-7-8Z', fill: '#ffc933' },
+  delay: [
     {
       t: 'path',
-      d: 'M9 6H4.5c0 5 2 7.5 5.5 7.5M23 6h4.5c0 5-2 7.5-5.5 7.5',
-      stroke: '#ffc933',
-      w: 2.6,
+      d: 'M4 9h5m-7 5h5m-5 5h5',
+      stroke: COLORS.blue,
+      w: STROKE_WIDTH,
       fill: 'none',
     },
-    { t: 'rect', x: 14, y: 19, width: 4, height: 5, fill: '#e0a000' },
-    { t: 'rect', x: 9.5, y: 24, width: 13, height: 5, rx: 2, fill: '#ffb703' },
-  ],
-  cloud: [
+    { t: 'circle', cx: 19, cy: 16, r: 12, fill: COLORS.blue },
+    { t: 'circle', cx: 19, cy: 16, r: 8.5, fill: COLORS.blueLight },
     {
       t: 'path',
-      d: 'M9 25c-5 0-6.5-5.5-2.5-7.2C6 12.5 12.5 9 15.5 13 17.5 8 26.5 9.5 26.5 16.5c5 .5 5 8.5-1 8.5Z',
-      fill: '#8fd0ff',
-    },
-  ],
-  sun: [
-    { t: 'circle', cx: 16, cy: 16, r: 7.5, fill: '#ffc933' },
-    {
-      t: 'path',
-      d: 'M16 2.5v4m0 19v4M2.5 16h4m19 0h4M6.5 6.5l2.8 2.8m13.4 13.4 2.8 2.8m0-19-2.8 2.8M9.3 22.7l-2.8 2.8',
-      stroke: '#ffb703',
-      w: 2.8,
+      d: 'M19 10.5V16l4 2.5',
+      stroke: COLORS.blueDark,
+      w: STROKE_WIDTH,
       fill: 'none',
     },
   ],
-  sprout: [
-    { t: 'path', d: 'M5 27C5 14 13 5 27 5c0 13-8 22-22 22Z', fill: '#43d17a' },
-    { t: 'path', d: 'M5 27 18 14', stroke: '#1f9d55', w: 2.2, fill: 'none' },
-  ],
-  gem: [
-    { t: 'path', d: 'M8 5h16l5 7-13 16L3 12Z', fill: '#5ad1e6' },
-    { t: 'path', d: 'M3 12h26M12 5l-2 7 6 16 6-16-2-7', stroke: '#ffffff', w: 1.4, fill: 'none' },
-  ],
-  clock: [
-    { t: 'circle', cx: 16, cy: 16, r: 12.5, fill: WHITE, stroke: '#4d5565', w: 3 },
-    { t: 'path', d: 'M16 8.5V16l5 3', stroke: '#4d5565', w: 2.8, fill: 'none' },
-  ],
-  party: [
-    { t: 'path', d: 'M4 28 10 11l11 11Z', fill: '#ffb703' },
-    { t: 'circle', cx: 21, cy: 8, r: 2.2, fill: '#ef476f' },
-    { t: 'circle', cx: 27, cy: 14, r: 2.2, fill: '#4d8dff' },
-    { t: 'circle', cx: 15, cy: 4.5, r: 2, fill: '#2ecc71' },
-    { t: 'path', d: 'M20 14c3-3 5-3 7-6', stroke: '#c77dff', w: 2, fill: 'none' },
-  ],
-  bookmark: [{ t: 'path', d: 'M8 3h16v26l-8-6-8 6Z', fill: '#ef476f' }],
-  coffee: [
-    { t: 'path', d: 'M5 11h17v9c0 4-3 7-7 7h-3c-4 0-7-3-7-7Z', fill: '#b5651d' },
+  'arrow-up': [{ t: 'path', d: 'M16 3 4 15h6.5v14h11V15H28L16 3Z', fill: COLORS.green }],
+  'arrow-down': [{ t: 'path', d: 'M16 29 28 17h-6.5V3h-11v14H4L16 29Z', fill: COLORS.coral }],
+  p1: dieCutText('P1', COLORS.coral),
+  p2: dieCutText('P2', COLORS.orange),
+  p3: dieCutText('P3', COLORS.blue),
+  p4: dieCutText('P4', COLORS.purple),
+  monday: dieCutGradientText('MON', WEEKDAY_GRADIENTS.monday),
+  tuesday: dieCutGradientText('TUE', WEEKDAY_GRADIENTS.tuesday),
+  wednesday: dieCutGradientText('WED', WEEKDAY_GRADIENTS.wednesday),
+  thursday: dieCutGradientText('THU', WEEKDAY_GRADIENTS.thursday),
+  friday: dieCutGradientText('FRI', WEEKDAY_GRADIENTS.friday),
+  saturday: dieCutGradientText('SAT', WEEKDAY_GRADIENTS.saturday),
+  sunday: dieCutGradientText('SUN', WEEKDAY_GRADIENTS.sunday),
+  'thumbs-up': [
     {
       t: 'path',
-      d: 'M22 13h2.5c2.5 0 4 1.5 4 3.5s-1.5 3.5-4 3.5H22',
-      stroke: '#b5651d',
-      w: 2.8,
-      fill: 'none',
+      d: 'M12 14 17 4c2-1 4 .5 3.5 3l-1 5h6c2 0 3 1.5 2.5 3.2l-2.5 9c-.4 1.2-1.4 1.8-2.7 1.8H12Z',
+      fill: COLORS.yellow,
     },
+    { t: 'rect', x: 4, y: 13, width: 7, height: 14, rx: 2, fill: COLORS.blue },
+    { t: 'circle', cx: 7.5, cy: 16, r: 1, fill: COLORS.blueLight },
+  ],
+  'thumbs-down': [
     {
       t: 'path',
-      d: 'M10 3.5c-1.5 2 1.5 3 0 5M16 3.5c-1.5 2 1.5 3 0 5',
-      stroke: '#8d99ae',
-      w: 2,
-      fill: 'none',
+      d: 'M12 18 17 28c2 1 4-.5 3.5-3l-1-5h6c2 0 3-1.5 2.5-3.2l-2.5-9C27.1 6.6 26.1 6 24.8 6H12Z',
+      fill: COLORS.coral,
     },
+    { t: 'rect', x: 4, y: 5, width: 7, height: 14, rx: 2, fill: COLORS.slate },
+    { t: 'circle', cx: 7.5, cy: 16, r: 1, fill: COLORS.blueLight },
+  ],
+  pause: [
+    { t: 'circle', cx: 16, cy: 16, r: 13, fill: COLORS.purple },
+    { t: 'rect', x: 10, y: 9, width: 4, height: 14, rx: 2, fill: WHITE, cutout: false },
+    { t: 'rect', x: 18, y: 9, width: 4, height: 14, rx: 2, fill: WHITE, cutout: false },
+  ],
+  home: [
+    { t: 'path', d: 'M3 15 16 4l13 11-2.5 3L16 9.5 5.5 18Z', fill: COLORS.coral },
+    { t: 'path', d: 'M7 15.5 16 8l9 7.5V28H7Z', fill: COLORS.yellow },
+    { t: 'rect', x: 13, y: 19, width: 6, height: 9, rx: 1, fill: COLORS.brown },
+    { t: 'rect', x: 9, y: 17, width: 3, height: 3, rx: 0.5, fill: COLORS.blueLight },
+    { t: 'rect', x: 20, y: 17, width: 3, height: 3, rx: 0.5, fill: COLORS.blueLight },
   ],
 };
 
 export const STICKER_KEYS = Object.keys(STICKER_ART);
 
-function draw(part: Part, key: number, mode: 'color' | 'edge', edge: string): ReactElement {
-  const stroke = part.t === 'rect' ? undefined : part.stroke;
+function draw(
+  part: Part,
+  key: number,
+  mode: 'color' | 'edge',
+  edge: string,
+  gradientId: string,
+): ReactElement {
+  const stroke =
+    part.t === 'rect'
+      ? undefined
+      : part.t === 'text' && part.gradient && mode === 'color'
+        ? `url(#${gradientId})`
+        : part.stroke;
   const width = part.t === 'rect' ? 0 : (part.w ?? 0);
   const common =
     mode === 'edge'
       ? {
-          fill: edge,
+          fill: part.t !== 'rect' && part.t !== 'text' && part.fill === 'none' ? 'none' : edge,
           stroke: edge,
-          strokeWidth: width + 5.5,
+          strokeWidth: width + DIE_CUT_OUTLINE_WIDTH,
           strokeLinejoin: 'round' as const,
           strokeLinecap: 'round' as const,
         }
       : {
-          fill: part.t !== 'rect' && part.fill === 'none' ? 'none' : (part.fill ?? 'none'),
+          fill:
+            part.t !== 'rect' && part.t !== 'text' && part.fill === 'none'
+              ? 'none'
+              : part.gradient
+                ? `url(#${gradientId})`
+                : (part.fill ?? 'none'),
           stroke,
           strokeWidth: stroke ? width : undefined,
           strokeLinejoin: 'round' as const,
@@ -188,30 +332,72 @@ function draw(part: Part, key: number, mode: 'color' | 'edge', edge: string): Re
   if (part.t === 'path') return <path key={key} d={part.d} {...common} />;
   if (part.t === 'circle')
     return <circle key={key} cx={part.cx} cy={part.cy} r={part.r} {...common} />;
+  if (part.t === 'rect')
+    return (
+      <rect
+        key={key}
+        x={part.x}
+        y={part.y}
+        width={part.width}
+        height={part.height}
+        rx={part.rx}
+        {...common}
+      />
+    );
   return (
-    <rect
+    <text
       key={key}
       x={part.x}
       y={part.y}
-      width={part.width}
-      height={part.height}
-      rx={part.rx}
+      textAnchor="middle"
+      dominantBaseline="central"
+      fontFamily={part.fontFamily ?? 'system-ui, sans-serif'}
+      fontSize={part.size}
+      fontWeight={part.fontWeight}
+      paintOrder="stroke"
+      transform={
+        part.scaleX !== undefined || part.scaleY !== undefined
+          ? `translate(${part.x} ${part.y}) scale(${part.scaleX ?? 1} ${part.scaleY ?? 1}) translate(${-part.x} ${-part.y})`
+          : undefined
+      }
       {...common}
-    />
+    >
+      {part.value}
+    </text>
   );
 }
 
 /** A sticker on a 32 by 32 grid: shadow, white edge, then the colours. */
 export function StickerArt({ name }: { name: string }) {
+  const instanceId = useId().replace(/:/g, '');
   const parts = STICKER_ART[name];
   if (!parts) return null;
+  const cutoutParts = parts.filter((part) => part.cutout !== false);
   return (
     <g>
+      <defs>
+        {parts.map((part, i) =>
+          part.gradient ? (
+            <linearGradient
+              key={i}
+              id={`${instanceId}-${name}-${i}`}
+              x1="0%"
+              y1="100%"
+              x2="100%"
+              y2="0%"
+            >
+              <stop offset="0%" stopColor={part.gradient[0]} />
+              <stop offset="50%" stopColor={part.gradient[1]} />
+              <stop offset="100%" stopColor={part.gradient[2]} />
+            </linearGradient>
+          ) : null,
+        )}
+      </defs>
       <g transform="translate(0.8 1.6)" opacity={0.3}>
-        {parts.map((p, i) => draw(p, i, 'edge', '#000000'))}
+        {cutoutParts.map((p, i) => draw(p, i, 'edge', '#000000', `${instanceId}-${name}-${i}`))}
       </g>
-      {parts.map((p, i) => draw(p, i, 'edge', WHITE))}
-      {parts.map((p, i) => draw(p, i, 'color', WHITE))}
+      {cutoutParts.map((p, i) => draw(p, i, 'edge', WHITE, `${instanceId}-${name}-${i}`))}
+      {parts.map((p, i) => draw(p, i, 'color', WHITE, `${instanceId}-${name}-${i}`))}
     </g>
   );
 }

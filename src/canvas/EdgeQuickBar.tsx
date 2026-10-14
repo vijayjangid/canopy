@@ -12,7 +12,7 @@ import { setEdgeFocus } from '../ui/uiStore';
 import { markFresh } from './stampStore';
 import { viewportStore } from './viewportStore';
 
-const QUICK = ['star', 'flag', 'alert', 'question', 'done'] as const;
+const QUICK = ['love', 'flag', 'warning', 'question', 'check'] as const;
 
 /**
  * A small bar beside a picked line. Each sticker is a switch: it is marked while it is on the line,

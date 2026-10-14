@@ -53,13 +53,14 @@ export function StickerLayer({
         const cx = corner.right ? w - 3 : 3;
         const cy = corner.bottom ? h - 2 : 2;
         const scale = STICKER_SIZE / 32;
+        const fresh = pop && isFresh(sticker.id);
         return (
           <g
             key={sticker.id}
             transform={`translate(${cx} ${cy}) rotate(${corner.tilt + jitter(sticker.id)}) scale(${scale}) translate(-16 -16)`}
           >
-            {pop && isFresh(sticker.id) && <StampFx />}
-            <g className={pop && isFresh(sticker.id) ? 'sticker-stamp' : undefined}>
+            {fresh && <StampFx />}
+            <g className={fresh ? 'sticker-stamp' : undefined}>
               <StickerArt name={sticker.key} />
             </g>
           </g>

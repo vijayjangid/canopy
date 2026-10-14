@@ -100,7 +100,11 @@ Three **Themes**, each a ready-made preset of colour, shape and font, in Light, 
 - **Layout:** Right or Down, in Compact, Comfortable or Airy spacing. Connectors are always curved.
 - **Pictures:** paste any image from the clipboard (a screenshot, a copied image) onto the selected topic. The topic grows to fit it, up to a maximum size, and larger pictures are scaled down and stored inside the map file. Pasting works while you are typing the title too. Point at the picture for an **Alt** button (describe it for screen readers) and a **✕** button (remove it), or use the right-click menu. Pictures appear in SVG, PNG and PDF exports.
 - **Drag and drop:** drop a picture on the canvas to add it as a new topic under the Core, or on a topic to put it on that topic. Drop a Canopy map file (`.canopy.json`) on a topic, or on the canvas for the Core, to add the whole map as a new branch, so explored maps can be combined into a bigger one. The topic it will land on is outlined while you drag. File ▸ **Add a map as a branch…** does the same from the keyboard.
-- **Stickers:** original die-cut artwork on the corners of topics, and on the **lines** between them. Each sticker is a switch: click it to put it on, click it again to take it off, and a sticker goes on a topic or line only once. Lines can carry a label such as _depends on_, and the bar beside a picked line has a pencil that jumps to the label field. The sticker sheet sits in the details panel under its own heading.
+- **Stickers:** 28 original die-cut designs on topics and the **lines** between them. New maps put a Home sticker on the Core. The searchable sheet groups work, reactions, status, timing, markers, directions and priorities, with MON–SUN as its final row. Priority and weekday labels use bold handwritten lettering; each weekday has its own three-stop gradient. Sticker-aware spacing keeps artwork clear of neighbouring topics.
+
+<p align="center">
+  <img src="docs/screenshots/stickers.png" alt="The sticker picker showing handwritten priority and weekday stickers, with Monday and Priority 1 on the selected topic" width="920" />
+</p>
 - **Delete with care:** deleting a topic that has sub-topics asks whether to remove **the whole branch** or **only the topic**, in which case its sub-topics move up to its parent, in its place.
 - **Notes:** a Markdown note on any topic, with a Write and Preview switch.
 

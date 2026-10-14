@@ -47,6 +47,7 @@ export function createMap(
         orderKey: keyBetween(null, null),
         title: opts.coreTitle ?? 'Central topic',
         folded: false,
+        stickers: [{ id: newId('s_'), key: 'home' }],
       },
     },
   };

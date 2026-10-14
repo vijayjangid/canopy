@@ -27,6 +27,7 @@ import {
   toggleSticker,
   stringifyFile,
   deleteBranch,
+  discardUnknownStickers,
 } from '.';
 
 const base = () =>
@@ -42,7 +43,7 @@ describe('notes', () => {
 });
 
 describe('stickers', () => {
-  const KINDS = ['star', 'heart', 'bolt', 'fire', 'idea', 'rocket'];
+  const KINDS = ['love', 'bug', 'idea', 'celebrate', 'flag', 'warning'];
 
   it('fills the corners with different stickers and then stops', () => {
     let map = base();
@@ -52,20 +53,20 @@ describe('stickers', () => {
   });
 
   it('puts each sticker on once', () => {
-    const once = addSticker(base(), 'a', 'star');
-    expect(addSticker(once, 'a', 'star')).toBe(once);
+    const once = addSticker(base(), 'a', 'love');
+    expect(addSticker(once, 'a', 'love')).toBe(once);
     expect(once.topics['a']?.stickers).toHaveLength(1);
   });
 
   it('toggles a sticker on and off, and refuses a new one when full', () => {
-    let map = toggleSticker(base(), 'a', 'star');
-    expect(map.topics['a']?.stickers?.map((s) => s.key)).toEqual(['star']);
-    map = toggleSticker(map, 'a', 'star');
+    let map = toggleSticker(base(), 'a', 'love');
+    expect(map.topics['a']?.stickers?.map((s) => s.key)).toEqual(['love']);
+    map = toggleSticker(map, 'a', 'love');
     expect(map.topics['a']?.stickers).toBeUndefined();
     for (const key of KINDS.slice(0, MAX_STICKERS)) map = toggleSticker(map, 'a', key);
-    expect(toggleSticker(map, 'a', 'rocket')).toBe(map);
+    expect(toggleSticker(map, 'a', 'flag')).toBe(map);
     // A full topic still lets one come off.
-    expect(toggleSticker(map, 'a', 'heart').topics['a']?.stickers).toHaveLength(MAX_STICKERS - 1);
+    expect(toggleSticker(map, 'a', 'love').topics['a']?.stickers).toHaveLength(MAX_STICKERS - 1);
     expect(removeStickerKey(map, 'a', 'nope')).toBe(map);
   });
 
@@ -80,14 +81,16 @@ describe('stickers', () => {
             id: 'a',
             title: 'A',
             stickers: [
-              { id: 's1', key: 'star' },
-              { id: 's2', key: 'star' },
-              { id: 's3', key: 'heart' },
+              { id: 's1', key: 'love' },
+              { id: 's2', key: 'love' },
+              { id: 's3', key: 'flag' },
+              { id: 's4', key: 'rocket' },
             ],
             edge: {
               stickers: [
                 { id: 'e1', key: 'flag' },
                 { id: 'e2', key: 'flag' },
+                { id: 'e3', key: 'alert' },
               ],
             },
           },
@@ -101,13 +104,65 @@ describe('stickers', () => {
     expect(result.map.topics['a']?.edge?.stickers?.map((s) => s.id)).toEqual(['e1']);
   });
 
+  it('discards unknown sticker keys from imported maps', () => {
+    const result = parseFile({
+      schema: 'canopy/1',
+      filters: [{ id: 'old-filter', name: 'Old', mode: 'dim', query: { stickers: ['rocket'] } }],
+      core: {
+        id: 'core',
+        title: 'Core',
+        children: [
+          {
+            id: 'a',
+            title: 'A',
+            stickers: [
+              { id: 'keep', key: 'love' },
+              { id: 'old', key: 'rocket' },
+            ],
+            edge: { stickers: [{ id: 'old-edge', key: 'clock' }] },
+          },
+        ],
+      },
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.map.topics['a']?.stickers).toEqual([{ id: 'keep', key: 'love' }]);
+    expect(result.map.topics['a']?.edge).toBeUndefined();
+    expect(result.map.filters?.[0]?.query.stickers).toBeUndefined();
+  });
+
   it('removes one by ID and leaves no empty list behind', () => {
-    let map = addSticker(addSticker(base(), 'a', 'star'), 'a', 'heart');
+    let map = addSticker(addSticker(base(), 'a', 'love'), 'a', 'flag');
     const [first, second] = map.topics['a']?.stickers ?? [];
     map = removeSticker(map, 'a', first?.id ?? '');
-    expect(map.topics['a']?.stickers?.map((s) => s.key)).toEqual(['heart']);
+    expect(map.topics['a']?.stickers?.map((s) => s.key)).toEqual(['flag']);
     map = removeSticker(map, 'a', second?.id ?? '');
     expect(map.topics['a']?.stickers).toBeUndefined();
+  });
+
+  it('drops unknown sticker keys from local maps without mapping them', () => {
+    const map = base();
+    const topic = map.topics['a'];
+    if (!topic) throw new Error('Expected topic A');
+    const withUnknown: typeof map = {
+      ...map,
+      filters: [{ id: 'old-filter', name: 'Old', mode: 'dim', query: { stickers: ['rocket'] } }],
+      topics: {
+        ...map.topics,
+        a: {
+          ...topic,
+          stickers: [
+            { id: 'old', key: 'rocket' },
+            { id: 'keep', key: 'love' },
+          ],
+          edge: { label: 'related to', stickers: [{ id: 'old-edge', key: 'clock' }] },
+        },
+      },
+    };
+    const cleaned = discardUnknownStickers(withUnknown);
+    expect(cleaned.topics['a']?.stickers).toEqual([{ id: 'keep', key: 'love' }]);
+    expect(cleaned.topics['a']?.edge).toEqual({ label: 'related to' });
+    expect(cleaned.filters?.[0]?.query.stickers).toBeUndefined();
   });
 });
 
@@ -122,16 +177,16 @@ describe('lines', () => {
   it('gives the core no line', () => {
     const map = base();
     expect(setEdgeLabel(map, 'core', 'x')).toBe(map);
-    expect(addEdgeSticker(map, 'core', 'star')).toBe(map);
+    expect(addEdgeSticker(map, 'core', 'love')).toBe(map);
   });
 
   it('holds a few different stickers, once each, and removes them by ID', () => {
     let map = base();
-    for (const key of ['star', 'star', 'flag', 'alert', 'done', 'bolt']) {
+    for (const key of ['love', 'love', 'flag', 'warning', 'check', 'question']) {
       map = addEdgeSticker(map, 'a', key);
     }
     const list = map.topics['a']?.edge?.stickers ?? [];
-    expect(list.map((s) => s.key)).toEqual(['star', 'flag', 'alert']);
+    expect(list.map((s) => s.key)).toEqual(['love', 'flag', 'warning']);
     expect(list).toHaveLength(MAX_EDGE_STICKERS);
     for (const s of list) map = removeEdgeSticker(map, 'a', s.id);
     expect(map.topics['a']?.edge).toBeUndefined();
@@ -259,7 +314,7 @@ describe('topic references', () => {
 describe('content survives saving, copying and pasting', () => {
   const rich = () => {
     let map = setNote(base(), 'a', 'A **note**');
-    map = addSticker(map, 'a', 'rocket');
+    map = addSticker(map, 'a', 'bug');
     return setProps(map, ['a'], { status: 'doing', due: { end: '2026-11-01' }, tags: ['x'] });
   };
 
@@ -269,7 +324,7 @@ describe('content survives saving, copying and pasting', () => {
     if (!result.ok) return;
     const a = result.map.topics['a'];
     expect(a?.note).toBe('A **note**');
-    expect(a?.stickers?.[0]?.key).toBe('rocket');
+    expect(a?.stickers?.[0]?.key).toBe('bug');
     expect(a?.props).toEqual({ status: 'doing', due: { end: '2026-11-01' }, tags: ['x'] });
   });
 

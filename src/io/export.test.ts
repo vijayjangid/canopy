@@ -96,11 +96,11 @@ describe('SVG export', () => {
   });
 
   it('sticks stickers to the corners of topics only when asked', () => {
-    const map = addSticker(addSticker(sample(), 'a', 'rocket'), 'a', 'star');
+    const map = addSticker(addSticker(sample(), 'a', 'bug'), 'a', 'love');
     const withStickers = draw(map).svg;
     expect(withStickers).toContain('class="stickers"');
     expect(withStickers.match(/<g transform="translate\([\d.]+ [\d.]+\) rotate\(/g)).toHaveLength(
-      2,
+      3,
     );
     expect(draw(map, { stickers: false }).svg).not.toContain('class="stickers"');
   });

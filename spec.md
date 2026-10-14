@@ -21,7 +21,7 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 3. **Motion explains, never decorates.** Every animation shows cause and effect, such as where a node came from or where it went.
 4. **Accessible by default.** The map is a real tree for assistive tech, not just pixels on a canvas.
 5. **Local-first and private.** It works offline and autosaves. No account is needed to be productive.
-6. **Progressive depth.** The first-run view is a blank map whose central topic is already open for naming, so typing starts straight away. Power features (Properties, Filters, Tour) appear through hints and the command palette.
+6. **Progressive depth.** The first-run view is a blank map whose central topic is already open for naming and displays a Home sticker to hint at the sticker feature, so typing starts straight away. Power features (Properties, Filters, Tour) appear through hints and the command palette.
 7. **A map is also a plan.** Ideas become work without leaving the map or converting to another tool.
 
 ## 2. Terminology and taxonomy
@@ -50,7 +50,7 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 | Standard / High contrast / Playful | **Theme** | A preset of colour, shape and font. Independent of the colour mode |
 | Global settings | **Settings** | Map-level (saved in the file) and device-level (kept in this browser) |
 | Plain-text alternate view | **Outline** | Live-synced with the canvas |
-| Pick out topics by Property or sticker | **Filter** | Dims non-matching topics (for example "Blocked", "Due this week", the Star sticker) |
+| Pick out topics by Property or sticker | **Filter** | Dims non-matching topics (for example "Blocked", "Due this week", the Love sticker) |
 | Planner alternate views | **Board / Table / Timeline** | Projections of the same Properties |
 | Presentation | **Tour** | Walks branches in a chosen order |
 | Spotlight | **Focus** | Dims everything outside the selected branch |
@@ -201,7 +201,7 @@ Every topic can carry Properties. They are optional and invisible until used, so
 - **Attachments [Cut]**
   - Files and unfurled links were removed from v1 (see 12.1). Old files that contain attachments still open, and the attachments are ignored. Pasted pictures (above) are the one exception.
 - **Stickers (expressive) [Built, redesigned]**
-  - A picker opens with `S`, or from the Stickers section of the details panel. It has a search box and a sheet of original, die-cut artwork (23 stickers such as Star, Heart, Launch, Done, Alert, Flag, Coffee). **Deviation:** v0.2 planned vendored open-licence packs (Fluent Emoji) and custom upload. The set is original SVG art instead, so it looks identical on every platform and in exports, and needs no third-party licence. Custom upload was dropped.
+  - A picker opens with `S`, or from the Stickers section of the details panel. It has a search box and 28 original die-cut stickers, grouped as Home, Idea, Bug; Love, Celebrate, Thumbs up, Thumbs down; Check, Cross, Warning, Question; Pause, Delay; Flag, Pin; Arrow up, Arrow down; Priority 1–4; and Monday–Sunday. The seven weekday stickers form the final row. Priority and weekday labels use bold handwritten Kalam lettering; weekday cutouts have individual three-stop gradients and no badge background. New maps put Home on the Core. Synonyms are searchable while labels stay concise and screen-reader friendly. **Deviation:** v0.2 planned vendored open-licence packs (Fluent Emoji) and custom upload. The set is original SVG art instead, so it looks identical on every platform and in exports, and needs no third-party licence. Custom upload was dropped.
   - Stickers stick to the four corners of a topic (up to four per topic), and land with a short stamp animation (instant under reduced motion).
   - **Each sticker is on a topic or line at most once.** The sheet in the Stickers section shows every sticker as a switch: one that is on is ringed and tinted with a tick, and pressing a sticker puts it on, or takes it off when it is already on. There is no separate list of what is on the topic. When the topic or line is full (four, or three), the stickers that are off wait, and the ones that are on can still be pressed to take off. Files and the clipboard that repeat a sticker are read with one of each kind, keeping the first.
   - Stickers can also stick to a **Line** (see 3.10), up to three per line.
@@ -420,7 +420,7 @@ The file keeps schema `canopy/1`. Every change since v0.2 only removed fields or
   "core": {
     "id": "t_1", "title": "", "folded": false,
     "note": "Markdown text",
-    "stickers": [{ "id": "s_1", "key": "star" }],
+    "stickers": [{ "id": "s_1", "key": "love" }],
     "edge": { "label": "depends on", "stickers": [{ "id": "s_2", "key": "flag" }] },
     "references": ["t_9", "t_12"],
     "image": { "src": "data:image/webp;base64,...", "w": 640, "h": 480, "alt": "Login screen" },
@@ -431,7 +431,7 @@ The file keeps schema `canopy/1`. Every change since v0.2 only removed fields or
     },
     "children": []
   },
-  "filters": [{ "id": "l_1", "name": "Stars", "mode": "dim", "query": { "stickers": ["star"] } }]
+  "filters": [{ "id": "l_1", "name": "Love", "mode": "dim", "query": { "stickers": ["love"] } }]
 }
 ```
 
@@ -496,7 +496,7 @@ Last measured at the end of Phase 3 (headless Chromium): first paint 323 ms with
 
 v0.2 planned vendored open-licence packs (Fluent Emoji, Noto Emoji, Phosphor). The first pass used system emoji, and the interface rework replaced them with an original sticker set, so the plan to vendor third-party artwork is **dropped**.
 
-- **Stickers:** 23 original die-cut SVG stickers drawn in code (`stickers/art.tsx`), with names in `stickers/catalog.ts`. They look the same on every platform and in every export, and need no licence. A larger or themed pack can be added later by extending the catalog.
+- **Stickers:** 28 original die-cut SVG stickers drawn in code (`stickers/art.tsx`), with clear names and searchable aliases in `stickers/catalog.ts`. The set includes Home, idea/work, reaction, status, timing, weekday, marker, direction and priority stickers. Weekdays use bold handwritten three-letter text cutouts with individual three-stop gradients and no badge background; priorities use the same handwritten style. New maps put Home on the Core, and layout spacing accounts for sticker artwork. They look the same on every platform and in every export, and need no third-party artwork or licence.
 - **Interface icons:** a small set of icons drawn for the app (`ui/icons.tsx`).
 - **Fonts:** bundled through `@fontsource`, so the app works offline: Kalam (Playful), Source Serif 4 (High Contrast), JetBrains Mono (the level numbers) and Bricolage Grotesque (the app name). Standard uses the system sans-serif. All are Google Fonts under the SIL Open Font License, listed with their copyright holders in `THIRD_PARTY_NOTICES.md`.
 - **Still to do:** an About screen with the credits list (M5.9). Custom sticker upload, which v0.2 kept in scope, is dropped.
@@ -517,7 +517,7 @@ The plan numbers these as Phases 1 to 5, with the interface rework recorded as u
 1. **Product name:** Canopy (confirmed).
 2. **Collaboration:** out of scope for v1 (local-first). The data model stays CRDT-friendly: stable IDs, ID-based references, no positional indexes in stored data, and ordered children stored with fractional ordering keys so concurrent edits can merge later.
 3. **Stack:** React + TypeScript with a custom SVG renderer, not React Flow (see 9.1).
-4. **Sticker art:** original SVG art drawn for Canopy (23 stickers). Open-licence packs were dropped (see 9.3). Changed from v0.2.
+4. **Sticker art:** original SVG art drawn for Canopy (28 stickers). Open-licence packs were dropped (see 9.3). Changed from v0.2.
 5. **Scale target:** 5,000 topics (see 9.2).
 6. **Planning depth:** Board, Table and Timeline are enough for v1. Dependencies between topics are out of scope.
 7. **Approval model:** **[Cut]** with People. Approval is not part of v1.
@@ -550,7 +550,7 @@ A scope cut on 2026-10-08 kept planning to Status, Due date, Tags and Stickers. 
 | Area | v0.2 | Now |
 |---|---|---|
 | Notes | WYSIWYG (TipTap) with a source toggle | Markdown text field with toolbar and preview |
-| Stickers | Vendored open packs, drag and rotate | 23 original die-cut stickers on four corners, plus lines |
+| Stickers | Vendored open packs, drag and rotate | 28 original die-cut stickers on four corners, plus lines |
 | PDF export | Vector with multi-page tiling | One page through the print dialog |
 | Undo history | Immer patches | Snapshots with structural sharing |
 | Motion | Spring library | Hand-written layout animator |

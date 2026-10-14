@@ -72,7 +72,7 @@ test('tags are added with a comma, and existing tags are offered as suggestions'
 
 test('a new sticker is stamped on with a burst of lines', async ({ page }) => {
   await startWithTopic(page);
-  await panel(page).getByRole('button', { name: 'Star', exact: true }).click();
+  await panel(page).getByRole('button', { name: 'Love', exact: true }).click();
   await expect(page.locator('.stickers .sticker-stamp')).toHaveCount(1);
   await expect(page.locator('.stickers .stamp-ray')).toHaveCount(8);
 });

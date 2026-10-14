@@ -1,3 +1,4 @@
+import { isStickerKey } from '../stickers/catalog';
 import {
   MAX_EDGE_LABEL,
   MAX_IMAGE_ALT,
@@ -19,6 +20,7 @@ import {
   type TopicExtras,
   type TopicImage,
   type TopicProps,
+  type CanopyMap,
 } from './types';
 
 export type Fail = (message: string) => void;
@@ -58,6 +60,50 @@ export function readImage(raw: unknown): TopicImage | undefined {
 function onePerKind(list: readonly StickerRef[]): StickerRef[] {
   const seen = new Set<string>();
   return list.filter((s) => (seen.has(s.key) ? false : (seen.add(s.key), true)));
+}
+
+/** Removes references to stickers that are no longer in the built-in catalog. */
+export function discardUnknownStickers(map: CanopyMap): CanopyMap {
+  let changed = false;
+  const topics = Object.fromEntries(
+    Object.entries(map.topics).map(([id, topic]) => {
+      const stickers = topic.stickers?.filter((sticker) => isStickerKey(sticker.key));
+      const edgeStickers = topic.edge?.stickers?.filter((sticker) => isStickerKey(sticker.key));
+      if (
+        stickers?.length === topic.stickers?.length &&
+        edgeStickers?.length === topic.edge?.stickers?.length
+      ) {
+        return [id, topic];
+      }
+
+      changed = true;
+      const next = { ...topic };
+      if (stickers?.length) next.stickers = stickers;
+      else delete next.stickers;
+
+      if (topic.edge) {
+        const edge = { ...topic.edge };
+        if (edgeStickers?.length) edge.stickers = edgeStickers;
+        else delete edge.stickers;
+        if (edge.label || edge.stickers?.length) next.edge = edge;
+        else delete next.edge;
+      }
+      return [id, next];
+    }),
+  );
+  let filters = map.filters;
+  if (filters) {
+    filters = filters.map((filter) => {
+      const stickers = filter.query.stickers?.filter(isStickerKey);
+      if (stickers?.length === filter.query.stickers?.length) return filter;
+      changed = true;
+      const query = { ...filter.query };
+      if (stickers?.length) query.stickers = stickers;
+      else delete query.stickers;
+      return { ...filter, query };
+    });
+  }
+  return changed ? { ...map, topics, ...(filters ? { filters } : {}) } : map;
 }
 
 /** Only web and mail addresses, never `javascript:` and friends. */
@@ -134,7 +180,7 @@ export function readExtras(node: Record<string, unknown>, path: string, fail: Fa
           list.push({ id: s['id'], key: s['key'] });
         }
       }
-      const once = onePerKind(list);
+      const once = onePerKind(list.filter((sticker) => isStickerKey(sticker.key)));
       if (once.length > 0) out.stickers = once;
     }
   }
@@ -153,7 +199,10 @@ export function readExtras(node: Record<string, unknown>, path: string, fail: Fa
             list.push({ id: s['id'], key: s['key'] });
           }
         }
-        const once = onePerKind(list).slice(0, MAX_EDGE_STICKERS);
+        const once = onePerKind(list.filter((sticker) => isStickerKey(sticker.key))).slice(
+          0,
+          MAX_EDGE_STICKERS,
+        );
         if (once.length > 0) edge.stickers = once;
       }
       if (edge.label || edge.stickers) out.edge = edge;
@@ -225,8 +274,8 @@ function readQuery(raw: unknown): FilterQuery {
   if (status) q.status = status;
   const tags = strings(raw['tags']);
   if (tags) q.tags = tags;
-  const stickers = strings(raw['stickers']);
-  if (stickers) q.stickers = stickers;
+  const stickers = strings(raw['stickers'])?.filter(isStickerKey);
+  if (stickers?.length) q.stickers = stickers;
   if (typeof raw['text'] === 'string' && raw['text'].trim()) q.text = raw['text'].trim();
   const cats = strings(raw['statusCategory'])?.filter((c): c is StatusCategory =>
     CATEGORIES.includes(c as StatusCategory),

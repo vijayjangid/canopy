@@ -1,6 +1,6 @@
 import { useStore } from 'zustand';
 import { createStore, type StoreApi } from 'zustand/vanilla';
-import { createMap, newId, type CanopyMap, type TopicId } from '../model';
+import { createMap, discardUnknownStickers, newId, type CanopyMap, type TopicId } from '../model';
 
 /** Everything an undo step restores: the map and what was selected. */
 interface Snapshot {
@@ -77,7 +77,7 @@ export function createCanopyStore(
   const now = options.now ?? Date.now;
   const historyLimit = options.historyLimit ?? 200;
   const groupWindowMs = options.groupWindowMs ?? 1000;
-  const doc = initial?.doc ?? createMap();
+  const doc = discardUnknownStickers(initial?.doc ?? createMap());
   let lastGroup: { key: string; at: number } | null = null;
 
   return createStore<CanopyState>()((set, get) => ({
@@ -199,11 +199,12 @@ export function createCanopyStore(
 
     load: (mapId, nextDoc) => {
       lastGroup = null;
+      const doc = discardUnknownStickers(nextDoc);
       set({
         mapId,
         ready: true,
-        doc: nextDoc,
-        ...initialSelection(nextDoc),
+        doc,
+        ...initialSelection(doc),
         picked: true,
         editing: null,
         editBase: null,

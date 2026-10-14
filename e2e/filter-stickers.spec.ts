@@ -9,13 +9,12 @@ test('the Filter can pick out topics by sticker', async ({ page }) => {
   const group = dialog.getByRole('list', { name: 'Stickers' });
   await expect(group).toBeVisible();
 
-  const first = group.getByRole('button').first();
-  const name = (await first.textContent())?.trim() ?? '';
-  await first.click();
-  await expect(first).toHaveAttribute('aria-pressed', 'true');
+  const home = group.getByRole('button', { name: 'Home', exact: true });
+  await home.click();
+  await expect(home).toHaveAttribute('aria-pressed', 'true');
 
   const control = page.locator('.filter-control');
-  await expect(control).toContainText(`Filter: ${name}`);
+  await expect(control).toContainText('Filter: Home');
   const count = Number((await control.textContent())?.match(/· (\d+)/)?.[1]);
   expect(count).toBeGreaterThan(0);
   await expect(page.locator('.topic[data-dim]').first()).toBeAttached();
@@ -34,5 +33,6 @@ test('only stickers that are on the map are offered', async ({ page }) => {
   await page.getByRole('tree', { name: 'Mind map' }).focus();
   await page.keyboard.press('Meta+f');
   await expect(page.getByRole('list', { name: 'Status' })).toBeVisible();
-  await expect(page.getByRole('list', { name: 'Stickers' })).toHaveCount(0);
+  const stickers = page.getByRole('list', { name: 'Stickers' });
+  await expect(stickers.getByRole('button', { name: 'Home', exact: true })).toHaveCount(1);
 });

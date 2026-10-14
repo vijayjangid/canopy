@@ -44,10 +44,17 @@ function sample() {
 }
 
 describe('createMap', () => {
-  it('has a single Core and is valid', () => {
+  it('has a single Core with the Home sticker and is valid', () => {
     const map = createMap();
     expect(countTopics(map)).toBe(1);
+    expect(map.topics[map.coreId]?.stickers?.map((sticker) => sticker.key)).toEqual(['home']);
     expect(validateMap(map)).toEqual([]);
+  });
+
+  it('does not add the default sticker to newly created topics', () => {
+    const { map, id } = createSubTopic(createMap({ coreId: 'core' }), 'core');
+    expect(map.topics['core']?.stickers?.map((sticker) => sticker.key)).toEqual(['home']);
+    expect(map.topics[id]?.stickers).toBeUndefined();
   });
 });
 

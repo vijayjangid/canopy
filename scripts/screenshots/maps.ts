@@ -41,7 +41,7 @@ export const PRODUCT_LAUNCH: DemoTopic = {
     {
       title: 'Design',
       children: [
-        { title: 'Brand identity', status: 'done', stickers: ['star'] },
+        { title: 'Brand identity', status: 'done', stickers: ['idea'] },
         {
           title: 'Website',
           children: [
@@ -50,6 +50,7 @@ export const PRODUCT_LAUNCH: DemoTopic = {
               status: 'doing',
               due: '2026-10-23',
               tags: ['web'],
+              stickers: ['monday', 'p1'],
               references: ['Positioning'],
             },
             { title: 'Pricing page', status: 'todo', due: '2026-10-30', references: ['Pricing'] },
@@ -79,7 +80,7 @@ export const PRODUCT_LAUNCH: DemoTopic = {
           title: 'Launch post',
           status: 'todo',
           due: '2026-11-03',
-          stickers: ['rocket'],
+          stickers: ['celebrate'],
           references: ['Landing page'],
         },
         { title: 'Newsletter', status: 'todo', due: '2026-11-04' },
@@ -94,12 +95,12 @@ export const PRODUCT_LAUNCH: DemoTopic = {
       children: [
         { title: 'Support playbook', status: 'todo', due: '2026-11-10' },
         { title: 'Analytics', status: 'doing', tags: ['revenue'] },
-        { title: 'Legal review', status: 'blocked', due: '2026-10-14', stickers: ['alert'] },
+        { title: 'Legal review', status: 'blocked', due: '2026-10-14', stickers: ['warning'] },
       ],
     },
     {
       title: 'Risks',
-      children: [{ title: 'Slow adoption' }, { title: 'Scope creep', stickers: ['fire'] }],
+      children: [{ title: 'Slow adoption' }, { title: 'Scope creep', stickers: ['bug'] }],
     },
   ],
 };

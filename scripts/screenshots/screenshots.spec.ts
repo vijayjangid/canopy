@@ -112,9 +112,24 @@ test('hero: the map with both panels open', async ({ page }) => {
 test('inspector: a picked topic, its trail and the details panel', async ({ page }) => {
   await loadMap(page, PRODUCT_LAUNCH, 'Product launch');
   await pick(page, 'Landing page');
+  await page.getByRole('tree', { name: 'Mind map' }).focus();
+  await page.keyboard.press('i');
+  await expect(page.getByRole('complementary', { name: 'Inspector' })).toBeVisible();
   await page.mouse.move(700, 880);
   await settle(page);
   await page.screenshot({ path: out('inspector') });
+});
+
+test('stickers: the picker with weekday and priority cutouts', async ({ page }) => {
+  await loadMap(page, PRODUCT_LAUNCH, 'Product launch');
+  await pick(page, 'Landing page');
+  await page.getByRole('tree', { name: 'Mind map' }).focus();
+  await page.keyboard.press('i');
+  await expect(page.getByRole('searchbox', { name: 'Search stickers' })).toBeVisible();
+  await page.getByRole('button', { name: 'Sunday', exact: true }).scrollIntoViewIfNeeded();
+  await page.mouse.move(700, 880);
+  await settle(page);
+  await page.screenshot({ path: out('stickers') });
 });
 
 test('palette: the search dialog', async ({ page }) => {

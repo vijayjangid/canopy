@@ -72,7 +72,35 @@ export function generateDemoMap(
   return planned ? withPlan(map, random) : map;
 }
 
-const STICKER_KEYS = ['star', 'fire', 'rocket', 'idea', 'flag', 'heart', 'bolt', 'party'];
+const STICKER_KEYS = [
+  'idea',
+  'bug',
+  'love',
+  'celebrate',
+  'thumbs-up',
+  'thumbs-down',
+  'check',
+  'cross',
+  'warning',
+  'question',
+  'pause',
+  'delay',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+  'flag',
+  'pin',
+  'arrow-up',
+  'arrow-down',
+  'p1',
+  'p2',
+  'p3',
+  'p4',
+];
 
 /** Adds statuses, due dates, tags and a few stickers to about half the topics. */
 function withPlan(map: CanopyMap, random: () => number): CanopyMap {
@@ -99,7 +127,7 @@ function withPlan(map: CanopyMap, random: () => number): CanopyMap {
     if (random() < 0.4) props.tags = [tagKeys[Math.floor(random() * tagKeys.length)] ?? 'launch'];
     const topic: Topic = { ...t, props };
     if (random() < 0.2) {
-      const key = STICKER_KEYS[Math.floor(random() * STICKER_KEYS.length)] ?? 'star';
+      const key = STICKER_KEYS[Math.floor(random() * STICKER_KEYS.length)] ?? 'love';
       topic.stickers = [{ id: `s_${id}`, key }];
     }
     topics[id] = topic;

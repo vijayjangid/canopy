@@ -46,20 +46,20 @@ test('a sticker goes on the line from the Stickers tab', async ({ page }) => {
   await tree(page).focus();
   await page.keyboard.press('s');
   await page.getByRole('button', { name: 'Line to parent' }).click();
-  const star = page
+  const love = page
     .getByRole('list', { name: 'Stickers', exact: true })
-    .getByRole('button', { name: 'Star', exact: true });
-  await expect(star).toHaveAttribute('aria-pressed', 'false');
-  await star.click();
+    .getByRole('button', { name: 'Love', exact: true });
+  await expect(love).toHaveAttribute('aria-pressed', 'false');
+  await love.click();
   await expect(page.locator('.edge-badge .edge-sticker')).toHaveCount(1);
   await expect(page.locator('.stickers .sticker-stamp')).toHaveCount(0);
-  await expect(star).toHaveAttribute('aria-pressed', 'true');
+  await expect(love).toHaveAttribute('aria-pressed', 'true');
   // There is no separate list of what is on the line: the sheet itself shows it.
   await expect(page.getByRole('heading', { name: /On this/ })).toHaveCount(0);
 
   // The same sticker is not added a second time. Pressing it again takes it off.
-  await star.click();
-  await expect(star).toHaveAttribute('aria-pressed', 'false');
+  await love.click();
+  await expect(love).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator('.edge-badge')).toHaveCount(0);
 });
 
@@ -69,14 +69,14 @@ test('a sticker put on from the panel can be taken off from the bar', async ({ p
   const bar = page.getByRole('group', { name: 'Stickers for this line' });
   await page
     .getByRole('list', { name: 'Stickers', exact: true })
-    .getByRole('button', { name: 'Heart', exact: true })
+    .getByRole('button', { name: 'Bug', exact: true })
     .click();
-  // Heart is not one of the bar's usual few, but it shows while it is on the line.
-  const heart = bar.getByRole('button', { name: 'Heart', exact: true });
-  await expect(heart).toHaveAttribute('aria-pressed', 'true');
-  await heart.click();
+  // Bug is not one of the bar's usual few, but it shows while it is on the line.
+  const bug = bar.getByRole('button', { name: 'Bug', exact: true });
+  await expect(bug).toHaveAttribute('aria-pressed', 'true');
+  await bug.click();
   await expect(page.locator('.edge-badge')).toHaveCount(0);
-  await expect(heart).toHaveCount(0);
+  await expect(bug).toHaveCount(0);
 });
 
 test('clicking a line opens sticker controls beside it and in the details panel', async ({

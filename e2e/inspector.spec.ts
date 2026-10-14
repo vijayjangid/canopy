@@ -51,19 +51,19 @@ test('a sticker sticks to the corner of a topic, and can be taken off', async ({
   await tree(page).focus();
   await page.keyboard.press('s');
   await expect(page.getByRole('searchbox', { name: 'Search stickers' })).toBeFocused();
-  const launch = page.getByRole('button', { name: 'Launch', exact: true });
-  await expect(launch).toHaveAttribute('aria-pressed', 'false');
-  await launch.click();
-  await page.getByRole('button', { name: 'Star', exact: true }).click();
+  const celebrate = page.getByRole('button', { name: 'Celebrate', exact: true });
+  await expect(celebrate).toHaveAttribute('aria-pressed', 'false');
+  await celebrate.click();
+  await page.getByRole('button', { name: 'Love', exact: true }).click();
   await expect(page.locator('.topic[data-selected] .stickers > g')).toHaveCount(2);
   await expect(page.getByRole('treeitem', { name: /2 stickers/ })).toBeVisible();
-  await expect(launch).toHaveAttribute('aria-pressed', 'true');
+  await expect(celebrate).toHaveAttribute('aria-pressed', 'true');
   // The sheet shows what is on the topic, so there is no separate list.
   await expect(page.getByRole('heading', { name: /On this/ })).toHaveCount(0);
 
   // Pressing a sticker that is on takes it off.
-  await launch.click();
-  await expect(launch).toHaveAttribute('aria-pressed', 'false');
+  await celebrate.click();
+  await expect(celebrate).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator('.topic[data-selected] .stickers > g')).toHaveCount(1);
 });
 
@@ -71,12 +71,12 @@ test('the same sticker is never put on twice', async ({ page }) => {
   await startWithTopic(page);
   await tree(page).focus();
   await page.keyboard.press('s');
-  const star = page.getByRole('button', { name: 'Star', exact: true });
-  await star.click();
+  const love = page.getByRole('button', { name: 'Love', exact: true });
+  await love.click();
   await expect(page.locator('.topic[data-selected] .stickers > g')).toHaveCount(1);
-  await star.click();
+  await love.click();
   await expect(page.locator('.topic[data-selected] .stickers > g')).toHaveCount(0);
-  await star.click();
+  await love.click();
   await expect(page.locator('.topic[data-selected] .stickers > g')).toHaveCount(1);
 });
 
@@ -84,7 +84,7 @@ test('the first sticker takes the top right corner', async ({ page }) => {
   await startWithTopic(page);
   await tree(page).focus();
   await page.keyboard.press('s');
-  await page.getByRole('button', { name: 'Heart', exact: true }).click();
+  await page.getByRole('button', { name: 'Love', exact: true }).click();
   const box = await page.locator('.topic[data-selected] .topic-box').boundingBox();
   const sticker = await page.locator('.topic[data-selected] .stickers > g').boundingBox();
   expect(box && sticker).toBeTruthy();
@@ -97,19 +97,19 @@ test('only four stickers fit, one per corner', async ({ page }) => {
   await startWithTopic(page);
   await tree(page).focus();
   await page.keyboard.press('s');
-  for (const name of ['Star', 'Heart', 'Bolt', 'Hot']) {
+  for (const name of ['Love', 'Celebrate', 'Thumbs up', 'Bug']) {
     await page.getByRole('button', { name, exact: true }).click();
   }
   const sheet = page.getByRole('list', { name: 'Stickers', exact: true });
   // The ones that are on stay pressable, so they can come off. The others wait.
-  await expect(sheet.getByRole('button', { name: 'Star', exact: true })).toBeEnabled();
-  await expect(sheet.getByRole('button', { name: 'Star', exact: true })).toHaveAttribute(
+  await expect(sheet.getByRole('button', { name: 'Love', exact: true })).toBeEnabled();
+  await expect(sheet.getByRole('button', { name: 'Love', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true',
   );
-  await expect(sheet.getByRole('button', { name: 'Launch', exact: true })).toBeDisabled();
-  await sheet.getByRole('button', { name: 'Star', exact: true }).click();
-  await expect(sheet.getByRole('button', { name: 'Launch', exact: true })).toBeEnabled();
+  await expect(sheet.getByRole('button', { name: 'Warning', exact: true })).toBeDisabled();
+  await sheet.getByRole('button', { name: 'Love', exact: true }).click();
+  await expect(sheet.getByRole('button', { name: 'Warning', exact: true })).toBeEnabled();
 });
 
 test('searches stickers by name', async ({ page }) => {
@@ -117,7 +117,7 @@ test('searches stickers by name', async ({ page }) => {
   await tree(page).focus();
   await page.keyboard.press('s');
   await expect(page.getByRole('searchbox', { name: 'Search stickers' })).toBeFocused();
-  await page.keyboard.type('launch');
+  await page.keyboard.type('success');
   await expect(
     page.getByRole('list', { name: 'Stickers', exact: true }).getByRole('button'),
   ).toHaveCount(1);
@@ -127,7 +127,7 @@ test('stays accessible with a note and stickers', async ({ page }) => {
   await startWithTopic(page);
   await tree(page).focus();
   await page.keyboard.press('s');
-  await page.getByRole('button', { name: 'Star', exact: true }).click();
+  await page.getByRole('button', { name: 'Love', exact: true }).click();
   await page.getByRole('tab', { name: /^Note/ }).click();
   await page.getByRole('textbox', { name: 'Note' }).fill('Hello');
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);

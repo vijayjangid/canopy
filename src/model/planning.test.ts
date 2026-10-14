@@ -190,34 +190,34 @@ describe('Filters', () => {
 
 describe('Filter by stickers', () => {
   const stuck = () => {
-    let map = addSticker(sample(), 'a1', 'star');
-    map = addSticker(map, 'b', 'heart');
-    return addEdgeSticker(map, 'a2', 'star');
+    let map = addSticker(sample(), 'a1', 'love');
+    map = addSticker(map, 'b', 'bug');
+    return addEdgeSticker(map, 'a2', 'love');
   };
 
   it('picks out topics with a sticker, on the topic or on its line', () => {
     const map = stuck();
-    const query = selectionQuery({ ...NO_FILTER, stickers: ['star'] });
+    const query = selectionQuery({ ...NO_FILTER, stickers: ['love'] });
     expect(evaluateFilter(map, query ?? {}, { today: TODAY }).ordered).toEqual(['a1', 'a2']);
-    const either = selectionQuery({ ...NO_FILTER, stickers: ['star', 'heart'] });
+    const either = selectionQuery({ ...NO_FILTER, stickers: ['love', 'bug'] });
     expect(evaluateFilter(map, either ?? {}, { today: TODAY }).ordered).toEqual(['a1', 'a2', 'b']);
   });
 
   it('combines with other groups, names itself, and lists what is used', () => {
     const map = stuck();
-    const sel = { ...NO_FILTER, stickers: ['star'], due: 'overdue' as const };
-    expect(selectionName(map, sel)).toBe('Star · Overdue');
+    const sel = { ...NO_FILTER, stickers: ['love'], due: 'overdue' as const };
+    expect(selectionName(map, sel)).toBe('Love · Overdue');
     expect(evaluateFilter(map, selectionQuery(sel) ?? {}, { today: TODAY }).ordered).toEqual([]);
-    expect([...usedStickers(map)].sort()).toEqual(['heart', 'star']);
+    expect([...usedStickers(map)].sort()).toEqual(['bug', 'home', 'love']);
   });
 
   it('survives save and open as a saved Filter', () => {
     const map = {
       ...stuck(),
-      filters: [{ id: 'f', name: 'Stars', mode: 'dim' as const, query: { stickers: ['star'] } }],
+      filters: [{ id: 'f', name: 'Love', mode: 'dim' as const, query: { stickers: ['love'] } }],
     };
     const back = parseFile(JSON.parse(stringifyFile(map)));
-    expect(back.ok && back.map.filters?.[0]?.query.stickers).toEqual(['star']);
+    expect(back.ok && back.map.filters?.[0]?.query.stickers).toEqual(['love']);
   });
 });
 

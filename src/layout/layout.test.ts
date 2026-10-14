@@ -4,7 +4,7 @@ import { createMap, createSubTopic, setFolded, type CanopyMap, type Density } fr
 import { connectorPath } from './connectors';
 import { imageOffset, imageSize } from './image';
 import { createTopicMeasurer, textLines, wrapLines } from './measure';
-import { computeLayout } from './tree-layout';
+import { computeLayout, STICKER_CLEARANCE } from './tree-layout';
 import { SPACING, type Box, type Measure } from './types';
 
 const measure: Measure = (topic, depth) => ({
@@ -60,11 +60,73 @@ describe('computeLayout', () => {
     const down = computeLayout(map, { flow: 'down', density: 'comfortable', measure });
     for (const box of right.order) {
       const parent = box.parentId ? right.boxes.get(box.parentId) : undefined;
-      if (parent) expect(box.x).toBeCloseTo(parent.x + parent.w + gap);
+      if (parent) {
+        const parentHasStickers = Boolean(map.topics[parent.id]?.stickers?.length);
+        const boxHasStickers = Boolean(map.topics[box.id]?.stickers?.length);
+        const stickerGap =
+          (parentHasStickers ? STICKER_CLEARANCE : 0) + (boxHasStickers ? STICKER_CLEARANCE : 0);
+        expect(box.x).toBeCloseTo(parent.x + parent.w + gap + stickerGap);
+      }
     }
     for (const box of down.order) {
       const parent = box.parentId ? down.boxes.get(box.parentId) : undefined;
-      if (parent) expect(box.y).toBeCloseTo(parent.y + parent.h + gap);
+      if (parent) {
+        const parentHasStickers = Boolean(map.topics[parent.id]?.stickers?.length);
+        const boxHasStickers = Boolean(map.topics[box.id]?.stickers?.length);
+        const stickerGap =
+          (parentHasStickers ? STICKER_CLEARANCE : 0) + (boxHasStickers ? STICKER_CLEARANCE : 0);
+        expect(box.y).toBeCloseTo(parent.y + parent.h + gap + stickerGap);
+      }
+    }
+  });
+
+  it('reserves space for stickers between peers and along the Flow', () => {
+    const peers = build([0, 0]);
+    const stickeredPeers: CanopyMap = {
+      ...peers,
+      topics: {
+        ...peers.topics,
+        t0: { ...peers.topics.t0!, stickers: [{ id: 'st0', key: 'check' }] },
+        t1: { ...peers.topics.t1!, stickers: [{ id: 'st1', key: 'cross' }] },
+      },
+    };
+    const pair = build([0]);
+    const stickeredPair: CanopyMap = {
+      ...pair,
+      topics: {
+        ...pair.topics,
+        core: { ...pair.topics.core!, stickers: [{ id: 'sc', key: 'warning' }] },
+        t0: { ...pair.topics.t0!, stickers: [{ id: 'st0', key: 'question' }] },
+      },
+    };
+    const clearance = STICKER_CLEARANCE;
+
+    for (const flow of ['right', 'down'] as const) {
+      const siblings = computeLayout(stickeredPeers, { flow, density: 'comfortable', measure });
+      const first = siblings.boxes.get('t0');
+      const second = siblings.boxes.get('t1');
+      expect(first).toBeDefined();
+      expect(second).toBeDefined();
+      const peerGap =
+        flow === 'right'
+          ? (second?.y ?? 0) - ((first?.y ?? 0) + (first?.h ?? 0))
+          : (second?.x ?? 0) - ((first?.x ?? 0) + (first?.w ?? 0));
+      expect(peerGap).toBeGreaterThanOrEqual(SPACING.comfortable.sibling + clearance * 2);
+
+      const parentChild = computeLayout(stickeredPair, {
+        flow,
+        density: 'comfortable',
+        measure,
+      });
+      const parent = parentChild.boxes.get('core');
+      const child = parentChild.boxes.get('t0');
+      expect(parent).toBeDefined();
+      expect(child).toBeDefined();
+      const levelGap =
+        flow === 'right'
+          ? (child?.x ?? 0) - ((parent?.x ?? 0) + (parent?.w ?? 0))
+          : (child?.y ?? 0) - ((parent?.y ?? 0) + (parent?.h ?? 0));
+      expect(levelGap).toBeGreaterThanOrEqual(SPACING.comfortable.level + clearance * 2);
     }
   });
 

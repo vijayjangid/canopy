@@ -86,7 +86,7 @@ test('the details panel reads without a hint paragraph under the stickers', asyn
 
   await page
     .getByRole('list', { name: 'Stickers', exact: true })
-    .getByRole('button', { name: 'Star' })
+    .getByRole('button', { name: 'Love' })
     .click();
   await expect(page.locator('.sticker-meta')).toContainText('1 of 4 used');
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);

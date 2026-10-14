@@ -1,6 +1,9 @@
 import { childrenOf, getTopic, type CanopyMap } from '../model';
 import { SPACING, type Box, type Layout, type LayoutOptions, type TopicBox } from './types';
 
+/** Covers the sticker art, white cutout rim, tilt and shadow outside each topic corner. */
+export const STICKER_CLEARANCE = 22;
+
 /**
  * Tidy tree for variable-size topics. Each branch gets its own band across the Flow, so
  * branches never overlap. Parents sit centred on their children.
@@ -42,15 +45,18 @@ export function computeLayout(map: CanopyMap, opts: LayoutOptions): Layout {
   const count = ids.length;
   const along = new Float64Array(count); // extent along the Flow (levels)
   const across = new Float64Array(count); // extent across the Flow (peers)
+  const stickerClearance = new Float64Array(count);
   const widths = new Float64Array(count);
   const heights = new Float64Array(count);
   for (let i = 0; i < count; i++) {
     const topic = getTopic(map, ids[i] ?? '');
     const size = measure(topic, depths[i] ?? 0, positions[i] ?? 1);
+    const clearance = topic.stickers?.length ? STICKER_CLEARANCE : 0;
     widths[i] = size.w;
     heights[i] = size.h;
-    along[i] = horizontal ? size.w : size.h;
-    across[i] = horizontal ? size.h : size.w;
+    stickerClearance[i] = clearance;
+    along[i] = (horizontal ? size.w : size.h) + clearance;
+    across[i] = (horizontal ? size.h : size.w) + clearance * 2;
   }
 
   // Band size of each subtree. Children come after parents in preorder, so walk backwards.
@@ -84,6 +90,7 @@ export function computeLayout(map: CanopyMap, opts: LayoutOptions): Layout {
       if (edgeGap) {
         for (const k of list) level = Math.max(level, edgeGap(getTopic(map, ids[k] ?? '')));
       }
+      level += Math.max(...list.map((k) => stickerClearance[k] ?? 0));
       for (const k of list) {
         bandStart[k] = cursor;
         cursor += (band[k] ?? 0) + spacing.sibling;
@@ -107,6 +114,7 @@ export function computeLayout(map: CanopyMap, opts: LayoutOptions): Layout {
   for (let i = 0; i < count; i++) {
     const w = widths[i] ?? 0;
     const h = heights[i] ?? 0;
+    const clearance = stickerClearance[i] ?? 0;
     const x = horizontal ? (main[i] ?? 0) : (center[i] ?? 0) - w / 2;
     const y = horizontal ? (center[i] ?? 0) - h / 2 : (main[i] ?? 0);
     const parentIndex = parents[i] ?? -1;
@@ -122,10 +130,10 @@ export function computeLayout(map: CanopyMap, opts: LayoutOptions): Layout {
     };
     boxes.set(box.id, box);
     order.push(box);
-    minX = Math.min(minX, x);
-    minY = Math.min(minY, y);
-    maxX = Math.max(maxX, x + w);
-    maxY = Math.max(maxY, y + h);
+    minX = Math.min(minX, x - clearance);
+    minY = Math.min(minY, y - clearance);
+    maxX = Math.max(maxX, x + w + clearance);
+    maxY = Math.max(maxY, y + h + clearance);
   }
 
   const bounds: Box = { x: minX, y: minY, w: maxX - minX, h: maxY - minY };

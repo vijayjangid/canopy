@@ -25,7 +25,7 @@ function source(): CanopyMap {
   map = createSubTopic(map, 'sa', { id: 'sa1', title: 'A1' }).map;
   map = addTopicReference(map, 'sb', 'sa1');
   map = setNote(map, 'sa', 'A note');
-  map = addSticker(map, 'sa', 'star');
+  map = addSticker(map, 'sa', 'love');
   map = setEdgeLabel(map, 'sa', 'depends on');
   return map;
 }

@@ -30,7 +30,6 @@ const EMPTY: Layout = {
   order: [],
   bounds: { x: 0, y: 0, w: 0, h: 0 },
 };
-
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 function sameBox(a: TopicBox, b: TopicBox) {
@@ -102,7 +101,6 @@ export function createLayoutAnimator(options: AnimatorOptions = {}): LayoutAnima
   const now = options.now ?? (() => performance.now());
   const requestFrame = options.requestFrame ?? ((cb) => requestAnimationFrame(cb));
   const cancelFrame = options.cancelFrame ?? ((h) => cancelAnimationFrame(h));
-
   const store = createStore<{ view: AnimatedView }>(() => ({
     view: { layout: EMPTY, fade: NO_FADE },
   }));

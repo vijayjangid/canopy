@@ -12,6 +12,30 @@ function setup() {
 }
 
 describe('store history', () => {
+  it('drops unknown sticker keys from loaded maps', () => {
+    const map = createMap({ coreId: 'core' });
+    const core = map.topics[map.coreId];
+    if (!core) throw new Error('Expected Core topic');
+    const withUnknown = {
+      ...map,
+      topics: {
+        ...map.topics,
+        [map.coreId]: {
+          ...core,
+          stickers: [
+            { id: 'keep', key: 'home' },
+            { id: 'old', key: 'rocket' },
+          ],
+        },
+      },
+    };
+    const store = createCanopyStore({ doc: withUnknown });
+    expect(store.getState().doc.topics['core']?.stickers).toEqual([{ id: 'keep', key: 'home' }]);
+
+    store.getState().load('m_old', withUnknown);
+    expect(store.getState().doc.topics['core']?.stickers).toEqual([{ id: 'keep', key: 'home' }]);
+  });
+
   it('undoes and redoes with the selection that went with each step', () => {
     const { store } = setup();
     const { commit, undo, redo } = store.getState();

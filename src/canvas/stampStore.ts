@@ -9,9 +9,10 @@ export const isFresh = (id: string): boolean => fresh.has(id);
 export function markFresh(
   before: readonly StickerRef[] | undefined,
   after: readonly StickerRef[] | undefined,
+  duration = 1200,
 ): void {
   const known = new Set((before ?? []).map((s) => s.id));
   const added = (after ?? []).filter((s) => !known.has(s.id)).map((s) => s.id);
   for (const id of added) fresh.add(id);
-  if (added.length > 0) setTimeout(() => added.forEach((id) => fresh.delete(id)), 1200);
+  if (added.length > 0) setTimeout(() => added.forEach((id) => fresh.delete(id)), duration);
 }
