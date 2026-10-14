@@ -7,10 +7,11 @@ interface Props {
   children: ReactNode;
   /** `compact` hides the header, for the command palette. */
   variant?: 'standard' | 'compact';
+  onClose?: () => void;
 }
 
 /** A modal built on the native dialog element, which handles focus, Esc and the page behind it. */
-export function Dialog({ title, children, variant = 'standard' }: Props) {
+export function Dialog({ title, children, variant = 'standard', onClose }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -21,15 +22,19 @@ export function Dialog({ title, children, variant = 'standard' }: Props) {
     const onPress = (e: MouseEvent) => {
       if (e.target === dialog) dialog?.close();
     };
+    const handleClose = () => {
+      closeDialog();
+      onClose?.();
+    };
     dialog?.addEventListener('mousedown', onPress);
-    dialog?.addEventListener('close', closeDialog);
+    dialog?.addEventListener('close', handleClose);
     return () => {
       // Leaving the DOM is enough to dismiss a modal. Calling close() here would queue a close
       // event that React's re-run of this effect would mistake for the person closing it.
       dialog?.removeEventListener('mousedown', onPress);
-      dialog?.removeEventListener('close', closeDialog);
+      dialog?.removeEventListener('close', handleClose);
     };
-  }, []);
+  }, [onClose]);
 
   return (
     <dialog ref={ref} className="dialog" data-variant={variant} aria-labelledby={titleId}>

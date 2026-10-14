@@ -74,6 +74,53 @@ test('opens a fresh, editable copy of the SpecKit example', async ({ page }) => 
   await expect(tree(page).getByRole('treeitem')).toHaveCount(9);
 });
 
+test('deletes another saved map only after confirmation', async ({ page }) => {
+  await page.goto('/');
+  await renameMap(page, 'Keep open');
+  await page.waitForTimeout(700);
+  await fileMenu(page, 'New map');
+
+  await page.getByRole('button', { name: /^File menu/ }).click();
+  const deleteButton = page.getByRole('menuitem', { name: 'Delete map Keep open' });
+  await expect(deleteButton).toBeVisible();
+  const buttonBox = await deleteButton.boundingBox();
+  const iconBox = await deleteButton.locator('.icon').boundingBox();
+  if (!buttonBox || !iconBox) throw new Error('Missing the delete icon');
+  expect(
+    Math.abs(buttonBox.x + buttonBox.width / 2 - (iconBox.x + iconBox.width / 2)),
+  ).toBeLessThan(1);
+  expect(
+    Math.abs(buttonBox.y + buttonBox.height / 2 - (iconBox.y + iconBox.height / 2)),
+  ).toBeLessThan(1);
+  await deleteButton.click();
+  const confirmation = page.getByRole('dialog');
+  await expect(confirmation).toContainText('cannot be undone');
+  await confirmation.getByRole('button', { name: 'Cancel' }).click();
+  await expect(confirmation).toHaveCount(0);
+
+  await page.getByRole('button', { name: /^File menu/ }).click();
+  await page.getByRole('menuitem', { name: 'Delete map Keep open' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete map' }).click();
+  await expect(page.getByRole('menuitemradio', { name: /Keep open/ })).toHaveCount(0);
+});
+
+test('deleting the open map does not let autosave restore it', async ({ page }) => {
+  await page.goto('/');
+  await renameMap(page, 'Delete current');
+  await page.waitForTimeout(700);
+  await page.getByRole('button', { name: /^File menu/ }).click();
+  await page.getByRole('menuitem', { name: 'Delete map Delete current' }).click();
+
+  const confirmation = page.getByRole('dialog');
+  await expect(confirmation).toContainText('currently in use');
+  await confirmation.getByRole('button', { name: 'Delete map' }).click();
+  await expect(page.getByRole('button', { name: 'File menu: Untitled map' })).toBeVisible();
+  await page.waitForTimeout(700);
+
+  await page.getByRole('button', { name: /^File menu/ }).click();
+  await expect(page.getByRole('menuitemradio', { name: /Delete current/ })).toHaveCount(0);
+});
+
 test('saves a map to a file and opens it again', async ({ page }) => {
   // Force the plain download path, which works the same in every browser.
   await page.addInitScript(() => {

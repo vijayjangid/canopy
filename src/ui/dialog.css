@@ -244,6 +244,7 @@
 .confirm-actions {
   display: flex;
   justify-content: flex-end;
+  gap: var(--space-2);
   margin-top: var(--space-3);
 }
 
@@ -259,4 +260,18 @@
 
 .confirm-actions button:hover {
   background: var(--color-hover);
+}
+
+.confirm-actions button[data-danger] {
+  color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 45%, var(--color-border));
+}
+
+.confirm-actions button[data-danger]:hover {
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+}
+
+.confirm-actions button:disabled {
+  cursor: default;
+  opacity: 0.6;
 }

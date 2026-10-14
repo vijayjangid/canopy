@@ -17,18 +17,23 @@ import {
   startNewMap,
 } from './fileActions';
 import { Icon } from './icons';
+import { DeleteMapConfirm } from './DeleteMapConfirm';
 import { openDialog, openLeft } from './uiStore';
+import { showToast } from './toast';
 import './app-bar.css';
 
 /** The map's name, with a chevron. It opens a menu of New, Open, Save, Export and your saved maps. */
-function MapMenu() {
+function MapMenu({ onDeleteMap }: { onDeleteMap: (id: string) => Promise<void> }) {
   const [open, setOpen] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [maps, setMaps] = useState<MapSummary[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<MapSummary | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const mapId = useCanopy((s) => s.mapId);
   const title = useCanopy((s) => s.doc.meta.title);
   const root = useRef<HTMLDivElement>(null);
   const field = useRef<HTMLInputElement>(null);
+  const deletingRef = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -69,6 +74,24 @@ function MapMenu() {
       <span className="menu-hint">{hint}</span>
     </button>
   );
+
+  const confirmDelete = async () => {
+    const target = deleteTarget;
+    if (!target || deletingRef.current) return;
+    deletingRef.current = true;
+    setDeleting(true);
+    try {
+      await onDeleteMap(target.id);
+      setMaps((current) => current.filter((map) => map.id !== target.id));
+      setDeleteTarget(null);
+    } catch (error) {
+      const detail = error instanceof Error ? `: ${error.message}` : '';
+      showToast(`Could not delete "${target.title || 'Untitled map'}"${detail}`);
+    } finally {
+      deletingRef.current = false;
+      setDeleting(false);
+    }
+  };
 
   return (
     <div className="menu map-menu" ref={root}>
@@ -126,22 +149,45 @@ function MapMenu() {
           {item('SpecKit example', '', openSpecKitExample)}
           {maps.length > 0 && <p className="menu-heading">Your maps</p>}
           {maps.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              role="menuitemradio"
-              className="menu-map"
-              aria-checked={m.id === mapId}
-              onClick={() => {
-                setOpen(false);
-                void openStoredMap(getRepository(), m.id);
-              }}
-            >
-              <span>{m.title || 'Untitled map'}</span>
-              <time dateTime={m.modified}>{new Date(m.modified).toLocaleDateString()}</time>
-            </button>
+            <div key={m.id} className="menu-map-row" role="none">
+              <button
+                type="button"
+                role="menuitemradio"
+                className="menu-map"
+                aria-checked={m.id === mapId}
+                onClick={() => {
+                  setOpen(false);
+                  void openStoredMap(getRepository(), m.id);
+                }}
+              >
+                <span>{m.title || 'Untitled map'}</span>
+                <time dateTime={m.modified}>{new Date(m.modified).toLocaleDateString()}</time>
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="menu-map-delete"
+                aria-label={`Delete map ${m.title || 'Untitled map'}`}
+                data-danger=""
+                onClick={() => {
+                  setOpen(false);
+                  setDeleteTarget(m);
+                }}
+              >
+                <Icon name="trash" />
+              </button>
+            </div>
           ))}
         </div>
+      )}
+      {deleteTarget && (
+        <DeleteMapConfirm
+          map={deleteTarget}
+          isCurrent={deleteTarget.id === mapId}
+          busy={deleting}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={() => void confirmDelete()}
+        />
       )}
     </div>
   );
@@ -207,12 +253,12 @@ function ColourMode() {
 }
 
 /** A slim bar: the file menu and map title as a pair, and one way into every command. */
-export function AppBar() {
+export function AppBar({ onDeleteMap }: { onDeleteMap: (id: string) => Promise<void> }) {
   return (
     <header className="app-bar">
       <div className="app-bar-start">
         <Brand />
-        <MapMenu />
+        <MapMenu onDeleteMap={onDeleteMap} />
         <SaveBadge />
       </div>
       <History />

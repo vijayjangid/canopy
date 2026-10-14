@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { LiveRegion } from './a11y';
 import { ContextMenu } from './ui/ContextMenu';
 import { TooltipHost } from './ui/Tooltip';
@@ -14,9 +14,16 @@ import {
 } from './ui';
 import { Canvas } from './canvas';
 import { generateDemoMap } from './dev/demo';
-import { attachAutosave, getRepository, openInitialMap, rememberOpenedMap } from './persistence';
+import {
+  attachAutosave,
+  getRepository,
+  openInitialMap,
+  rememberOpenedMap,
+  type Autosave,
+} from './persistence';
 import { canopyStore, useCanopy } from './store';
 import { reportSave } from './ui/saveStatus';
+import { startNewMap } from './ui/fileActions';
 import { setZen, uiStore, useUi } from './ui/uiStore';
 import { applyAppearance } from './theme';
 import './app.css';
@@ -42,6 +49,23 @@ export function App() {
   const showLevels = useCanopy((s) => s.doc.prefs.showLevels);
 
   const zen = useUi((s) => s.zen);
+  const autosave = useRef<Autosave | null>(null);
+
+  const deleteMap = useCallback(
+    async (id: string) => {
+      if (!ready) throw new Error('The current map is still loading. Try again shortly.');
+      const isCurrentMap = canopyStore.getState().mapId === id;
+      if (isCurrentMap) {
+        const activeAutosave = autosave.current;
+        if (!activeAutosave) throw new Error('Map saving is not ready yet. Try again shortly.');
+        // Flush before removing the record so a pending autosave cannot recreate it.
+        await activeAutosave.flush();
+      }
+      await getRepository().remove(id);
+      if (isCurrentMap) startNewMap();
+    },
+    [ready],
+  );
 
   // Escape leaves Zen, ahead of anything else that would use the key.
   useEffect(() => {
@@ -75,7 +99,12 @@ export function App() {
       if (disposed) return;
       canopyStore.getState().load(mapId, doc);
       rememberOpenedMap(mapId);
-      stop = attachAutosave(canopyStore, repo, { onStatus: reportSave }).dispose;
+      const activeAutosave = attachAutosave(canopyStore, repo, { onStatus: reportSave });
+      autosave.current = activeAutosave;
+      stop = () => {
+        activeAutosave.dispose();
+        if (autosave.current === activeAutosave) autosave.current = null;
+      };
     });
     return () => {
       disposed = true;
@@ -85,7 +114,7 @@ export function App() {
 
   return (
     <div className="app" data-zen={zen || undefined}>
-      <AppBar />
+      <AppBar onDeleteMap={deleteMap} />
       <main className="app-main">
         {ready ? <Canvas /> : null}
         <div className="panel-layer">

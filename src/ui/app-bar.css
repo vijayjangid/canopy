@@ -214,6 +214,40 @@
   font-weight: 400;
 }
 
+.menu-map-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.menu-list .menu-map-row .menu-map {
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-list .menu-map-row .menu-map-delete {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--color-text-muted);
+}
+
+.menu-map-delete .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.menu-list .menu-map-delete[data-danger]:hover,
+.menu-list .menu-map-delete[data-danger]:focus-visible {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+}
+
 .menu-list time,
 .menu-empty {
   color: var(--color-text-muted);
