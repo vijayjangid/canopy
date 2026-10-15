@@ -81,7 +81,7 @@ describe('store history', () => {
     rename('Hel');
     expect(store.getState().past).toHaveLength(1);
     undo();
-    expect(store.getState().doc.topics['core']?.title).toBe('Central topic');
+    expect(store.getState().doc.topics['core']?.title).toBe('Core Idea');
   });
 
   it('starts a new step after the group window passes', () => {

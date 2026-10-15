@@ -15,7 +15,6 @@ import {
   removeSticker,
   removeStickerKey,
   setEdgeLabel,
-  setNote,
   setImageAlt,
   setProps,
   setTopicImage,
@@ -32,15 +31,6 @@ import {
 
 const base = () =>
   createSubTopic(createMap({ coreId: 'core' }), 'core', { id: 'a', title: 'A' }).map;
-
-describe('notes', () => {
-  it('sets, changes and clears a note', () => {
-    const withNote = setNote(base(), 'a', '# Hi');
-    expect(withNote.topics['a']?.note).toBe('# Hi');
-    expect(setNote(withNote, 'a', '# Hi')).toBe(withNote);
-    expect('note' in (setNote(withNote, 'a', '').topics['a'] ?? {})).toBe(false);
-  });
-});
 
 describe('stickers', () => {
   const KINDS = ['love', 'bug', 'idea', 'celebrate', 'flag', 'warning'];
@@ -313,9 +303,8 @@ describe('topic references', () => {
 
 describe('content survives saving, copying and pasting', () => {
   const rich = () => {
-    let map = setNote(base(), 'a', 'A **note**');
-    map = addSticker(map, 'a', 'bug');
-    return setProps(map, ['a'], { status: 'doing', due: { end: '2026-11-01' }, tags: ['x'] });
+    const map = addSticker(base(), 'a', 'bug');
+    return setProps(map, ['a'], { due: { end: '2026-11-01' }, tags: ['x'] });
   };
 
   it('round-trips through the file format', () => {
@@ -323,9 +312,9 @@ describe('content survives saving, copying and pasting', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const a = result.map.topics['a'];
-    expect(a?.note).toBe('A **note**');
+    expect(a).not.toHaveProperty('note');
     expect(a?.stickers?.[0]?.key).toBe('bug');
-    expect(a?.props).toEqual({ status: 'doing', due: { end: '2026-11-01' }, tags: ['x'] });
+    expect(a?.props).toEqual({ due: { end: '2026-11-01' }, tags: ['x'] });
   });
 
   it('opens old files that still carry attachments or people, ignoring them', () => {
@@ -340,15 +329,21 @@ describe('content survives saving, copying and pasting', () => {
     if (result.ok) expect(result.map.topics['a']?.props).toEqual(rich().topics['a']?.props);
   });
 
-  it('carries content through copy, JSON clipboard and paste', () => {
+  it('discards legacy topic notes and carries remaining content through copy and paste', () => {
     const map = rich();
+    const legacy = JSON.parse(stringifyFile(map));
+    legacy.core.children[0].note = 'A legacy note';
+    const parsed = parseFile(legacy);
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) expect(parsed.map.topics['a']).not.toHaveProperty('note');
+
     const branches = branchesFromJson(branchesToJson(copyBranches(map, ['a'])));
-    expect(branches?.[0]?.extras?.note).toBe('A **note**');
+    expect(branches?.[0]?.extras).not.toHaveProperty('note');
     const pasted = pasteBranches(map, branches ?? [], { kind: 'child', parentId: 'core' });
     const copy = pasted.map.topics[pasted.ids[0] ?? ''];
-    expect(copy?.note).toBe('A **note**');
+    expect(copy).not.toHaveProperty('note');
     expect(copy?.stickers).toHaveLength(1);
-    expect(copy?.props?.status).toBe('doing');
+    expect(copy?.props).toEqual(map.topics['a']?.props);
   });
 });
 

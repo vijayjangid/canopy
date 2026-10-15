@@ -31,9 +31,9 @@ export function copySelection(ctx: CommandContext, data: DataTransfer, cut = fal
 
   const count = countBranches(branches);
   if (cut && removeSelection(ctx) > 0) {
-    ctx.announce(`Cut ${plural(count, 'topic')}. Paste to place them.`);
+    ctx.announce(`Cut ${plural(count, 'node')}. Paste to place them.`);
   } else {
-    ctx.announce(`Copied ${plural(count, 'topic')}`);
+    ctx.announce(`Copied ${plural(count, 'node')}`);
   }
   return true;
 }
@@ -66,7 +66,7 @@ export async function pasteImage(ctx: CommandContext, blob: Blob, topicId?: stri
     // The topic may have been deleted while the picture was being read.
     if (!doc.topics[focus]) return;
     commit(setTopicImage(doc, focus, image));
-    ctx.announce(`Added a picture to ${doc.topics[focus]?.title.trim() || 'the topic'}`);
+    ctx.announce(`Added a picture to ${doc.topics[focus]?.title.trim() || 'the node'}`);
   } catch (error) {
     ctx.notify?.(error instanceof Error ? error.message : 'That picture could not be pasted.');
   }
@@ -90,7 +90,7 @@ export function pasteClipboard(ctx: CommandContext, data: DataTransfer, asPeer: 
     peers ? { kind: 'after', siblingId: focus } : { kind: 'child', parentId: focus },
   );
   commit(map, { select: ids, focus: ids[ids.length - 1] });
-  ctx.announce(`Pasted ${plural(countBranches(branches), 'topic')}`);
+  ctx.announce(`Pasted ${plural(countBranches(branches), 'node')}`);
   return true;
 }
 

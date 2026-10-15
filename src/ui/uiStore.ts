@@ -13,7 +13,7 @@ export type DialogName =
   | 'export';
 
 /** Parts of the details panel on the right. */
-export type InspectorTab = 'properties' | 'note' | 'stickers';
+export type InspectorTab = 'properties' | 'tasks' | 'stickers';
 
 /** Tabs of the panel on the left. */
 export type LeftTab = 'settings' | 'tags' | 'export';
@@ -139,8 +139,8 @@ export const setFilter = (selection: FilterSelection | null) =>
 export const updateFilter = (patch: Partial<FilterSelection>) =>
   uiStore.setState((s) => ({ filterSel: { ...s.filterSel, ...patch } }));
 
-/** Ticks or unticks one status, tag or sticker. */
-export function toggleFilterChoice(group: 'status' | 'tags' | 'stickers', key: string): void {
+/** Ticks or unticks one tag or sticker. */
+export function toggleFilterChoice(group: 'tags' | 'stickers', key: string): void {
   const current = uiStore.getState().filterSel[group];
   updateFilter({
     [group]: current.includes(key) ? current.filter((k) => k !== key) : [...current, key],
@@ -155,9 +155,9 @@ export const setFilterMode = (filterMode: FilterMode) => uiStore.setState({ filt
 
 /** Optional starting text and kind for the Quick-Add popover. */
 export const quickAddStore = createStore<{
-  preset: 'all' | 'status' | 'due' | 'tag';
+  preset: 'all' | 'due' | 'tag';
 }>(() => ({ preset: 'all' }));
-export const openQuickAdd = (preset: 'all' | 'status' | 'due' | 'tag' = 'all') => {
+export const openQuickAdd = (preset: 'all' | 'due' | 'tag' = 'all') => {
   quickAddStore.setState({ preset });
   openDialog('quickadd');
 };

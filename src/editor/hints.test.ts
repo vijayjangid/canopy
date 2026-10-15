@@ -7,13 +7,13 @@ const labels = (hints: { label: string }[]) => hints.map((h) => h.label);
 describe('hintsFor', () => {
   it('shows editing shortcuts while a title is typed', () => {
     const hints = hintsFor({ ...base, editing: true }, true);
-    expect(labels(hints)).toEqual(['Next topic', 'Sub-topic', 'New line', 'Cancel']);
+    expect(labels(hints)).toEqual(['Next node', 'Sub-topic', 'New line', 'Cancel']);
     expect(hints[2]?.keys).toBe('⇧↵');
   });
 
   it('suggests creating topics for a topic and folding only when it has children', () => {
     expect(labels(hintsFor(base, true))).toEqual([
-      'Add sub-topic',
+      'Add child node',
       'Add peer below',
       'Edit title',
       'Delete branch',
@@ -21,7 +21,7 @@ describe('hintsFor', () => {
       'Tag',
       'Due date',
       'Sticker',
-      'Note',
+      'Tasks',
     ]);
     expect(labels(hintsFor({ ...base, focusHasChildren: true }, true))).toContain('Fold');
     expect(
@@ -31,9 +31,9 @@ describe('hintsFor', () => {
 
   it('does not offer peers for the Core', () => {
     expect(labels(hintsFor({ ...base, focusIsCore: true }, true))).toEqual([
-      'Add sub-topic',
+      'Add child node',
       'Edit title',
-      'Note',
+      'Tasks',
       'Sticker',
       'Unfold everything',
     ]);

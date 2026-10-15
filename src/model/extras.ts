@@ -15,18 +15,6 @@ import {
 /** Stickers stick to the corners of a topic, so there are four places. */
 export const MAX_STICKERS = 4;
 
-/** Sets or clears a topic's note. An empty note is removed from the file. */
-export function setNote(map: CanopyMap, id: TopicId, note: string): CanopyMap {
-  const topic = getTopic(map, id);
-  if ((topic.note ?? '') === note) return map;
-  return produce(map, (draft) => {
-    const t = draft.topics[id];
-    if (!t) return;
-    if (note === '') delete t.note;
-    else t.note = note;
-  });
-}
-
 /** Whether a list of stickers has this one already. A sticker is on a topic or line only once. */
 export const hasSticker = (list: readonly StickerRef[] | undefined, key: string): boolean =>
   list?.some((s) => s.key === key) ?? false;

@@ -1,7 +1,7 @@
 import { stickerName } from '../stickers/catalog';
 import { fuzzyMatches } from './fuzzy';
 import { addDays, formatDate } from './dates';
-import { planningOf, statusDef } from './planning';
+import { planningOf } from './planning';
 import { isOverdue } from './rollup';
 import { ancestorsOf, subtreeOf } from './tree';
 import type { CanopyMap, Filter, FilterQuery, Topic, TopicId } from './types';
@@ -27,11 +27,6 @@ export function topicMatches(
   const checks: boolean[] = [];
   const props = topic.props;
 
-  if (query.status) checks.push(props?.status !== undefined && query.status.includes(props.status));
-  if (query.statusCategory) {
-    const category = statusDef(map, props?.status)?.category;
-    checks.push(category !== undefined && query.statusCategory.includes(category));
-  }
   if (query.tags) checks.push(query.tags.some((t) => props?.tags?.includes(t)));
   if (query.text) {
     const text = query.text;
@@ -92,8 +87,6 @@ export function evaluateFilter(
 
 /** What is ticked in the Filter panel. Choices in one group are alternatives, and groups combine. */
 export interface FilterSelection {
-  /** Any of these statuses. */
-  status: string[];
   /** Any of these tags. */
   tags: string[];
   /** Any of these stickers, on the topic or on the line above it. */
@@ -107,7 +100,6 @@ export interface FilterSelection {
 }
 
 export const NO_FILTER: FilterSelection = {
-  status: [],
   tags: [],
   stickers: [],
   text: '',
@@ -122,10 +114,6 @@ const DATE = /^(19|20)\d{2}-\d{2}-\d{2}$/;
 export function selectionQuery(sel: FilterSelection): FilterQuery | null {
   const query: FilterQuery = { match: 'all' };
   let any = false;
-  if (sel.status.length > 0) {
-    query.status = sel.status;
-    any = true;
-  }
   if (sel.tags.length > 0) {
     query.tags = sel.tags;
     any = true;
@@ -156,9 +144,6 @@ export function selectionQuery(sel: FilterSelection): FilterQuery | null {
 export function selectionName(map: CanopyMap, sel: FilterSelection): string {
   const parts: string[] = [];
   if (sel.text.trim()) parts.push(`“${sel.text.trim()}”`);
-  if (sel.status.length > 0) {
-    parts.push(sel.status.map((k) => statusDef(map, k)?.label ?? k).join(', '));
-  }
   if (sel.tags.length > 0) {
     const tags = planningOf(map).tags;
     parts.push(sel.tags.map((k) => `#${tags.find((t) => t.key === k)?.label ?? k}`).join(', '));
@@ -173,17 +158,11 @@ export function selectionName(map: CanopyMap, sel: FilterSelection): string {
   return parts.join(' · ');
 }
 
-/** Every Filter a map can show: dates, each status, each tag, then its own. */
+/** Every Filter a map can show: dates, each tag, then its own. */
 export function filtersOf(map: CanopyMap): Filter[] {
   const plan = planningOf(map);
   return [
     ...FILTER_PRESETS,
-    ...plan.statusSet.map((s): Filter => ({
-      id: `status:${s.key}`,
-      name: s.label,
-      mode: 'dim',
-      query: { status: [s.key] },
-    })),
     ...plan.tags.map((t): Filter => ({
       id: `tag:${t.key}`,
       name: `#${t.label}`,

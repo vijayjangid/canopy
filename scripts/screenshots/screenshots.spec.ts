@@ -47,15 +47,21 @@ async function loadMap(page: Page, tree: DemoTopic, title: string): Promise<void
             map = made.map;
             tags.push(made.key);
           }
-          if (kid.status || kid.due || tags.length > 0) {
+          if (kid.due || tags.length > 0) {
             map = model.setProps(map, [id], {
-              ...(kid.status ? { status: kid.status } : {}),
               ...(kid.due ? { due: { end: kid.due } } : {}),
               ...(tags.length > 0 ? { tags } : {}),
             });
           }
+          for (const task of kid.tasks ?? []) {
+            map = model.addTopicTask(map, id, task.text);
+            if (task.done) {
+              const taskId = map.topics[id]?.tasks?.at(-1)?.id;
+              if (!taskId) throw new Error(`Could not add screenshot task to "${kid.title}"`);
+              map = model.toggleTopicTask(map, id, taskId);
+            }
+          }
           for (const sticker of kid.stickers ?? []) map = model.addSticker(map, id, sticker);
-          if (kid.note) map = model.setNote(map, id, kid.note);
           if (kid.edge) map = model.setEdgeLabel(map, id, kid.edge);
           for (const to of kid.references ?? []) pending.push([id, to]);
           add(id, kid.children);
@@ -120,12 +126,24 @@ test('inspector: a picked topic, its trail and the details panel', async ({ page
   await page.screenshot({ path: out('inspector') });
 });
 
+test('tasklist: inline tasks on the node and in the Tasks panel', async ({ page }) => {
+  await loadMap(page, PRODUCT_LAUNCH, 'Product launch');
+  await page.getByRole('treeitem', { name: /Landing page/ }).click();
+  await expect(page.getByRole('complementary', { name: 'Inspector' })).toBeVisible();
+  await expect(page.getByRole('tab', { name: /Tasks/ })).toBeVisible();
+  await page.getByRole('tab', { name: /Tasks/ }).click();
+  await expect(page.getByRole('textbox', { name: 'Task 1' })).toHaveValue('Draft the page copy');
+  await page.mouse.move(700, 880);
+  await settle(page);
+  await page.screenshot({ path: out('tasklist') });
+});
+
 test('stickers: the picker with weekday and priority cutouts', async ({ page }) => {
   await loadMap(page, PRODUCT_LAUNCH, 'Product launch');
   await pick(page, 'Landing page');
   await page.getByRole('tree', { name: 'Mind map' }).focus();
   await page.keyboard.press('i');
-  await expect(page.getByRole('searchbox', { name: 'Search stickers' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Stickers', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Sunday', exact: true }).scrollIntoViewIfNeeded();
   await page.mouse.move(700, 880);
   await settle(page);
@@ -257,9 +275,9 @@ test('compact layout: the export panel, and the same map on A4 before and after'
   await page.screenshot({ path: out('compact-before-after') });
 
   // The README quotes these numbers, so print them for whoever updates it.
-  const topics = /(\d+) topics/.exec(afterNote)?.[1];
+  const nodes = /(\d+) nodes/.exec(afterNote)?.[1];
   console.log(
-    `\nFor the README's compact layout text: ${topics} topics, ${Math.round(beforeScale * 100)}% ` +
+    `\nFor the README's compact layout text: ${nodes} nodes, ${Math.round(beforeScale * 100)}% ` +
       `with the standard layout, ${afterScale}% with the compact layout.`,
   );
 });

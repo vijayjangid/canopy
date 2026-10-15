@@ -7,7 +7,7 @@ import { Icon } from './icons';
 import { showToast } from './toast';
 import { setFocusBranch, useUi } from './uiStore';
 
-const nameOf = (t: Topic) => t.title.trim().replace(/\s+/g, ' ') || 'Empty topic';
+const nameOf = (t: Topic) => t.title.trim().replace(/\s+/g, ' ') || 'Empty node';
 
 /**
  * How many levels, counted from the end, to show beside the first. `null` shows the whole path.
@@ -92,7 +92,7 @@ export function TrailBar() {
     const text = EXPAND_PREFIX + names.filter(Boolean).join('>');
     void navigator.clipboard
       .writeText(text)
-      .then(() => showToast('Path copied. Paste it into a new topic to make the chain'))
+      .then(() => showToast('Path copied. Paste it into a new node to make the chain'))
       .catch(() => showToast('Could not copy the path'));
   };
 
@@ -170,7 +170,7 @@ export function TrailBar() {
         type="button"
         className="status-bar-copy"
         aria-label="Copy path"
-        data-tip="Copy as !!a>b>c, to paste into a new topic"
+        data-tip="Copy as !!a>b>c, to paste into a new node"
         data-tip-side="top"
         onClick={copyPath}
       >

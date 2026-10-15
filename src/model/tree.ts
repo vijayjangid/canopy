@@ -29,7 +29,7 @@ const NONE: readonly Topic[] = [];
 
 export function getTopic(map: CanopyMap, id: TopicId): Topic {
   const topic = map.topics[id];
-  if (!topic) throw new ModelError('NOT_FOUND', `Topic not found: ${id}`);
+  if (!topic) throw new ModelError('NOT_FOUND', `Node not found: ${id}`);
   return topic;
 }
 

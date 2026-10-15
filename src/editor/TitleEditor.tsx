@@ -9,6 +9,7 @@ import {
   textLines,
   typeForDepth,
   TOPIC_PADDING,
+  TOPIC_MAX_TEXT_WIDTH,
   type TopicBox,
 } from '../layout';
 import {
@@ -73,15 +74,19 @@ export function TitleEditor({ box }: { box: TopicBox }) {
   }, [box.id, started]);
 
   const style = typeForDepth(box.depth);
+  const tasklist = (topic?.tasks?.length ?? 0) > 0;
   const lineCount = textLines(title, box.depth, textWidth).length;
   // Stickers and icons sit in a row under the title, so the title centres above them.
   const rowH = topic ? topicRows(topic).total : 0;
   // A picture stays visible above the title, so the editor covers only the text part.
   const above = topic ? imageOffset(topic) : 0;
   const padTop =
-    rowH > 0
+    tasklist || rowH > 0
       ? TOPIC_PADDING.y
       : Math.max(TOPIC_PADDING.y, (box.h - above - lineCount * style.lineHeight) / 2);
+  const editorWidth = tasklist
+    ? Math.min(box.w, TOPIC_MAX_TEXT_WIDTH + TOPIC_PADDING.x * 2)
+    : box.w;
 
   // Shorthand typed so far, shown under the topic before it becomes Properties.
   const doc = useCanopy((s) => s.doc);
@@ -150,8 +155,8 @@ export function TitleEditor({ box }: { box: TopicBox }) {
         className="title-editor"
         data-depth={Math.min(box.depth, 3)}
         data-expression={expressing || undefined}
-        aria-label="Topic title"
-        placeholder="New topic"
+        aria-label="Node title"
+        placeholder="New node"
         rows={1}
         value={title}
         spellCheck={false}
@@ -177,10 +182,10 @@ export function TitleEditor({ box }: { box: TopicBox }) {
         }}
         // Sized in layout units and scaled as a whole, so text wraps exactly like the drawn topic.
         style={{
-          left: box.x * vp.k + vp.x,
+          left: (box.x + (box.w - editorWidth) / 2) * vp.k + vp.x,
           top: (box.y + above) * vp.k + vp.y,
-          width: box.w,
-          height: box.h - above,
+          width: editorWidth,
+          height: tasklist ? TOPIC_PADDING.y + lineCount * style.lineHeight : box.h - above,
           transform: `scale(${vp.k})`,
           fontSize: style.size,
           fontWeight: style.weight,
@@ -240,7 +245,7 @@ export function TitleEditor({ box }: { box: TopicBox }) {
           </div>
           {expansion && (
             <p className="title-guide-preview">
-              {expansion.count} {expansion.count === 1 ? 'topic' : 'topics'}:{' '}
+              {expansion.count} {expansion.count === 1 ? 'node' : 'nodes'}:{' '}
               {summarize(expansion.branches)}
             </p>
           )}

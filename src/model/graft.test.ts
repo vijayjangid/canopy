@@ -8,7 +8,6 @@ import {
   graftTitle,
   planningOf,
   setEdgeLabel,
-  setNote,
   setProps,
   setFolded,
   addTopicReference,
@@ -24,7 +23,6 @@ function source(): CanopyMap {
   map = createSubTopic(map, 's', { id: 'sb', title: 'B' }).map;
   map = createSubTopic(map, 'sa', { id: 'sa1', title: 'A1' }).map;
   map = addTopicReference(map, 'sb', 'sa1');
-  map = setNote(map, 'sa', 'A note');
   map = addSticker(map, 'sa', 'love');
   map = setEdgeLabel(map, 'sa', 'depends on');
   return map;
@@ -63,7 +61,6 @@ describe('graftMap', () => {
   it('keeps content, and keeps references between its own topics pointing at the copies', () => {
     const { map, id } = graftMap(target(), 'core', source());
     const [, a, a1, b] = subtreeOf(map, id);
-    expect(a?.note).toBe('A note');
     expect(a?.stickers).toHaveLength(1);
     expect(a?.edge?.label).toBe('depends on');
     expect(b?.references).toEqual([a1?.id]);
@@ -94,12 +91,11 @@ describe('graftMap', () => {
     expect(subtreeOf(map, id)[1]?.folded).toBe(true);
   });
 
-  it('carries over the statuses and tags that its topics use', () => {
+  it('carries over the tags that its topics use', () => {
     const made = ensureTag(source(), 'Launch');
-    const src = setProps(made.map, ['sa'], { status: 'doing', tags: [made.key] });
+    const src = setProps(made.map, ['sa'], { tags: [made.key] });
     const { map } = graftMap(target(), 'core', src);
     expect(planningOf(map).tags.map((t) => t.label)).toEqual(['Launch']);
-    expect(planningOf(map).statusSet.some((s) => s.key === 'doing')).toBe(true);
     // The map keeps its own choices when it already has them.
     const again = graftMap(map, 'core', src).map;
     expect(planningOf(again).tags).toHaveLength(1);

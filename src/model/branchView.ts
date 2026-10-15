@@ -21,6 +21,6 @@ export interface Collapsed {
 export function collapsedAbove(map: CanopyMap, rootId: TopicId): Collapsed {
   const above = ancestorsOf(map, rootId)
     .reverse()
-    .map((t) => t.title.trim().replace(/\s+/g, ' ') || 'Empty topic');
+    .map((t) => t.title.trim().replace(/\s+/g, ' ') || 'Empty node');
   return { count: countTopics(map) - subtreeOf(map, rootId).length, path: above };
 }

@@ -13,7 +13,7 @@ import { Icon } from './icons';
 const ORDER = [
   'Create',
   'Edit',
-  'Topic content',
+  'Node content',
   'Planning',
   'Typing',
   'Move',
@@ -89,7 +89,7 @@ export function CheatSheet() {
     for (const command of COMMANDS as readonly CommandDef[]) {
       add(COMMAND_GROUPS[command.id], command.label, describeKeys(command));
     }
-    add('Typing', 'Expand into nested topics', ['!!a>b>c']);
+    add('Typing', 'Expand into nested nodes', ['!!a>b>c']);
     add('Typing', 'Expand into siblings (comma or new line)', ['!!a, b, c']);
     add('Typing', 'Set a tag, status or due date', ['#tag /status ^date']);
     for (const native of NATIVE_SHORTCUTS) {

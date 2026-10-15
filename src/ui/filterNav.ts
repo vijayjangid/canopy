@@ -16,7 +16,7 @@ export function jumpFilter(delta: 1 | -1): void {
   }
   const { ordered } = active.result;
   if (ordered.length === 0) {
-    announce('No topics match this Filter');
+    announce('No nodes match this Filter');
     return;
   }
   // Reading order is document order, so find where the focused topic would sit among the matches.
@@ -35,6 +35,6 @@ export function jumpFilter(delta: 1 | -1): void {
   else select([target], target);
   const position = ordered.indexOf(target) + 1;
   announce(
-    `Match ${position} of ${ordered.length}: ${doc.topics[target]?.title.trim() || 'Empty topic'}`,
+    `Match ${position} of ${ordered.length}: ${doc.topics[target]?.title.trim() || 'Empty node'}`,
   );
 }

@@ -21,7 +21,7 @@ export function FirstRunHint({ layout }: { layout: Layout }) {
     >
       <strong>Start your map</strong>
       <span>
-        Select the central topic and press <kbd>Tab</kbd> to add an idea, or double-click it to
+        Select the central node and press <kbd>Tab</kbd> to add an idea, or double-click it to
         rename it.
       </span>
     </div>

@@ -11,7 +11,7 @@ import {
 import { canopyStore } from '../store';
 import type { PaletteEntry } from './commandIndex';
 
-export type QuickPreset = 'all' | 'status' | 'due' | 'tag';
+export type QuickPreset = 'all' | 'due' | 'tag';
 
 /** Applies a change to every selected topic, and says what happened. */
 export function applyToSelection(patch: PropsPatch, say: string): void {
@@ -42,15 +42,6 @@ export function buildQuickEntries(
   const out: PaletteEntry[] = [];
   const add = (group: string, id: string, label: string, run: () => void) =>
     out.push({ id, label, group, keys: [], run });
-
-  for (const s of planningOf(doc).statusSet) {
-    add('Status', `status:${s.key}`, `Status: ${s.label}`, () =>
-      applyToSelection({ status: s.key }, `Status ${s.label}`),
-    );
-  }
-  add('Status', 'status:clear', 'Status: clear', () =>
-    applyToSelection({ status: null }, 'Status cleared'),
-  );
 
   const due = (label: string, iso: string) =>
     add('Due date', `due:${iso}`, `Due: ${label} (${formatDate(iso, now)})`, () =>
@@ -85,7 +76,6 @@ export function buildQuickEntries(
 
   const only: Record<QuickPreset, string | null> = {
     all: null,
-    status: 'Status',
     due: 'Due date',
     tag: 'Tag',
   };

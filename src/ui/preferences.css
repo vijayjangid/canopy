@@ -108,26 +108,6 @@
   transform: translateX(16px);
 }
 
-.status-edit {
-  display: grid;
-  gap: var(--space-2);
-  padding: 0;
-  margin: var(--space-2) 0;
-  list-style: none;
-}
-
-.status-edit li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.status-edit input[type='text'] {
-  flex: 1;
-  min-width: 120px;
-}
-
 .prefs input[type='text'],
 .prefs select {
   padding: 6px var(--space-2);
@@ -151,17 +131,4 @@
 .prefs button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
-}
-
-.status-flag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-}
-
-.status-actions {
-  display: flex;
-  gap: var(--space-2);
-  margin-bottom: var(--space-3);
 }

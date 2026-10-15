@@ -14,7 +14,7 @@ export function LiveRegion() {
       aria-atomic="true"
     >
       {message}
-      {seq % 2 === 0 ? '' : '\u00a0'}
+      {seq % 2 === 0 ? '' : ' '}
     </div>
   );
 }

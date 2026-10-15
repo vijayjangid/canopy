@@ -10,6 +10,8 @@ export * from './validate';
 export * from './serialize';
 export * from './sanitize';
 export * from './extras';
+export * from './style';
+export * from './tasks';
 export * from './dates';
 export * from './planning';
 export * from './rollup';

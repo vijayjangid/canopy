@@ -2,11 +2,9 @@ import type { MapPrefs, Topic } from '../model';
 
 /** Small marks shown on a row under a topic's title. Widths are fixed, so measuring needs only the topic. */
 export type ChipItem =
-  | { kind: 'status'; key: string; x: number; w: number }
   | { kind: 'due'; date: string; x: number; w: number }
   /** `keys` are the tags drawn; `more` is how many did not fit. */
-  | { kind: 'tags'; keys: string[]; more: number; x: number; w: number }
-  | { kind: 'note'; x: number; w: number };
+  | { kind: 'tags'; keys: string[]; more: number; x: number; w: number };
 
 export type ChipMode = MapPrefs['chips'];
 
@@ -44,10 +42,8 @@ export function chipItems(topic: Topic): ChipItem[] {
   const props = topic.props;
   const full = mode === 'full';
   const list: Unplaced[] = [];
-  if (props?.status) list.push({ kind: 'status', key: props.status, w: full ? 84 : 16 });
   const date = props?.due?.end ?? props?.due?.start;
   if (date) list.push({ kind: 'due', date, w: 58 });
-  const noteW = topic.note ? 14 + GAP : 0;
   if (props?.tags?.length) {
     const all = props.tags;
     if (!full) {
@@ -60,7 +56,7 @@ export function chipItems(topic: Topic): ChipItem[] {
       });
     } else {
       const used = list.reduce((sum, item) => sum + item.w + GAP, 0);
-      const room = MAX_ROW - used - noteW;
+      const room = MAX_ROW - used;
       const pills = (k: number) => k * TAG_PILL + (k - 1) * TAG_GAP;
       let shown = all.length;
       while (shown > 1 && pills(shown) + (shown < all.length ? TAG_GAP + MORE_W : 0) > room)
@@ -74,8 +70,6 @@ export function chipItems(topic: Topic): ChipItem[] {
       });
     }
   }
-  if (topic.note) list.push({ kind: 'note', w: 14 });
-
   let x = 0;
   const placed = list.map((item) => {
     const out = { ...item, x } as ChipItem;

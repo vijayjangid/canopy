@@ -29,10 +29,10 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | ⌨️ **Keyboard-first, mouse-delightful** | Every action has a shortcut. The mouse gets rich affordances (ghost previews, magnetic drops), not a separate feature set. |
 | 🎨 **Structure and style are separate** | Theme and colour mode never touch your data. Restyle a whole map in one click.                                             |
-| 🎬 **Motion explains, never decorates** | New topics grow out of their parent and removed ones fold back. Your system's reduced-motion setting is respected.         |
+| 🎬 **Motion explains, never decorates** | New nodes grow out of their parent and removed ones fold back. Your system's reduced-motion setting is respected.          |
 | ♿ **Accessible by default**            | The map is a real ARIA tree, not just pixels on a canvas. Automated axe checks run in the test suite.                      |
 | 🔒 **Local-first and private**          | Works offline, autosaves to your browser, and needs no account. Your map is a plain `.canopy.json` file.                   |
-| 📋 **A map is also a plan**             | Give any topic a status, due date and tags, then filter, roll up and export it without leaving the map.                    |
+| 📋 **A map is also a plan**             | Add due dates, tags and inline Tasklists, then filter and export without leaving the map.                                  |
 
 <br />
 
@@ -40,29 +40,29 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 
 ### 🌱 Grow ideas at the speed of thought
 
-- **Growth handles** appear on hover. Click to add, or drag to drop with a magnetic snap and a **ghost preview** of exactly where the new topic will land. Turn on **Preview on hover** in Settings to see the ghost while merely pointing at a `+` (off by default).
-- **New map** (File menu) opens with its central topic ready to name, so you can start typing at once.
+- **Growth handles** appear on hover. Click to add, or drag to drop with a magnetic snap and a **ghost preview** of exactly where the new node will land. Turn on **Preview on hover** in Settings to see the ghost while merely pointing at a `+` (off by default).
+- **New map** (File menu) opens with an editable **Core Idea** node, so you can start typing at once.
 - **Example map:** choose **SpecKit example** under **Examples** in the File menu to open a fresh, editable copy without changing the built-in sample.
 - **Delete a map:** use the trash button beside a saved map in the File menu. A confirmation protects against accidental deletion; deleting the open map starts a new blank map.
-- `Tab` adds a sub-topic, `Enter` a peer, `W` inserts a topic **between** a topic and its parent. No dragging needed.
+- `Tab` adds a child node, `Enter` a peer, `W` inserts a node **between** a node and its parent. No dragging needed.
 - **Text expansion:** type `!!Research>Interviews>Synthesis` for a chain, or `!!A, B, C` for peers. One undo puts the text back.
-- **Paste an outline** (indented text or Markdown bullets) onto any topic and it unfurls into a branch.
-- **Drag to re-parent** with a clear drop line that shows whether you are making a sub-topic or a peer.
+- **Paste an outline** (indented text or Markdown bullets) onto any node and it unfurls into a branch.
+- **Drag to re-parent** with a clear drop line that shows whether you are making a child node or a peer.
 
 ### 🧭 Never lose your place in a big map
 
-- **Trail** highlights (or isolates) the path from the focused topic up to the Core, with a clickable breadcrumb and **Copy path**. The lines march toward the Core and the topics on the way set their text in the interactive colour.
+- **Trail** highlights (or isolates) the path from the focused node up to the Core, with a clickable breadcrumb and **Copy path**. The lines march toward the Core and the nodes on the way set their text in the interactive colour.
 - **Branch view** (`[`) shows only one branch and collapses everything above it into a single dotted node.
-- **References** link a topic to other existing topics without duplicating a branch, as many as you like in and out. Faded dashed arcs ending in a "V" tell them apart from parent-child lines, and they come up in full when you point at them or at a topic they join. Drag from the link handle above a selected topic onto any topic to connect them, or click the handle (or press `X`) to search by name or path. Click a line to show its red delete icon, or right-click it to go to either end, add another or remove it.
-- **Search** (`⌘F`, `⌘K`, `F` or `/`) is one box for topics, commands and filters. Type to find a topic by title or path, run a command, or filter the map by status, tag, sticker or due date. Empty, it shows quick filters, your recent searches and common commands.
+- **References** link a node to other existing nodes without duplicating a branch, as many as you like in and out. Faded dashed arcs ending in a "V" tell them apart from parent-child lines, and they come up in full when you point at them or at a node they join. Drag from the link handle above a selected node onto any node to connect them, or click the handle (or press `X`) to search by name or path. Click a line to show its red delete icon, or right-click it to go to either end, add another or remove it.
+- **Search** (`⌘F`, `⌘K`, `F` or `/`) is one box for nodes, commands and filters. Type to find a node by title or path, run a command, or filter the map by tag, sticker or due date. Empty, it shows quick filters, your recent searches and common commands.
 - **Fold** with `]`, fold the whole map to **Level N** with `1`–`9`, and peek inside a folded branch from its badge.
-- **Zen** (`Z`) hides every panel until you press `Esc` or click **Exit Zen**, which sits in the bottom left where the toolbar was. **Auto-pan** keeps the topic you are working on in view.
-- **Zoomed out, topics become icons** so the map stays readable at a glance: a house for the Core, a **T** for text-only topics, the status mark for topics with a status, a picture mark for pictures, a page for notes, and small dots for tags and due dates.
+- **Zen** (`Z`) hides every panel until you press `Esc` or click **Exit Zen**, which sits in the bottom left where the toolbar was. **Auto-pan** keeps the node you are working on in view.
+- **Zoomed out, nodes become icons** so the map stays readable at a glance: a house for the Core, a checklist for Tasklists, a **T** for text-only nodes, a picture mark for pictures, and small dots for tags and due dates.
 - The same search runs **every action**, shows its shortcut, and covers settings too.
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/inspector.png" alt="Selecting a topic marks its trail to the Core in the interactive colour and opens the details panel with status, due date, tags and stickers" /></td>
+    <td width="50%"><img src="docs/screenshots/inspector.png" alt="Selecting a node marks its trail to the Core in the interactive colour and opens the details panel with due date, tags and stickers" /></td>
     <td width="50%"><img src="docs/screenshots/palette.png" alt="The search dialog with quick filters and common commands" /></td>
   </tr>
   <tr>
@@ -73,10 +73,15 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 
 ### 📌 Turn the map into a plan
 
-- **Properties:** Status (Not started, In progress, Blocked, In review, Done, Canceled), Due date and Tags, shown as compact chips.
-- **Shorthand while typing:** `#launch /doing ^fri` becomes a tag, a status and a due date when you finish the title.
-- **Roll-ups:** a folded branch shows its hidden count plus a status summary such as `12 · 3/7`.
-- **Filters** pick out topics by property, text or sticker, and step through matches with `.` and `,`. Exports can respect the active Filter.
+- **Properties:** Due date and Tags, shown as compact chips.
+- **Shorthand while typing:** `#launch ^fri` becomes a tag and a due date when you finish the title.
+- **Tasklists:** add, edit, complete and remove tasks in the Tasks tab. A node with tasks shows its checklist beneath the title, separated by a subtle divider; removing the last task returns it to its standard appearance.
+- **Quick styling:** choose a circular color preset in the details panel. Text color adjusts automatically for contrast.
+- **Filters** pick out nodes by property, text or sticker, and step through matches with `.` and `,`. Exports can respect the active Filter.
+
+<p align="center">
+  <img src="docs/screenshots/tasklist.png" alt="A selected tasklist node with a completed task and an open task, alongside its Tasks panel" width="920" />
+</p>
 
 ### 🎭 Make it yours: Themes and colour modes
 
@@ -84,12 +89,12 @@ Three **Themes**, each a ready-made preset of colour, shape and font, in Light, 
 
 <table>
   <tr>
-    <td width="33%"><img src="docs/screenshots/look-playful.png" alt="Playful theme: every topic is a die-cut sticker with a wavy white rim, a flat shadow and text coloured by level" /></td>
+    <td width="33%"><img src="docs/screenshots/look-playful.png" alt="Playful theme: every node is a die-cut sticker with a wavy white rim, a flat shadow and text coloured by level" /></td>
     <td width="33%"><img src="docs/screenshots/look-contrast.png" alt="High Contrast theme: black on white, thicker strokes, a serif font and a different corner shape per level" /></td>
     <td width="33%"><img src="docs/screenshots/look-playful-dark.png" alt="Playful theme in Dark mode: charcoal stickers with a dark rim and coloured text on the darkest canvas" /></td>
   </tr>
   <tr>
-    <td align="center"><sub><b>Playful</b><br />sticker topics, colour by level</sub></td>
+    <td align="center"><sub><b>Playful</b><br />sticker nodes, colour by level</sub></td>
     <td align="center"><sub><b>High Contrast</b><br />level by shape, not just colour</sub></td>
     <td align="center"><sub><b>Playful</b> in Dark<br />charcoal stickers</sub></td>
   </tr>
@@ -97,27 +102,26 @@ Three **Themes**, each a ready-made preset of colour, shape and font, in Light, 
 
 - **Standard:** the default. A clean system font, soft borders and the interactive colour for emphasis.
 - **High Contrast:** black on white, thick strokes, a serif font and a different corner shape per level, so level is never carried by colour alone.
-- **Playful:** every topic is a **sticker**. The title is set in a handwritten font, in its level's colour, on a tinted face inside a wavy white rim with a flat shadow. In Dark mode the stickers turn charcoal on the darkest canvas. Lines are drawn slightly wobbly, like a hand-drawn map.
+- **Playful:** every node is a **sticker**. The title is set in a handwritten font, in its level's colour, on a tinted face inside a wavy white rim with a flat shadow. In Dark mode the stickers turn charcoal on the darkest canvas. Lines are drawn slightly wobbly, like a hand-drawn map.
 - **Colour mode:** Auto, Light or Dark, one click from the top bar. It belongs to your device, not to the map.
 - **Layout:** Right or Down, in Compact, Comfortable or Airy spacing. Connectors are always curved.
-- **Pictures:** paste any image from the clipboard (a screenshot, a copied image) onto the selected topic. The topic grows to fit it, up to a maximum size, and larger pictures are scaled down and stored inside the map file. Pasting works while you are typing the title too. Point at the picture for an **Alt** button (describe it for screen readers) and a **✕** button (remove it), or use the right-click menu. Pictures appear in SVG, PNG and PDF exports.
-- **Drag and drop:** drop a picture on the canvas to add it as a new topic under the Core, or on a topic to put it on that topic. Drop a Canopy map file (`.canopy.json`) on a topic, or on the canvas for the Core, to add the whole map as a new branch, so explored maps can be combined into a bigger one. The topic it will land on is outlined while you drag. File ▸ **Add a map as a branch…** does the same from the keyboard.
-- **Stickers:** 28 original die-cut designs on topics and the **lines** between them. New maps put a Home sticker on the Core. The searchable sheet groups work, reactions, status, timing, markers, directions and priorities, with MON–SUN as its final row. Priority and weekday labels use bold handwritten lettering; each weekday has its own three-stop gradient. Sticker-aware spacing keeps artwork clear of neighbouring topics.
+- **Pictures:** paste any image from the clipboard (a screenshot, a copied image) onto the selected node, or add, replace and remove it from the details panel. The node grows to fit it, up to a maximum size, and larger pictures are scaled down and stored inside the map file. Pasting works while you are typing the title too. Point at the picture for an **Alt** button (describe it for screen readers) and a **✕** button (remove it), or use the right-click menu. Pictures appear in SVG, PNG and PDF exports.
+- **Drag and drop:** drop a picture on the canvas to add it as a new node under the Core, or on a node to put it on that node. Drop a Canopy map file (`.canopy.json`) on a node, or on the canvas for the Core, to add the whole map as a new branch, so explored maps can be combined into a bigger one. The node it will land on is outlined while you drag. File ▸ **Add a map as a branch…** does the same from the keyboard.
+- **Stickers:** 28 original die-cut designs on nodes and the **lines** between them. New maps put a Home sticker on the Core. The full picker groups work, reactions, status, timing, markers, directions and priorities, with MON–SUN as its final row. Priority and weekday labels use bold handwritten lettering; each weekday has its own three-stop gradient. Sticker-aware spacing keeps artwork clear of neighbouring nodes.
 
 <p align="center">
-  <img src="docs/screenshots/stickers.png" alt="The sticker picker showing handwritten priority and weekday stickers, with Monday and Priority 1 on the selected topic" width="920" />
+  <img src="docs/screenshots/stickers.png" alt="The sticker picker showing handwritten priority and weekday stickers, with Monday and Priority 1 on the selected node" width="920" />
 </p>
-- **Delete with care:** deleting a topic that has sub-topics asks whether to remove **the whole branch** or **only the topic**, in which case its sub-topics move up to its parent, in its place.
-- **Notes:** a Markdown note on any topic, with a Write and Preview switch.
+- **Delete with care:** deleting a node that has child nodes asks whether to remove **the whole branch** or **only the node**, in which case its child nodes move up to its parent, in its place.
 
 <br />
 
 ## 📄 Compact layout for print and export
 
-Big maps print badly: a tidy tree grows tall and thin, and shrinks to an unreadable sliver on a page. The **Compact layout** option moves topics around so the map fills an **A4** page, then shrinks it only as far as it has to.
+Big maps print badly: a tidy tree grows tall and thin, and shrinks to an unreadable sliver on a page. The **Compact layout** option moves nodes around so the map fills an **A4** page, then shrinks it only as far as it has to.
 
 <div align="center">
-<img src="docs/screenshots/compact-before-after.png" alt="The same 153-topic map on A4: the standard layout at 18% size, the compact layout at 57% size" width="920" />
+<img src="docs/screenshots/compact-before-after.png" alt="The same 153-node map on A4: the standard layout at 18% size, the compact layout at 57% size" width="920" />
 </div>
 
 <table>
@@ -131,7 +135,7 @@ Big maps print badly: a tidy tree grows tall and thin, and shrinks to an unreada
 - 📊 a **row** under it,
 - 🗂️ or **indented** under it like an outline.
 
-The top topic can also split its branches onto **both sides**, and the layout tries portrait and landscape to see which scales larger. A map that already fits at full size is left exactly as drawn. Branches with a labelled line keep their room for the label.
+The top node can also split its branches onto **both sides**, and the layout tries portrait and landscape to see which scales larger. A map that already fits at full size is left exactly as drawn. Branches with a labelled line keep their room for the label.
 
 **Where it works.** PNG, SVG and PDF, with **Best fit**, **Portrait** or **Landscape** pages. It also works with **Only the selected branches**. The map on screen is never changed, and the preview tells you the page and the size, for example _A4 landscape, 57% size_.
 
@@ -146,8 +150,8 @@ The top topic can also split its branches onto **both sides**, and the layout tr
 | **PNG**      | 1×, 2× or 4×, optional transparent background. The scale lowers itself if a canvas would be too big. |
 | **SVG**      | Vector, follows the Theme, level numbers and folds, with the map's font embedded.                    |
 | **PDF**      | One page, vector, selectable text, through the browser's print dialog.                               |
-| **Markdown** | A nested outline with optional notes, and properties written as the inline shorthand.                |
-| **CSV**      | One row per topic with its path and properties. Spreadsheet formulas are defused.                    |
+| **Markdown** | A nested outline with tasks and properties written as the inline shorthand.                          |
+| **CSV**      | One row per node with its path, tasks and properties. Spreadsheet formulas are defused.              |
 | **JSON**     | `canopy/1`, versioned and lossless. Export then import gives you the same map back.                  |
 
 <br />
@@ -156,17 +160,17 @@ The top topic can also split its branches onto **both sides**, and the layout tr
 
 Press `?` in the app for the searchable cheat sheet. A hint strip at the bottom always shows what applies to your selection.
 
-| Action                       | Keys               | Action                    | Keys                  |
-| ---------------------------- | ------------------ | ------------------------- | --------------------- |
-| Add sub-topic / peer         | `Tab` / `Enter`    | Search and commands       | `⌘F` or `⌘K`          |
-| Insert between levels        | `W` / `Shift+W`    | Export                    | `⌘E`                  |
-| Edit / finish editing        | `Space` / `⌘Enter` | Settings                  | `⌘,`                  |
-| Fold / Branch view           | `]` / `[`          | Search topics and filters | `F` or `/`            |
-| Reference another topic      | `X`                |                           |                       |
-| Fold to Level N / unfold all | `1`–`9` / `0`      | Trail on or off           | `R`                   |
-| Status / Due / Tag           | `T` / `D` / `G`    | Zen                       | `Z`                   |
-| Note / Sticker / Line label  | `N` / `S` / `L`    | Select / Pan / Zoom tool  | `V` / `H` / `Shift+Z` |
-| Duplicate / Delete topic     | `⌘D` / `Del`       | Undo / Redo               | `⌘Z` / `⌘⇧Z`          |
+| Action                       | Keys               | Action                   | Keys                  |
+| ---------------------------- | ------------------ | ------------------------ | --------------------- |
+| Add child node / peer        | `Tab` / `Enter`    | Search and commands      | `⌘F` or `⌘K`          |
+| Insert between levels        | `W` / `Shift+W`    | Export                   | `⌘E`                  |
+| Edit / finish editing        | `Space` / `⌘Enter` | Settings                 | `⌘,`                  |
+| Fold / Branch view           | `]` / `[`          | Search nodes and filters | `F` or `/`            |
+| Reference another node       | `X`                |                          |                       |
+| Fold to Level N / unfold all | `1`–`9` / `0`      | Trail on or off          | `R`                   |
+| Due date / Tag               | `D` / `G`          | Zen                      | `Z`                   |
+| Tasks / Sticker / Line label | `T` / `S` / `L`    | Select / Pan / Zoom tool | `V` / `H` / `Shift+Z` |
+| Duplicate / Delete node      | `⌘D` / `Del`       | Undo / Redo              | `⌘Z` / `⌘⇧Z`          |
 
 <br />
 
@@ -183,7 +187,7 @@ npm run dev
 
 Then open the address Vite prints (usually <http://localhost:5173>).
 
-> 💡 **Try a big map.** In development, add `?demo=200&plan=1` to the address to open a generated map with 200 topics and planning properties. It is handy for trying Trail, Filters and the compact export.
+> 💡 **Try a big map.** In development, add `?demo=200&plan=1` to the address to open a generated map with 200 nodes and planning properties. It is handy for trying Trail, Filters and the compact export.
 
 ### Scripts
 
@@ -219,20 +223,20 @@ It starts the dev server if one is not running, builds a demo map, and writes th
 
 Canopy renders its own canvas instead of using a diagramming library, so layout, hit-testing and export all share one source of truth.
 
-| Area        | Folder                      | Notes                                                                                            |
-| ----------- | --------------------------- | ------------------------------------------------------------------------------------------------ |
-| Data model  | `src/model`                 | Normalised topic table with pure, immutable operations (Immer). Undoable. Versioned file format. |
-| Layout      | `src/layout`                | Tidy-tree layout for variable-size topics, connectors, and the compact A4 packer.                |
-| Canvas      | `src/canvas`                | Pan and zoom, culling, drag and drop, Growth Handles, layout animator.                           |
-| Editor      | `src/editor`                | Commands, keyboard, clipboard and one shortcut registry that also builds the cheat sheet.        |
-| Interface   | `src/ui`                    | Panels, details panel, search, export dialog.                                                    |
-| Export      | `src/io`                    | SVG built straight from the layout, PNG rasteriser, print, Markdown and CSV writers.             |
-| Persistence | `src/persistence`           | Autosave to IndexedDB (Dexie) and `.canopy.json` files.                                          |
-| Theme       | `src/theme`, `src/stickers` | Theme presets (colour, shape and font) and the original sticker artwork.                         |
+| Area        | Folder                      | Notes                                                                                           |
+| ----------- | --------------------------- | ----------------------------------------------------------------------------------------------- |
+| Data model  | `src/model`                 | Normalised node table with pure, immutable operations (Immer). Undoable. Versioned file format. |
+| Layout      | `src/layout`                | Tidy-tree layout for variable-size nodes, connectors, and the compact A4 packer.                |
+| Canvas      | `src/canvas`                | Pan and zoom, culling, drag and drop, Growth Handles, layout animator.                          |
+| Editor      | `src/editor`                | Commands, keyboard, clipboard and one shortcut registry that also builds the cheat sheet.       |
+| Interface   | `src/ui`                    | Panels, details panel, search, export dialog.                                                   |
+| Export      | `src/io`                    | SVG built straight from the layout, PNG rasteriser, print, Markdown and CSV writers.            |
+| Persistence | `src/persistence`           | Autosave to IndexedDB (Dexie) and `.canopy.json` files.                                         |
+| Theme       | `src/theme`, `src/stickers` | Theme presets (colour, shape and font) and the original sticker artwork.                        |
 
 **Stack:** React 19, TypeScript, Vite, Zustand, Immer, Dexie. Tested with Vitest, Testing Library, fast-check and Playwright with axe.
 
-**Performance:** the canvas culls what is off screen, skips animation on very large maps, and is built to stay smooth at thousands of topics.
+**Performance:** the canvas culls what is off screen, skips animation on very large maps, and is built to stay smooth at thousands of nodes.
 
 <br />
 

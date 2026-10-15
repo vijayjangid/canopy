@@ -13,14 +13,17 @@ import {
   type Look,
   type MapPrefs,
   type PlanningConfig,
-  type StatusCategory,
-  type StatusDef,
   type StickerRef,
   type TagDef,
+  type TopicColor,
+  type TopicStyle,
   type TopicExtras,
   type TopicImage,
+  type TopicTask,
   type TopicProps,
   type CanopyMap,
+  TOPIC_COLOR_PRESETS,
+  MAX_TOPIC_TASK_TEXT,
 } from './types';
 
 export type Fail = (message: string) => void;
@@ -29,9 +32,6 @@ const FLOWS: readonly Flow[] = ['right', 'down'];
 const DENSITIES: readonly Density[] = ['compact', 'comfortable', 'airy'];
 const LOOKS: readonly Look[] = ['minimal', 'contrast', 'playful'];
 const CHIPS: readonly MapPrefs['chips'][] = ['off', 'compact', 'full'];
-const CATEGORIES: readonly StatusCategory[] = ['todo', 'active', 'complete', 'canceled'];
-
-const MAX_NOTE = 100_000;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const COLOR = /^#[0-9a-fA-F]{3,8}$/;
 
@@ -140,6 +140,51 @@ export function readPrefs(raw: unknown, base: MapPrefs, fail: Fail): MapPrefs {
   return prefs;
 }
 
+function readTopicStyle(raw: unknown, path: string, fail: Fail): TopicStyle | undefined {
+  if (raw === undefined) return undefined;
+  if (!isRecord(raw)) {
+    fail(`${path} must be an object`);
+    return undefined;
+  }
+  const style: TopicStyle = {};
+  const color = oneOf(raw['color'], Object.keys(TOPIC_COLOR_PRESETS) as TopicColor[]);
+  if (raw['color'] !== undefined) {
+    if (color) style.color = color;
+    else fail(`${path}.color is not a supported preset`);
+  }
+  return Object.keys(style).length > 0 ? style : undefined;
+}
+
+function readTasks(raw: unknown, path: string, fail: Fail): TopicTask[] | undefined {
+  if (raw === undefined) return undefined;
+  if (!Array.isArray(raw)) {
+    fail(`${path} must be a list`);
+    return undefined;
+  }
+  const seen = new Set<string>();
+  const tasks: TopicTask[] = [];
+  raw.forEach((task, index) => {
+    if (
+      !isRecord(task) ||
+      !isString(task['id']) ||
+      !task['id'] ||
+      !isString(task['text']) ||
+      typeof task['done'] !== 'boolean'
+    ) {
+      fail(`${path}[${index}] must have an id, text and completion state`);
+      return;
+    }
+    if (seen.has(task['id'])) {
+      fail(`${path}[${index}].id is used more than once`);
+      return;
+    }
+    seen.add(task['id']);
+    const text = task['text'].slice(0, MAX_TOPIC_TASK_TEXT);
+    if (text.trim()) tasks.push({ id: task['id'], text, done: task['done'] });
+  });
+  return tasks.length > 0 ? tasks : undefined;
+}
+
 function readProps(raw: unknown, path: string, fail: Fail): TopicProps | undefined {
   if (raw === undefined) return undefined;
   if (!isRecord(raw)) {
@@ -147,7 +192,6 @@ function readProps(raw: unknown, path: string, fail: Fail): TopicProps | undefin
     return undefined;
   }
   const props: TopicProps = {};
-  if (isString(raw['status'])) props.status = raw['status'];
   const tags = strings(raw['tags']);
   if (tags && tags.length > 0) props.tags = tags;
   if (isRecord(raw['due'])) {
@@ -165,12 +209,10 @@ function readProps(raw: unknown, path: string, fail: Fail): TopicProps | undefin
 /** The optional parts of a topic. Bad pieces are reported and left out. */
 export function readExtras(node: Record<string, unknown>, path: string, fail: Fail): TopicExtras {
   const out: TopicExtras = {};
-  if (node['note'] !== undefined) {
-    if (isString(node['note'])) {
-      if (node['note'].length > 0) out.note = node['note'].slice(0, MAX_NOTE);
-    } else fail(`${path}.note must be a string`);
-  }
-
+  const style = readTopicStyle(node['style'], `${path}.style`, fail);
+  if (style) out.style = style;
+  const tasks = readTasks(node['tasks'], `${path}.tasks`, fail);
+  if (tasks) out.tasks = tasks;
   if (node['stickers'] !== undefined) {
     if (!Array.isArray(node['stickers'])) fail(`${path}.stickers must be a list`);
     else {
@@ -214,13 +256,13 @@ export function readExtras(node: Record<string, unknown>, path: string, fail: Fa
   if (node['referenceTo'] !== undefined) {
     if (isString(node['referenceTo']) && node['referenceTo'].length > 0) {
       refs.push(node['referenceTo']);
-    } else fail(`${path}.referenceTo must be a non-empty topic id`);
+    } else fail(`${path}.referenceTo must be a non-empty node id`);
   }
   if (node['references'] !== undefined) {
     const list = node['references'];
     if (Array.isArray(list) && list.every((r) => isString(r) && r.length > 0)) {
       refs.push(...(list as string[]));
-    } else fail(`${path}.references must be a list of topic ids`);
+    } else fail(`${path}.references must be a list of node ids`);
   }
   const unique = [...new Set(refs)];
   if (unique.length > 0) out.references = unique;
@@ -242,18 +284,6 @@ export function readPlanning(raw: unknown, fail: Fail): PlanningConfig | undefin
     fail('planning must be an object');
     return undefined;
   }
-  const statusSet: StatusDef[] = [];
-  for (const s of Array.isArray(raw['statusSet']) ? (raw['statusSet'] as unknown[]) : []) {
-    const category = isRecord(s) ? oneOf(s['category'], CATEGORIES) : undefined;
-    if (isRecord(s) && isString(s['key']) && isString(s['label']) && category) {
-      statusSet.push({
-        key: s['key'],
-        label: s['label'],
-        category,
-        ...(s['flagged'] === true ? { flagged: true } : {}),
-      });
-    } else fail('planning.statusSet entries need a key, label and category');
-  }
   const tags: TagDef[] = [];
   for (const t of Array.isArray(raw['tags']) ? (raw['tags'] as unknown[]) : []) {
     if (isRecord(t) && isString(t['key']) && isString(t['label'])) {
@@ -264,23 +294,17 @@ export function readPlanning(raw: unknown, fail: Fail): PlanningConfig | undefin
       });
     }
   }
-  return { statusSet, tags } satisfies PlanningConfig;
+  return tags.length > 0 ? ({ tags } satisfies PlanningConfig) : undefined;
 }
 
 function readQuery(raw: unknown): FilterQuery {
   const q: FilterQuery = {};
   if (!isRecord(raw)) return q;
-  const status = strings(raw['status']);
-  if (status) q.status = status;
   const tags = strings(raw['tags']);
   if (tags) q.tags = tags;
   const stickers = strings(raw['stickers'])?.filter(isStickerKey);
   if (stickers?.length) q.stickers = stickers;
   if (typeof raw['text'] === 'string' && raw['text'].trim()) q.text = raw['text'].trim();
-  const cats = strings(raw['statusCategory'])?.filter((c): c is StatusCategory =>
-    CATEGORIES.includes(c as StatusCategory),
-  );
-  if (cats) q.statusCategory = cats;
   if (raw['due'] === 'overdue' || raw['due'] === 'week') q.due = raw['due'];
   if (raw['match'] === 'any' || raw['match'] === 'all') q.match = raw['match'];
   return q;
@@ -295,13 +319,21 @@ export function readFilters(raw: unknown, fail: Fail): Filter[] | undefined {
   const filters: Filter[] = [];
   for (const l of raw as unknown[]) {
     if (isRecord(l) && isString(l['id']) && isString(l['name'])) {
+      const query = readQuery(l['query']);
+      const hasCriteria =
+        !!query.tags?.length ||
+        !!query.stickers?.length ||
+        !!query.text ||
+        query.due !== undefined ||
+        query.dueBetween !== undefined;
+      if (!hasCriteria) continue;
       filters.push({
         id: l['id'],
         name: l['name'],
         mode: l['mode'] === 'isolate' ? 'isolate' : 'dim',
-        query: readQuery(l['query']),
+        query,
       });
     }
   }
-  return filters;
+  return filters.length > 0 ? filters : undefined;
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { computeLayout, type Measure } from '../layout';
+import { computeLayout, createTopicMeasurer, type Measure } from '../layout';
 import {
+  addTopicTask,
   addSticker,
   ensureTag,
   parseTitle,
@@ -8,9 +9,10 @@ import {
   createMap,
   createSubTopic,
   setFolded,
-  setNote,
   setPrefs,
   setTopicImage,
+  setTopicStyle,
+  toggleTopicTask,
   type CanopyMap,
 } from '../model';
 import { legibleOn, luminance, type ExportTheme } from './exportTheme';
@@ -105,10 +107,9 @@ describe('SVG export', () => {
     expect(draw(map, { stickers: false }).svg).not.toContain('class="stickers"');
   });
 
-  it('draws a note mark and tag chips under the title', () => {
+  it('draws tag chips under the title', () => {
     const tagged = ensureTag(sample(), 'big');
-    const map = setProps(setNote(tagged.map, 'a', 'hello'), ['a'], {
-      status: 'doing',
+    const map = setProps(tagged.map, ['a'], {
       tags: [tagged.key],
     });
     expect(draw(map).svg).toContain('r="5" fill="#5b4bdb"');
@@ -141,7 +142,9 @@ describe('SVG export', () => {
     // A flat shadow: the same blob, nudged and faded.
     expect(playful.svg).toContain('opacity="0.3"');
     expect(playful.svg).toContain('<feDisplacementMap');
-    expect(playful.svg).toContain('fill="#001000"');
+    expect(playful.svg).toContain('fill="#c4b5fd"');
+    expect(playful.svg).toContain('fill="#f9a8d4"');
+    expect(playful.svg).toContain('fill="#fdba74"');
   });
 
   it('colours only Playful by level, and draws the other themes in neutral colours', () => {
@@ -153,8 +156,33 @@ describe('SVG export', () => {
     const playful = draw(setPrefs(sample(), { look: 'playful' }), {
       theme: { ...theme, look: 'playful' },
     }).svg;
-    expect(playful).toContain('fill="#001000"');
+    expect(playful).toContain('fill="#c4b5fd"');
+    expect(playful).toContain('fill="#f9a8d4"');
+    expect(playful).toContain('fill="#fdba74"');
     expect(playful).toContain('stroke="#b4b5c3"');
+  });
+
+  it('exports Tasklist rows and custom node colors', () => {
+    let map = createSubTopic(sample(), 'core', { id: 'tasks', title: 'Release' }).map;
+    map = setTopicStyle(map, 'tasks', { color: 'teal' });
+    map = addTopicTask(map, 'tasks', 'Write release notes');
+    const taskId = map.topics.tasks?.tasks?.[0]?.id;
+    if (taskId) map = toggleTopicTask(map, 'tasks', taskId);
+    const layout = computeLayout(map, {
+      flow: map.prefs.flow,
+      density: 'comfortable',
+      measure: createTopicMeasurer((text) => text.length * 7),
+    });
+    const svg = buildSvg(map, layout, {
+      theme,
+      textWidth,
+      stickers: false,
+      transparent: false,
+    }).svg;
+
+    expect(svg).toContain('fill="#0f766e"');
+    expect(svg).toContain('Write release notes');
+    expect(svg).toContain('text-decoration="line-through"');
   });
 
   it('embeds font rules when given, and sizes the picture to the map', () => {
@@ -197,23 +225,20 @@ describe('PNG sizing', () => {
 });
 
 describe('Markdown outline', () => {
-  const map = () => setNote(sample(), 'a', 'Line one\n\nLine two');
-
   it('nests topics under the Core title', () => {
-    const text = mapToMarkdown(sample(), { notes: false });
-    expect(text).toBe('# Central topic\n\n- Alpha & <Beta>\n  - Deep\n- Second\n');
-  });
-
-  it('adds notes when asked', () => {
-    const text = mapToMarkdown(map(), { notes: true });
-    expect(text).toContain('  Line one');
-    expect(text).toContain('  Line two');
+    const text = mapToMarkdown(sample(), {});
+    expect(text).toBe('# Core Idea\n\n- Alpha & <Beta>\n  - Deep\n- Second\n');
   });
 
   it('exports chosen branches as their own list', () => {
-    expect(mapToMarkdown(sample(), { notes: false, roots: ['a'] })).toBe(
-      '- Alpha & <Beta>\n  - Deep\n',
-    );
+    expect(mapToMarkdown(sample(), { roots: ['a'] })).toBe('- Alpha & <Beta>\n  - Deep\n');
+  });
+
+  it('exports checklist state without confusing tasks with child topics', () => {
+    let map = createSubTopic(sample(), 'core', { id: 'tasks', title: 'Release' }).map;
+    map = addTopicTask(map, 'tasks', 'Write release notes');
+    const text = mapToMarkdown(map, {});
+    expect(text).toContain('  Tasks:\n    - [ ] Write release notes');
   });
 });
 
@@ -231,23 +256,20 @@ describe('Markdown with shorthand', () => {
   it('writes properties so that typing the line back restores them', () => {
     const tag = ensureTag(sample(), 'Big launch');
     const map = setProps(tag.map, ['a'], {
-      status: 'doing',
       due: { end: '2026-11-01' },
       tags: [tag.key],
     });
-    const text = mapToMarkdown(map, { notes: false, tokens: true });
+    const text = mapToMarkdown(map, { tokens: true });
     const line = text.split('\n').find((l) => l.includes('Alpha')) ?? '';
-    expect(line).toContain('/doing');
     expect(line).toContain('#Big_launch');
     const parsed = parseTitle(map, line.replace(/^\s*-\s*/, ''));
     expect(parsed.title).toBe('Alpha & <Beta>');
-    expect(parsed.status).toBe('doing');
     expect(parsed.due).toBe('2026-11-01');
     expect(parsed.tags).toEqual(['Big launch']);
   });
 
   it('can leave out topics that a Filter does not pick', () => {
-    const text = mapToMarkdown(sample(), { notes: false, only: new Set(['a', 'a1']) });
+    const text = mapToMarkdown(sample(), { only: new Set(['a', 'a1']) });
     expect(text).toContain('Deep');
     expect(text).not.toContain('Second');
   });

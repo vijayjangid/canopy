@@ -16,7 +16,7 @@ import './palette.css';
 /** Commands offered when nothing is typed. The last one switches to the layout not in use. */
 const COMMON = ['topic.addChild', 'topic.addPeerAfter', 'view.unfoldAll'];
 
-/** One place to find a topic, run a command, or narrow the map by status, tag, sticker or due date. */
+/** One place to find a topic, run a command, or narrow the map by tag, sticker or due date. */
 export function SearchDialog() {
   const doc = useCanopy((s) => s.doc);
   const [query, setQuery] = useState('');
@@ -33,11 +33,11 @@ export function SearchDialog() {
     for (const topic of Object.values(doc.topics)) {
       const path = ancestorsOf(doc, topic.id)
         .reverse()
-        .map((a) => a.title.trim() || 'Empty topic');
+        .map((a) => a.title.trim() || 'Empty node');
       out.push({
         id: `topic:${topic.id}`,
         kind: 'topic',
-        label: topic.title.trim() || 'Empty topic',
+        label: topic.title.trim() || 'Empty node',
         sub: path.length > 0 ? path.join(' › ') : 'Core',
         keys: [],
         run: () => navigateToTopic(topic.id),
@@ -57,30 +57,23 @@ export function SearchDialog() {
     const filterEntry = (id: string, label: string, sub: string, run: () => void): void => {
       out.push({ id: `filter:${id}`, kind: 'filter', label, sub, keys: [], run });
     };
-    for (const s of plan.statusSet) {
-      filterEntry(`status:${s.key}`, `Status: ${s.label}`, 'Show only these topics', () => {
-        if (!uiStore.getState().filterSel.status.includes(s.key)) {
-          toggleFilterChoice('status', s.key);
-        }
-      });
-    }
     for (const t of plan.tags) {
-      filterEntry(`tag:${t.key}`, `Tag: ${t.label}`, 'Show only these topics', () => {
+      filterEntry(`tag:${t.key}`, `Tag: ${t.label}`, 'Show only these nodes', () => {
         if (!uiStore.getState().filterSel.tags.includes(t.key)) toggleFilterChoice('tags', t.key);
       });
     }
     const used = usedStickers(doc);
     for (const s of STICKERS.filter((x) => used.has(x.key))) {
-      filterEntry(`sticker:${s.key}`, `Sticker: ${s.name}`, 'Show only these topics', () => {
+      filterEntry(`sticker:${s.key}`, `Sticker: ${s.name}`, 'Show only these nodes', () => {
         if (!uiStore.getState().filterSel.stickers.includes(s.key)) {
           toggleFilterChoice('stickers', s.key);
         }
       });
     }
-    filterEntry('due:overdue', 'Due: Overdue', 'Show only these topics', () =>
+    filterEntry('due:overdue', 'Due: Overdue', 'Show only these nodes', () =>
       updateFilter({ due: 'overdue' }),
     );
-    filterEntry('due:week', 'Due: Due this week', 'Show only these topics', () =>
+    filterEntry('due:week', 'Due: Due this week', 'Show only these nodes', () =>
       updateFilter({ due: 'week' }),
     );
     return out;
@@ -93,7 +86,7 @@ export function SearchDialog() {
             {
               id: 'filter:text',
               kind: 'filter',
-              label: `Highlight topics matching “${query.trim()}”`,
+              label: `Highlight nodes matching “${query.trim()}”`,
               sub: 'Fades everything else on the map',
               keys: [],
               action: true,
@@ -169,8 +162,8 @@ export function SearchDialog() {
             aria-expanded="true"
             aria-controls={listId}
             aria-activedescendant={current ? `${listId}-${current.id}` : undefined}
-            aria-label="Search topics, commands, status and more"
-            placeholder="Search topics, commands, status, tags…"
+            aria-label="Search nodes, commands, status and more"
+            placeholder="Search nodes, commands, status, tags…"
             spellCheck={false}
             autoComplete="off"
             value={query}

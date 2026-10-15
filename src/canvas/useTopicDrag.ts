@@ -70,7 +70,7 @@ export function useTopicDrag(host: RefObject<HTMLElement | null>, layout: Layout
         }
         const faded = new Set<TopicId>();
         for (const root of roots) for (const t of subtreeOf(doc, root)) faded.add(t.id);
-        const first = doc.topics[roots[0] ?? '']?.title.trim() || 'Empty topic';
+        const first = doc.topics[roots[0] ?? '']?.title.trim() || 'Empty node';
         e.currentTarget.setPointerCapture(e.pointerId);
         dragStore.setState({
           active: true,
@@ -118,7 +118,7 @@ export function useTopicDrag(host: RefObject<HTMLElement | null>, layout: Layout
       const moved = moveBranches(doc, roots, drop);
       if (moved === doc) return true;
       commit(moved, { select: [...roots], focus: roots[roots.length - 1] });
-      const target = doc.topics[drop.subject]?.title.trim() || 'Empty topic';
+      const target = doc.topics[drop.subject]?.title.trim() || 'Empty node';
       announce(
         drop.kind === 'child'
           ? `Moved ${plural(roots.length, 'branch')} under ${target}`

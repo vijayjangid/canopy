@@ -4,31 +4,14 @@ import { getTopic } from './tree';
 import {
   type CanopyMap,
   type PlanningConfig,
-  type StatusDef,
   type TagDef,
   type TopicId,
   type TopicProps,
 } from './types';
 
-/** The Status Set a map starts with. Maps store their own copy once it is edited. */
-export const DEFAULT_STATUS_SET: readonly StatusDef[] = [
-  { key: 'todo', label: 'Not started', category: 'todo' },
-  { key: 'doing', label: 'In progress', category: 'active' },
-  { key: 'blocked', label: 'Blocked', category: 'active', flagged: true },
-  { key: 'review', label: 'In review', category: 'active' },
-  { key: 'done', label: 'Done', category: 'complete' },
-  { key: 'canceled', label: 'Canceled', category: 'canceled' },
-];
-
-export const DEFAULT_PLANNING: PlanningConfig = {
-  statusSet: DEFAULT_STATUS_SET.map((s) => ({ ...s })),
-  tags: [],
-};
+export const DEFAULT_PLANNING: PlanningConfig = { tags: [] };
 
 export const planningOf = (map: CanopyMap): PlanningConfig => map.planning ?? DEFAULT_PLANNING;
-
-export const statusDef = (map: CanopyMap, key: string | undefined): StatusDef | undefined =>
-  key === undefined ? undefined : planningOf(map).statusSet.find((s) => s.key === key);
 
 export const tagDef = (map: CanopyMap, key: string): TagDef | undefined =>
   planningOf(map).tags.find((t) => t.key === key);
@@ -36,8 +19,6 @@ export const tagDef = (map: CanopyMap, key: string): TagDef | undefined =>
 // ---------- Properties ----------
 
 export interface PropsPatch {
-  /** A key from the Status Set, or null to clear. */
-  status?: string | null;
   due?: { start?: string | null; end?: string | null } | null;
   /** Replaces the topic's tag list. */
   tags?: string[] | null;
@@ -45,10 +26,6 @@ export interface PropsPatch {
 
 function applyPatch(props: TopicProps, patch: PropsPatch): TopicProps {
   const next: TopicProps = { ...props };
-  if (patch.status !== undefined) {
-    if (patch.status === null) delete next.status;
-    else next.status = patch.status;
-  }
   if (patch.due !== undefined) {
     if (patch.due === null) delete next.due;
     else {
@@ -83,7 +60,7 @@ export function setProps(map: CanopyMap, ids: readonly TopicId[], patch: PropsPa
   });
 }
 
-// ---------- Status Set and tags ----------
+// ---------- Tags ----------
 
 const TAG_COLORS = [
   '#5b4bdb',
@@ -111,10 +88,7 @@ export function ensureTag(map: CanopyMap, label: string): { map: CanopyMap; key:
   return {
     key,
     map: produce(map, (draft) => {
-      const base = draft.planning ?? {
-        statusSet: DEFAULT_PLANNING.statusSet.map((s) => ({ ...s })),
-        tags: [],
-      };
+      const base = draft.planning ?? DEFAULT_PLANNING;
       draft.planning = { ...base, tags: [...base.tags, tag] };
     }),
   };

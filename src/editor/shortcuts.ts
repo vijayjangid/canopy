@@ -45,13 +45,12 @@ export type CommandId =
   | 'palette.open'
   | 'prefs.open'
   | 'inspector.toggle'
-  | 'note.open'
+  | 'tasks.open'
   | 'stickers.open'
   | 'edge.label'
   | 'edge.sticker'
   | 'props.open'
   | 'props.quickAdd'
-  | 'props.status'
   | 'props.due'
   | 'props.tag'
   | 'filter.open'
@@ -78,7 +77,7 @@ const digits = '123456789'.split('').map((key): Shortcut => ({ key }));
 
 /** The one list of keyboard commands. Handlers, menus, hints and the cheat sheet all read it. */
 export const COMMANDS: readonly CommandDef[] = [
-  { id: 'topic.addChild', label: 'Add sub-topic', shortcuts: [{ key: 'Tab' }] },
+  { id: 'topic.addChild', label: 'Add child node', shortcuts: [{ key: 'Tab' }] },
   { id: 'topic.addPeerAfter', label: 'Add peer below', shortcuts: [{ key: 'Enter' }] },
   {
     id: 'topic.addPeerBefore',
@@ -87,12 +86,12 @@ export const COMMANDS: readonly CommandDef[] = [
   },
   {
     id: 'topic.wrap',
-    label: 'Insert a topic between this and its parent',
+    label: 'Insert a node between this and its parent',
     shortcuts: [{ key: 'w' }],
   },
   {
     id: 'topic.insertBelow',
-    label: 'Insert a topic between this and its sub-topics',
+    label: 'Insert a node between this and its child nodes',
     shortcuts: [{ key: 'w', shift: true }],
   },
   { id: 'topic.edit', label: 'Edit title', shortcuts: [{ key: ' ' }, { key: 'F2' }] },
@@ -103,7 +102,7 @@ export const COMMANDS: readonly CommandDef[] = [
   },
   {
     id: 'topic.deleteKeep',
-    label: 'Delete the topic and keep its sub-topics',
+    label: 'Delete the node and keep its child nodes',
     shortcuts: [],
   },
   {
@@ -142,7 +141,7 @@ export const COMMANDS: readonly CommandDef[] = [
     label: 'Fold everything above into one node, or unfold it again',
     shortcuts: [{ key: '[' }],
   },
-  { id: 'view.toolSelect', label: 'Select tool: pick topics', shortcuts: [{ key: 'v' }] },
+  { id: 'view.toolSelect', label: 'Select tool: pick nodes', shortcuts: [{ key: 'v' }] },
   { id: 'view.toolPan', label: 'Pan tool: drag to move the view', shortcuts: [{ key: 'h' }] },
   {
     id: 'view.toolZoom',
@@ -163,28 +162,27 @@ export const COMMANDS: readonly CommandDef[] = [
   },
   { id: 'prefs.open', label: 'Open preferences', shortcuts: [{ key: ',', mod: true }] },
   { id: 'inspector.toggle', label: 'Show or hide the inspector', shortcuts: [{ key: 'i' }] },
-  { id: 'note.open', label: 'Write a note', shortcuts: [{ key: 'n' }] },
+  { id: 'tasks.open', label: 'Manage tasks', shortcuts: [{ key: 't' }] },
   { id: 'stickers.open', label: 'Add a sticker', shortcuts: [{ key: 's' }] },
   { id: 'edge.label', label: 'Label the line to the parent', shortcuts: [{ key: 'l' }] },
   { id: 'edge.sticker', label: 'Add a sticker to the line', shortcuts: [] },
   { id: 'props.open', label: 'Edit all properties', shortcuts: [{ key: 'p', shift: true }] },
-  { id: 'props.quickAdd', label: 'Set status, due date or tag', shortcuts: [{ key: 'p' }] },
-  { id: 'props.status', label: 'Set status', shortcuts: [{ key: 't' }] },
+  { id: 'props.quickAdd', label: 'Set due date or tag', shortcuts: [{ key: 'p' }] },
   { id: 'props.due', label: 'Set a due date', shortcuts: [{ key: 'd' }] },
   { id: 'props.tag', label: 'Add a tag', shortcuts: [{ key: 'g' }] },
-  { id: 'topic.reference', label: 'Reference another topic', shortcuts: [{ key: 'x' }] },
+  { id: 'topic.reference', label: 'Reference another node', shortcuts: [{ key: 'x' }] },
   {
     id: 'topic.referencePick',
-    label: 'Pick a reference line of this topic, then Delete removes it',
+    label: 'Pick a reference line of this node, then Delete removes it',
     shortcuts: [{ key: 'x', shift: true }],
   },
-  { id: 'topic.referenceRemove', label: 'Remove topic references', shortcuts: [] },
+  { id: 'topic.referenceRemove', label: 'Remove node references', shortcuts: [] },
   { id: 'topic.imageAlt', label: 'Describe the picture (alt text)', shortcuts: [] },
-  { id: 'topic.imageRemove', label: 'Remove the picture from the topic', shortcuts: [] },
+  { id: 'topic.imageRemove', label: 'Remove the picture from the node', shortcuts: [] },
   { id: 'filter.open', label: 'Search and filter', shortcuts: [{ key: '/' }, { key: 'f' }] },
   {
     id: 'filter.search',
-    label: 'Search topics, commands and filters',
+    label: 'Search nodes, commands and filters',
     shortcuts: [{ key: 'f', mod: true }],
   },
   { id: 'filter.next', label: 'Next match in the Filter', shortcuts: [{ key: '.' }] },
@@ -199,7 +197,7 @@ export const COMMANDS: readonly CommandDef[] = [
   { id: 'file.open', label: 'Open a map file', shortcuts: [] },
   {
     id: 'file.importBranch',
-    label: 'Add a map file as a branch of the selected topic',
+    label: 'Add a map file as a branch of the selected node',
     shortcuts: [],
   },
   { id: 'file.save', label: 'Save a copy as a file', shortcuts: [] },
@@ -215,8 +213,8 @@ export const COMMAND_GROUPS: Record<CommandId, string> = {
   'topic.reference': 'Create',
   'topic.referenceRemove': 'Create',
   'topic.referencePick': 'Create',
-  'topic.imageRemove': 'Topic content',
-  'topic.imageAlt': 'Topic content',
+  'topic.imageRemove': 'Node content',
+  'topic.imageAlt': 'Node content',
   'topic.duplicate': 'Create',
   'topic.edit': 'Edit',
   'topic.delete': 'Edit',
@@ -242,14 +240,13 @@ export const COMMAND_GROUPS: Record<CommandId, string> = {
   'palette.open': 'App',
   'help.shortcuts': 'App',
   'prefs.open': 'App',
-  'inspector.toggle': 'Topic content',
-  'note.open': 'Topic content',
-  'stickers.open': 'Topic content',
-  'edge.label': 'Topic content',
-  'edge.sticker': 'Topic content',
+  'inspector.toggle': 'Node content',
+  'tasks.open': 'Node content',
+  'stickers.open': 'Node content',
+  'edge.label': 'Node content',
+  'edge.sticker': 'Node content',
   'props.open': 'Planning',
   'props.quickAdd': 'Planning',
-  'props.status': 'Planning',
   'props.due': 'Planning',
   'props.tag': 'Planning',
   'filter.open': 'Planning',
@@ -268,7 +265,7 @@ export const COMMAND_GROUPS: Record<CommandId, string> = {
 export const NATIVE_SHORTCUTS: Array<{ label: string; shortcuts: Shortcut[] }> = [
   { label: 'Copy branches', shortcuts: [{ key: 'c', mod: true }] },
   { label: 'Cut branches', shortcuts: [{ key: 'x', mod: true }] },
-  { label: 'Paste as sub-topics', shortcuts: [{ key: 'v', mod: true }] },
+  { label: 'Paste as child nodes', shortcuts: [{ key: 'v', mod: true }] },
   { label: 'Paste as peers', shortcuts: [{ key: 'v', mod: true, shift: true }] },
 ];
 

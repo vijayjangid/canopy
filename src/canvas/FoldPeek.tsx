@@ -30,7 +30,7 @@ export function FoldPeek({ layout }: { layout: Layout }) {
     >
       <ul>
         {kids.slice(0, MAX_LISTED).map((kid) => (
-          <li key={kid.id}>{kid.title.trim() || 'Empty topic'}</li>
+          <li key={kid.id}>{kid.title.trim() || 'Empty node'}</li>
         ))}
       </ul>
       {kids.length > MAX_LISTED && <p>and {kids.length - MAX_LISTED} more</p>}

@@ -1,38 +1,33 @@
 import { IMAGE_PAD, imageOffset, imageSize } from '../layout';
 import type { Topic } from '../model';
-import { StatusMark, type ChipContext } from './Chips';
+import type { ChipContext } from './Chips';
 
 /** A house, for the Core. The door is cut out. */
 const HOME = 'M0 -8.5L9.5 -0.2H7V8.5H-7V-0.2H-9.5ZM-2.2 8.5V2.6H2.2V8.5Z';
 /** A picture frame with a sun and hills. */
 const PICTURE = 'M-9 -7H9V7H-9ZM-9 7L-3 0.5L1 4.5L4 1.5L9 7';
-/** A page with a folded corner and two lines of text. */
-const NOTE = 'M-6 -8.5H2.5L6.5 -4.5V8.5H-6ZM2.5 -8.5V-4.5H6.5M-3 0H3.5M-3 3.8H3.5';
 /** The letter T, for a topic that is only text. */
 const TEXT = 'M-6.5 -6H6.5M0 -6V7';
+/** Three short rows with checkboxes, for a Tasklist node. */
+const TASKLIST = 'M-8 -7h3v3h-3ZM-2 -5.5H8M-8 -1.5h3v3h-3ZM-2 0H8M-8 4h3v3h-3ZM-2 5.5H8';
 
 /** The room one glyph is drawn in: its drawings are about 20 units across. */
 const CELL = 20;
 /** Height kept under the main glyph for the row of small marks. */
 const MARKS_ROW = 14;
 
-type Mark = { kind: 'tag'; color: string } | { kind: 'due'; late: boolean } | { kind: 'note' };
+type Mark = { kind: 'tag'; color: string } | { kind: 'due'; late: boolean };
 
-/** Small marks for what the main glyph does not show: tags, a due date, a note. */
-function marksOf(topic: Topic, ctx: ChipContext, noteIsMain: boolean): Mark[] {
+/** Small marks for what the main glyph does not show: tags and a due date. */
+function marksOf(topic: Topic, ctx: ChipContext): Mark[] {
   const marks: Mark[] = [];
   for (const key of (topic.props?.tags ?? []).slice(0, 3)) {
     marks.push({ kind: 'tag', color: ctx.tags.get(key)?.color ?? ctx.theme.accent });
   }
   const due = topic.props?.due?.end ?? topic.props?.due?.start;
   if (due) {
-    const category = topic.props?.status
-      ? ctx.statuses.get(topic.props.status)?.category
-      : undefined;
-    const finished = category === 'complete' || category === 'canceled';
-    marks.push({ kind: 'due', late: due < ctx.today && !finished });
+    marks.push({ kind: 'due', late: due < ctx.today });
   }
-  if (topic.note && !noteIsMain) marks.push({ kind: 'note' });
   return marks;
 }
 
@@ -56,8 +51,8 @@ function Glyph({ d, size, fill }: { d: string; size: number; fill?: boolean }) {
 
 /**
  * What a topic shows when the map is zoomed out too far to read: an icon for what it holds.
- * The Core is a house. Under a picture there is a picture mark. Then, in order: its status, a note
- * mark, or a T when it is only text. Tags, a due date and a note appear as small marks below.
+ * The Core is a house. Under a picture there is a picture mark or a T for text.
+ * Tags and a due date appear as small marks below.
  */
 export function TopicGlyph({
   topic,
@@ -65,25 +60,25 @@ export function TopicGlyph({
   w,
   h,
   ctx,
+  ink,
 }: {
   topic: Topic;
   depth: number;
   w: number;
   h: number;
   ctx: ChipContext;
+  ink?: string;
 }) {
   const core = depth === 0;
+  const tasklist = (topic.tasks?.length ?? 0) > 0;
   const picture = imageSize(topic.image);
   const above = imageOffset(topic);
-  const status = topic.props?.status ? ctx.statuses.get(topic.props.status) : undefined;
-  const hasStatus = topic.props?.status !== undefined;
   const hasTitle = topic.title.trim() !== '';
-  const noteIsMain = !core && !hasStatus && !!topic.note;
-  const marks = marksOf(topic, ctx, noteIsMain);
+  const marks = marksOf(topic, ctx);
   const marksH = marks.length > 0 ? MARKS_ROW : 0;
 
-  // Under a picture a topic with no title and no status has nothing more to say.
-  const showMain = core || hasStatus || noteIsMain || hasTitle;
+  // Under a picture a topic with no title has nothing more to say.
+  const showMain = core || tasklist || hasTitle;
   const room = h - above - marksH;
   const size = Math.max(12, Math.min(room * 0.7, 28));
   const cx = w / 2;
@@ -93,7 +88,7 @@ export function TopicGlyph({
   const rowWidth = (marks.length - 1) * gap;
 
   return (
-    <g className="topic-glyph" aria-hidden="true">
+    <g className="topic-glyph" aria-hidden="true" style={ink ? { color: ink } : undefined}>
       {picture && topic.image && (
         <g
           className="topic-glyph-picture"
@@ -104,20 +99,11 @@ export function TopicGlyph({
         </g>
       )}
       {showMain && (
-        <g
-          data-glyph={core ? 'home' : hasStatus ? 'status' : noteIsMain ? 'note' : 'text'}
-          transform={`translate(${cx} ${cy})`}
-        >
+        <g data-glyph={core ? 'home' : 'text'} transform={`translate(${cx} ${cy})`}>
           {core ? (
             <Glyph d={HOME} size={size} fill />
-          ) : hasStatus ? (
-            <g
-              transform={`translate(${-8 * (size / 16)} ${-10 * (size / 16)}) scale(${size / 16})`}
-            >
-              <StatusMark def={status} theme={ctx.theme} x={0} />
-            </g>
-          ) : noteIsMain ? (
-            <Glyph d={NOTE} size={size} />
+          ) : tasklist ? (
+            <Glyph d={TASKLIST} size={size} />
           ) : (
             <Glyph d={TEXT} size={size} />
           )}
@@ -131,7 +117,7 @@ export function TopicGlyph({
         >
           {mark.kind === 'tag' ? (
             <circle r={3.4} fill={mark.color} />
-          ) : mark.kind === 'due' ? (
+          ) : (
             <rect
               x={-3.4}
               y={-3.4}
@@ -140,8 +126,6 @@ export function TopicGlyph({
               rx={1.4}
               fill={mark.late ? ctx.theme.warn : ctx.theme.info}
             />
-          ) : (
-            <Glyph d={NOTE} size={9} />
           )}
         </g>
       ))}

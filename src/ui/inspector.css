@@ -29,8 +29,7 @@
 }
 
 .panel input[type='text'],
-.panel input[type='search'],
-.note-input {
+.panel input[type='search'] {
   width: 100%;
   padding: var(--space-2) var(--space-3);
   font: inherit;
@@ -41,50 +40,9 @@
 }
 
 .panel input:focus-visible,
-.note-input:focus-visible,
 .panel button:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 1px;
-}
-
-.note-tab {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  height: 100%;
-}
-
-.note-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  align-items: center;
-}
-
-.note-format {
-  display: flex;
-  gap: 2px;
-}
-
-.note-format button {
-  min-width: 28px;
-  height: 28px;
-  padding: 0 6px;
-  font-size: 13px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-}
-
-.note-format button:hover {
-  background: var(--color-hover);
-}
-
-.note-input {
-  flex: 1;
-  min-height: 110px;
-  line-height: 1.5;
-  resize: none;
 }
 
 .files-tab[data-over] {
@@ -357,6 +315,153 @@
   flex-wrap: wrap;
 }
 
+.topic-color-options {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 3px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topic-color-swatch {
+  flex: 0 0 20px;
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  min-height: 20px;
+  padding: 0;
+  background: var(--swatch-color, var(--color-surface));
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  aspect-ratio: 1;
+}
+
+.topic-color-swatch[data-color='coral'] {
+  --swatch-color: #fca5a5;
+}
+
+.topic-color-swatch[data-color='orange'] {
+  --swatch-color: #fdba74;
+}
+
+.topic-color-swatch[data-color='yellow'] {
+  --swatch-color: #fde68a;
+}
+
+.topic-color-swatch[data-color='green'] {
+  --swatch-color: #86efac;
+}
+
+.topic-color-swatch[data-color='teal'] {
+  --swatch-color: #0f766e;
+}
+
+.topic-color-swatch[data-color='blue'] {
+  --swatch-color: #93c5fd;
+}
+
+.topic-color-swatch[data-color='purple'] {
+  --swatch-color: #c4b5fd;
+}
+
+.topic-color-swatch[data-color='pink'] {
+  --swatch-color: #f9a8d4;
+}
+
+.topic-color-swatch[data-color='red'] {
+  --swatch-color: #b91c1c;
+}
+
+.topic-color-swatch[data-color='indigo'] {
+  --swatch-color: #4338ca;
+}
+
+.topic-color-auto {
+  background:
+    linear-gradient(135deg, transparent 46%, var(--color-text-muted) 47% 53%, transparent 54%),
+    var(--color-surface);
+}
+
+.topic-color-swatch[aria-pressed='true'] {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.topic-task-editor {
+  display: grid;
+  gap: var(--space-1);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.topic-task-editor li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.topic-task-editor input[type='checkbox'] {
+  accent-color: var(--color-accent);
+}
+
+.panel .topic-task-editor input[type='text'] {
+  min-width: 0;
+  padding: 4px var(--space-2);
+}
+
+.topic-task-editor input[data-done] {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+.topic-task-add {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.panel .topic-task-add input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 6px var(--space-3);
+}
+
+.panel .topic-task-add .pill {
+  height: 36px;
+}
+
+.topic-image-field {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+}
+
+.topic-image-preview {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.topic-image-preview img {
+  display: block;
+  width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+}
+
+.topic-image-preview .pill-clear {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+}
+
 .prop-tag-add button,
 .prop-progress button {
   padding: 6px var(--space-3);
@@ -545,29 +650,6 @@
   border-radius: 50%;
 }
 
-/* The note has the whole panel, so it can be as tall as the panel. */
-.panel-right .panel-scroll[data-pane='note'] {
-  display: flex;
-  flex-direction: column;
-}
-
-.note-pane {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
-  padding: var(--space-3);
-}
-
-.note-pane .note-tab {
-  flex: 1;
-  min-height: 0;
-}
-
-.note-pane .note-input {
-  min-height: 0;
-}
-
 /* ---------- A lighter top section: smaller pills, quieter icons ---------- */
 
 /* `.panel button` sets font: inherit, so these are written with .panel in front to win. */
@@ -678,12 +760,6 @@
   border-style: dashed;
 }
 
-.status-icon {
-  flex: none;
-  width: 14px;
-  height: 14px;
-}
-
 .tag-dot {
   flex: none;
   width: 8px;
@@ -769,9 +845,8 @@
   gap: var(--space-4);
 }
 
-.panel .sticker-search {
-  padding: 8px var(--space-3);
-  font-size: 13.5px;
+.panel-right .props-tab .panel-section-heading {
+  padding: var(--space-4) 0 var(--space-2);
 }
 
 .sticker-grid {

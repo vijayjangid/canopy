@@ -115,7 +115,7 @@ export function TagsPanel() {
   if (tags.length === 0) {
     return (
       <p className="pref-hint">
-        No tags yet. Add one from a topic, or type #name in a title. Tags show as badges and can be
+        No tags yet. Add one from a node, or type #name in a title. Tags show as badges and can be
         used as filters.
       </p>
     );

@@ -29,7 +29,7 @@ describe('collapsedAbove', () => {
   it('counts what is left out and names the parents', () => {
     const map = sample();
     const above = collapsedAbove(map, 'a1');
-    expect(above.path).toEqual(['Central topic', 'Alpha']);
+    expect(above.path).toEqual(['Core Idea', 'Alpha']);
     expect(above.count).toBe(countTopics(map) - 2);
     expect(collapsedAbove(map, 'a').count).toBe(3);
   });

@@ -112,10 +112,14 @@ const NO_CHIPS: ChipItem[] = [];
 /** What a screen reader hears after a topic's title. */
 function summaryOf(topic: CanopyTopic, ctx: ChipContext): string {
   const stickers = topic.stickers?.length ?? 0;
+  const tasks = topic.tasks ?? [];
   return [
     describeProps(topic, ctx),
     stickers > 0 ? `${stickers} ${stickers === 1 ? 'sticker' : 'stickers'}` : '',
     topic.image ? (topic.image.alt ? `picture: ${topic.image.alt}` : 'has a picture') : '',
+    tasks.length > 0
+      ? `tasks: ${tasks.map((task) => `${task.text}, ${task.done ? 'complete' : 'not complete'}`).join('; ')}`
+      : '',
   ]
     .filter(Boolean)
     .join(', ');
@@ -132,10 +136,9 @@ function isolate(doc: CanopyMap, keep: ReadonlySet<string>): CanopyMap {
   return { ...doc, topics };
 }
 
-/** "3/7" for a folded branch: finished work out of all work with a status. */
+/** A folded branch also shows overdue descendants when any are present. */
 function rollupLabel(r: Rollup | undefined): string | undefined {
-  if (!r || r.withStatus === 0) return undefined;
-  return `${r.byCategory.complete}/${r.withStatus - r.byCategory.canceled}`;
+  return r?.overdue ? `${r.overdue} overdue` : undefined;
 }
 
 const edgeIdOf = (target: EventTarget) =>
@@ -250,13 +253,12 @@ export function Canvas() {
   );
   const rollups = useMemo(
     () => computeRollups(doc, day),
-    // Roll-ups depend on the topics and the Status Set only.
+    // Roll-ups depend on the topics and the current day.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [doc.topics, doc.planning, day],
   );
   const chipContext = useMemo<ChipContext>(
     () => ({
-      statuses: new Map(planningOf(doc).statusSet.map((x) => [x.key, x])),
       tags: new Map(planningOf(doc).tags.map((t) => [t.key, t])),
       today: day,
       now: new Date(),
@@ -700,11 +702,11 @@ export function Canvas() {
     growthStore.getState().committed();
     announce(
       chosen.kind === 'child'
-        ? 'Added sub-topic'
+        ? 'Added child node'
         : chosen.kind === 'between'
-          ? 'Added a topic between'
+          ? 'Added a node between'
           : chosen.kind === 'level'
-            ? 'Added a topic above all its peers'
+            ? 'Added a node above all its peers'
             : 'Added peer',
     );
   };
@@ -842,8 +844,8 @@ export function Canvas() {
               (doc.topics[source.id]?.references ?? []).map((targetId) => {
                 const target = view.layout.boxes.get(targetId);
                 if (!target) return null;
-                const sourceTitle = doc.topics[source.id]?.title.trim() || 'Empty topic';
-                const targetTitle = doc.topics[targetId]?.title.trim() || 'Empty topic';
+                const sourceTitle = doc.topics[source.id]?.title.trim() || 'Empty node';
+                const targetTitle = doc.topics[targetId]?.title.trim() || 'Empty node';
                 const d = referenceGeometry(source, target).d;
                 return (
                   <g

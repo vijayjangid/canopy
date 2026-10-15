@@ -25,17 +25,17 @@ import './growth-handles.css';
 const DRAG_THRESHOLD_PX = 6;
 
 const TITLES: Record<GrowthKind, { right: string; down: string; command: CommandId }> = {
-  child: { right: 'Add sub-topic', down: 'Add sub-topic', command: 'topic.addChild' },
+  child: { right: 'Add child node', down: 'Add child node', command: 'topic.addChild' },
   before: { right: 'Add peer above', down: 'Add peer before', command: 'topic.addPeerBefore' },
   after: { right: 'Add peer below', down: 'Add peer after', command: 'topic.addPeerAfter' },
   between: {
-    right: 'Insert a topic between (Shift: above all its peers)',
-    down: 'Insert a topic between (Shift: above all its peers)',
+    right: 'Insert a node between (Shift: above all its peers)',
+    down: 'Insert a node between (Shift: above all its peers)',
     command: 'topic.wrap',
   },
   level: {
-    right: 'Insert a topic above all its peers',
-    down: 'Insert a topic above all its peers',
+    right: 'Insert a node above all its peers',
+    down: 'Insert a node above all its peers',
     command: 'topic.wrap',
   },
 };
@@ -52,7 +52,7 @@ const LINK_PATH =
 
 function referenceTitle(): string {
   const first = COMMANDS.find((c) => c.id === 'topic.reference')?.shortcuts[0];
-  const base = 'Reference another topic: drag onto it, or click to search';
+  const base = 'Reference another node: drag onto it, or click to search';
   return first ? `${base} (${formatShortcut(first)})` : base;
 }
 
@@ -180,7 +180,7 @@ export function GrowthHandles({ layout, drawn, onCommit }: Props) {
       store.endDrag();
       if (slot) onCommit(slot);
       else store.clearSlot();
-      announce(slot ? 'Added topic' : 'Cancelled');
+      announce(slot ? 'Added node' : 'Cancelled');
       return;
     }
     store.setSlot(subject, withShift(kind, e.shiftKey));
@@ -242,7 +242,7 @@ export function GrowthHandles({ layout, drawn, onCommit }: Props) {
     }
     const { doc: current, commit } = canopyStore.getState();
     commit(addTopicReference(current, subject, target));
-    const name = (id: string) => current.topics[id]?.title.trim() || 'Empty topic';
+    const name = (id: string) => current.topics[id]?.title.trim() || 'Empty node';
     announce(`${name(subject)} now references ${name(target)}`);
   };
 

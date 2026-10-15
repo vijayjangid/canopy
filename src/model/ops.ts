@@ -45,7 +45,7 @@ export function createMap(
         id: coreId,
         parentId: null,
         orderKey: keyBetween(null, null),
-        title: opts.coreTitle ?? 'Central topic',
+        title: opts.coreTitle ?? 'Core Idea',
         folded: false,
         stickers: [{ id: newId('s_'), key: 'home' }],
       },
@@ -60,7 +60,7 @@ function insertTopic(
   opts: CreateOptions,
 ): CreateResult {
   const id = opts.id ?? newId();
-  if (map.topics[id]) throw new ModelError('DUPLICATE_ID', `Topic ID already in use: ${id}`);
+  if (map.topics[id]) throw new ModelError('DUPLICATE_ID', `Node ID already in use: ${id}`);
   const next = produce(map, (draft) => {
     draft.topics[id] = { id, parentId, orderKey, title: opts.title ?? '', folded: false };
     const parent = draft.topics[parentId];
@@ -122,7 +122,7 @@ export function insertBetween(
   const moving = kids.filter((t) => wanted.has(t.id));
   const first = moving[0];
   if (!first || moving.length !== wanted.size) {
-    throw new ModelError('INVALID_ARGUMENT', 'Topics to move down must be children of the parent');
+    throw new ModelError('INVALID_ARGUMENT', 'Nodes to move down must be children of the parent');
   }
   const before = kids
     .slice(0, kids.indexOf(first))
@@ -181,7 +181,7 @@ function dropReferences(topic: Topic, drop: (to: TopicId) => boolean): void {
 export function addTopicReference(map: CanopyMap, sourceId: TopicId, targetId: TopicId): CanopyMap {
   const source = getTopic(map, sourceId);
   if (targetId === sourceId) {
-    throw new ModelError('INVALID_ARGUMENT', 'A topic cannot reference itself');
+    throw new ModelError('INVALID_ARGUMENT', 'A node cannot reference itself');
   }
   getTopic(map, targetId);
   if (source.references?.includes(targetId)) return map;
@@ -324,7 +324,7 @@ export function duplicateBranch(map: CanopyMap, id: TopicId): CreateResult {
     return { ...t, id: copyId };
   });
   const rootCopyId = ids.get(id);
-  if (!rootCopyId) throw new ModelError('NOT_FOUND', `Topic not found: ${id}`);
+  if (!rootCopyId) throw new ModelError('NOT_FOUND', `Node not found: ${id}`);
 
   const next = produce(map, (draft) => {
     for (const copy of copies) {

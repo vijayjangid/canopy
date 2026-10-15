@@ -39,7 +39,7 @@ export function TrailPill() {
         ))}
       </div>
       <span className="sr-only" role="status">
-        Trail: {trail.levels} {trail.levels === 1 ? 'topic' : 'topics'} up to the Core
+        Trail: {trail.levels} {trail.levels === 1 ? 'node' : 'nodes'} up to the Core
       </span>
     </div>
   );

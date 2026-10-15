@@ -20,7 +20,7 @@ export function convertTitleTokens(
     const expanded = expandTopicTitle(doc, id, now);
     if (expanded) {
       commit(expanded.map, { select: [expanded.focus], focus: expanded.focus });
-      announce(`Added ${expanded.count} ${expanded.count === 1 ? 'topic' : 'topics'}`);
+      announce(`Added ${expanded.count} ${expanded.count === 1 ? 'node' : 'nodes'}`);
       return true;
     }
   }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { focusCanvas } from '../canvas/layoutState';
 import {
   MAX_EDGE_LABEL,
@@ -6,8 +6,8 @@ import {
   MAX_STICKERS,
   ancestorsOf,
   childrenOf,
+  renameTopic,
   setEdgeLabel,
-  setNote,
   toggleEdgeSticker,
   toggleSticker,
   type Topic,
@@ -16,13 +16,12 @@ import { prefersReducedMotion } from '../motion';
 import { markFresh } from '../canvas/stampStore';
 import { canopyStore, useCanopy } from '../store';
 import { StickerArt } from '../stickers/art';
-import { searchStickers } from '../stickers/catalog';
+import { STICKERS } from '../stickers/catalog';
 import { Icon } from './icons';
 import { InfoTip } from './InfoTip';
-import { Markdown } from './Markdown';
-import { PropertiesTab } from './PropertiesTab';
+import { PropertiesTab, TasksTab } from './PropertiesTab';
 import { showToast } from './toast';
-import { closeInspector, setEdgeFocus, setInspectorTab, useUi, type InspectorTab } from './uiStore';
+import { closeInspector, setEdgeFocus, setInspectorTab, useUi } from './uiStore';
 import './inspector.css';
 
 const CRUMB_CHARS = 22;
@@ -30,12 +29,6 @@ const CRUMB_CHARS = 22;
 /** One line, cut to `max` characters with an ellipsis. */
 const clamp = (text: string, max: number) =>
   text.length > max ? `${text.slice(0, max - 1).trimEnd()}\u2026` : text;
-
-const SECTIONS: Array<{ id: InspectorTab; label: string }> = [
-  { id: 'properties', label: 'Properties' },
-  { id: 'stickers', label: 'Stickers' },
-  { id: 'note', label: 'Note' },
-];
 
 /** The details panel: it opens when a topic is clicked, and closes with its button. */
 export function Inspector() {
@@ -46,13 +39,17 @@ export function Inspector() {
   const topic = useCanopy((s) => s.doc.topics[s.focus]);
   const selectionCount = useCanopy((s) => s.selection.length);
   const many = selectionCount > 1;
-  const pane = !many && target === 'note' ? 'note' : 'details';
+  const pane = !many && target === 'tasks' ? 'tasks' : 'details';
 
   // Bring the requested section into view when it is asked for.
   useEffect(() => {
-    if (open)
-      document.getElementById(`inspector-section-${target}`)?.scrollIntoView({ block: 'nearest' });
-  }, [open, target]);
+    if (!open) return;
+    if (target === 'stickers') {
+      document.getElementById('inspector-section-stickers')?.scrollIntoView({ block: 'nearest' });
+    } else {
+      document.getElementById('inspector-panel')?.scrollTo({ top: 0 });
+    }
+  }, [focus, open, target]);
 
   const doc = useCanopy((s) => s.doc);
   const edgeFocus = useUi((s) => s.edgeFocus);
@@ -65,7 +62,7 @@ export function Inspector() {
   const after = siblings[at + 1];
   const place = at + 1;
   const depth = ancestorsOf(doc, topic.id).length;
-  const parentName = parent?.title.trim().replace(/\s+/g, ' ') || 'Empty topic';
+  const parentName = parent?.title.trim().replace(/\s+/g, ' ') || 'Empty node';
   const flow = doc.prefs.flow;
   const showLevels = doc.prefs.showLevels;
 
@@ -96,12 +93,25 @@ export function Inspector() {
       <header className="panel-header">
         <div className="panel-heading">
           {many || !parent ? (
-            <p className="panel-eyebrow">{many ? `${selectionCount} topics` : 'Core topic'}</p>
+            <p className="panel-eyebrow">
+              {many ? (
+                `${selectionCount} nodes`
+              ) : (
+                <span
+                  className="panel-core-mark"
+                  role="img"
+                  aria-label="Core node"
+                  title="Core node"
+                >
+                  <Icon name="home" />
+                </span>
+              )}
+            </p>
           ) : (
-            <nav className="panel-crumb" aria-label="Parent topic">
+            <nav className="panel-crumb" aria-label="Parent node">
               <button
                 type="button"
-                aria-label={`Parent topic: ${parentName}`}
+                aria-label={`Parent node: ${parentName}`}
                 data-tip={`Go to ${parentName}`}
                 data-tip-side="bottom"
                 onClick={() => goTo(parent.id)}
@@ -112,7 +122,7 @@ export function Inspector() {
             </nav>
           )}
           <h2 title={many ? undefined : topic.title.trim()}>
-            {many ? 'Several topics' : topic.title.trim().replace(/\s+/g, ' ') || 'Empty topic'}
+            {many ? 'Several nodes' : <TopicTitleInput key={topic.id} topic={topic} />}
           </h2>
           {!many && showLevels && (
             <p className="panel-level">
@@ -156,27 +166,27 @@ export function Inspector() {
         </button>
       </header>
       {!many && (
-        <div className="inspector-tabs" role="tablist" aria-label="Topic details">
+        <div className="inspector-tabs" role="tablist" aria-label="Node details">
           <button
             type="button"
             role="tab"
             id="inspector-tab-details"
             aria-selected={pane === 'details'}
             aria-controls="inspector-panel"
-            onClick={() => setInspectorTab(target === 'note' ? 'properties' : target)}
+            onClick={() => setInspectorTab('properties')}
           >
             Details
           </button>
           <button
             type="button"
             role="tab"
-            id="inspector-tab-note"
-            aria-selected={pane === 'note'}
+            id="inspector-tab-tasks"
+            aria-selected={pane === 'tasks'}
             aria-controls="inspector-panel"
-            onClick={() => setInspectorTab('note')}
+            onClick={() => setInspectorTab('tasks')}
           >
-            Note
-            {topic.note && <span className="tab-mark" aria-label="has a note" />}
+            Tasks
+            {topic.tasks?.length ? <span className="tab-mark" aria-label="has tasks" /> : null}
           </button>
         </div>
       )}
@@ -185,53 +195,50 @@ export function Inspector() {
         id="inspector-panel"
         data-pane={pane}
         role={many ? undefined : 'tabpanel'}
-        aria-labelledby={many ? undefined : `inspector-tab-${pane}`}
+        aria-labelledby={
+          many ? undefined : `inspector-tab-${pane === 'details' ? 'details' : pane}`
+        }
       >
-        {pane === 'note' ? (
-          <section id="inspector-section-note" className="note-pane" aria-label="Note">
-            <NoteTab key={focus} topic={topic} />
+        {pane === 'tasks' ? (
+          <section
+            id="inspector-section-tasks"
+            className="panel-section panel-section-plain"
+            aria-label="Tasks"
+          >
+            <div className="panel-section-body">
+              <TasksTab key={focus} topic={topic} />
+            </div>
           </section>
         ) : (
-          SECTIONS.filter((x) => x.id !== 'note' && (!many || x.id === 'properties')).map(
-            ({ id, label }) => {
-              // Status, due date and tags are the heart of the panel, so they sit there directly,
-              // with no heading to open or close. The region keeps its name for screen readers.
-              if (id === 'properties') {
-                return (
-                  <section
-                    key={id}
-                    id={`inspector-section-${id}`}
-                    className="panel-section panel-section-plain"
-                    aria-label={label}
-                  >
-                    <div className="panel-section-body">
-                      <PropertiesTab />
-                    </div>
-                  </section>
-                );
-              }
-              return (
-                <section
-                  key={id}
-                  id={`inspector-section-${id}`}
-                  className="panel-section"
-                  aria-labelledby={`inspector-heading-${id}`}
-                >
-                  <div className="panel-section-heading">
-                    <h3 id={`inspector-heading-${id}`}>{label}</h3>
-                    <span className="panel-section-rule" aria-hidden="true" />
-                  </div>
-                  <div className="panel-section-body">
-                    {id === 'stickers' && <StickersTab key={focus} topic={topic} />}
-                  </div>
-                </section>
-              );
-            },
-          )
+          <section
+            id="inspector-section-properties"
+            className="panel-section panel-section-plain"
+            aria-label="Details"
+          >
+            <div className="panel-section-body">
+              <PropertiesTab
+                stickerSection={
+                  !many ? (
+                    <section
+                      id="inspector-section-stickers"
+                      className="detail-sticker-section"
+                      aria-labelledby="inspector-heading-stickers"
+                    >
+                      <div className="panel-section-heading">
+                        <h3 id="inspector-heading-stickers">Stickers</h3>
+                        <span className="panel-section-rule" aria-hidden="true" />
+                      </div>
+                      <StickersTab key={focus} topic={topic} />
+                    </section>
+                  ) : null
+                }
+              />
+            </div>
+          </section>
         )}
         {many && (
           <p className="inspector-hint panel-note">
-            Select one topic to edit its note and stickers.
+            Select one node to edit its tasks and stickers.
           </p>
         )}
       </div>
@@ -239,117 +246,37 @@ export function Inspector() {
   );
 }
 
-// ---------- Note ----------
-
-interface Wrap {
-  label: string;
-  before: string;
-  after: string;
-  placeholder: string;
-  /** Applies to the start of each selected line instead of around the text. */
-  line?: boolean;
-}
-
-const WRAPS: Wrap[] = [
-  { label: 'Bold', before: '**', after: '**', placeholder: 'bold' },
-  { label: 'Italic', before: '*', after: '*', placeholder: 'italic' },
-  { label: 'Heading', before: '## ', after: '', placeholder: 'Heading', line: true },
-  { label: 'Bullet list', before: '- ', after: '', placeholder: 'Item', line: true },
-  { label: 'Task list', before: '- [ ] ', after: '', placeholder: 'Task', line: true },
-  { label: 'Code', before: '`', after: '`', placeholder: 'code' },
-  { label: 'Link', before: '[', after: '](https://)', placeholder: 'text' },
-];
-
-function NoteTab({ topic }: { topic: Topic }) {
-  const [mode, setMode] = useState<'write' | 'preview'>('write');
-  const area = useRef<HTMLTextAreaElement>(null);
-  const note = topic.note ?? '';
-
-  const write = (value: string, caret?: [number, number]) => {
-    const { doc, commit } = canopyStore.getState();
-    commit(setNote(doc, topic.id, value), { group: `note:${topic.id}` });
-    if (caret) {
-      requestAnimationFrame(() => {
-        area.current?.focus();
-        area.current?.setSelectionRange(caret[0], caret[1]);
-      });
-    }
-  };
-
-  const apply = (w: Wrap) => {
-    const el = area.current;
-    if (!el) return;
-    const { selectionStart: a, selectionEnd: b, value } = el;
-    if (w.line) {
-      const start = value.lastIndexOf('\n', a - 1) + 1;
-      const chunk = value.slice(start, b) || w.placeholder;
-      const lines = chunk.split('\n').map((l) => w.before + l);
-      const out = value.slice(0, start) + lines.join('\n') + value.slice(b);
-      write(out, [start, start + lines.join('\n').length]);
-      return;
-    }
-    const picked = value.slice(a, b) || w.placeholder;
-    const out = value.slice(0, a) + w.before + picked + w.after + value.slice(b);
-    write(out, [a + w.before.length, a + w.before.length + picked.length]);
-  };
+function TopicTitleInput({ topic }: { topic: Topic }) {
+  const initial = useRef(topic.title);
 
   return (
-    <div className="note-tab">
-      <div className="note-toolbar">
-        <div className="segmented" role="group" aria-label="Note view">
-          <button type="button" aria-pressed={mode === 'write'} onClick={() => setMode('write')}>
-            Write
-          </button>
-          <button
-            type="button"
-            aria-pressed={mode === 'preview'}
-            onClick={() => setMode('preview')}
-          >
-            Preview
-          </button>
-        </div>
-        {mode === 'write' && (
-          <div className="note-format" role="toolbar" aria-label="Formatting">
-            {WRAPS.map((w) => (
-              <button
-                key={w.label}
-                type="button"
-                aria-label={w.label}
-                data-tip={w.label}
-                onClick={() => apply(w)}
-              >
-                {
-                  {
-                    Bold: 'B',
-                    Italic: 'I',
-                    Heading: 'H',
-                    'Bullet list': '•',
-                    'Task list': '☑',
-                    Code: '</>',
-                    Link: '🔗',
-                  }[w.label]
-                }
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      {mode === 'write' ? (
-        <textarea
-          ref={area}
-          className="note-input"
-          aria-label="Note"
-          placeholder="Write a note. Markdown works: **bold**, lists, - [ ] tasks, tables and links."
-          spellCheck
-          value={note}
-          onChange={(e) => write(e.target.value)}
-        />
-      ) : note.trim() ? (
-        <Markdown source={note} />
-      ) : (
-        <p className="inspector-empty">Nothing to preview yet.</p>
-      )}
-    </div>
+    <input
+      className="topic-title-input"
+      type="text"
+      aria-label="Node title"
+      value={topic.title}
+      placeholder="Empty node"
+      onFocus={() => {
+        initial.current = topic.title;
+      }}
+      onChange={(event) => {
+        const title = event.target.value;
+        const { doc, commit } = canopyStore.getState();
+        commit(renameTopic(doc, topic.id, title), { group: `rename:${topic.id}` });
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          event.currentTarget.blur();
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          event.stopPropagation();
+          const { doc, commit } = canopyStore.getState();
+          commit(renameTopic(doc, topic.id, initial.current), { group: `rename:${topic.id}` });
+          event.currentTarget.blur();
+        }
+      }}
+    />
   );
 }
 
@@ -364,13 +291,11 @@ function Sticker({ name, size = 28 }: { name: string; size?: number }) {
 }
 
 function StickersTab({ topic }: { topic: Topic }) {
-  const [query, setQuery] = useState('');
   const onLine = useUi((s) => s.edgeFocus === topic.id) && topic.parentId !== null;
   const placed = (onLine ? topic.edge?.stickers : topic.stickers) ?? [];
   const max = onLine ? MAX_EDGE_STICKERS : MAX_STICKERS;
   const full = placed.length >= max;
   const on = new Set(placed.map((s) => s.key));
-  const shown = searchStickers(query);
   const where = onLine ? 'line' : 'topic';
   const target = useRef<HTMLDivElement>(null);
   const nudge = useUi((s) => s.edgeNudge);
@@ -410,7 +335,7 @@ function StickersTab({ topic }: { topic: Topic }) {
         {topic.parentId !== null && (
           <div className="segmented sticker-target" role="group" aria-label="Put stickers on">
             <button type="button" aria-pressed={!onLine} onClick={() => setEdgeFocus(null)}>
-              Topic
+              Node
             </button>
             <button type="button" aria-pressed={onLine} onClick={() => setEdgeFocus(topic.id)}>
               Line to parent
@@ -433,51 +358,39 @@ function StickersTab({ topic }: { topic: Topic }) {
           </label>
         )}
       </div>
-      <input
-        type="search"
-        className="sticker-search"
-        aria-label="Search stickers"
-        placeholder="Search stickers"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-      {shown.length === 0 ? (
-        <p className="inspector-empty">No stickers match.</p>
-      ) : (
-        <ul className="sticker-grid" aria-label="Stickers">
-          {shown.map((s) => {
-            const applied = on.has(s.key);
-            return (
-              <li key={s.key}>
-                <button
-                  type="button"
-                  aria-label={s.name}
-                  aria-pressed={applied}
-                  data-tip={applied ? `${s.name}. Click to take off` : s.name}
-                  disabled={full && !applied}
-                  onClick={() => toggle(s.key)}
-                >
-                  <Sticker name={s.key} />
-                  {applied && (
-                    <span className="sticker-check" aria-hidden="true">
-                      <svg viewBox="0 0 12 12" width="9" height="9">
-                        <path
-                          d="M2.5 6.4l2.4 2.4 4.6-5"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </span>
-                  )}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      <ul className="sticker-grid" aria-label="Stickers">
+        {STICKERS.map((s) => {
+          const applied = on.has(s.key);
+          return (
+            <li key={s.key}>
+              <button
+                type="button"
+                aria-label={s.name}
+                aria-pressed={applied}
+                data-tip={applied ? `${s.name}. Click to take off` : s.name}
+                disabled={full && !applied}
+                onClick={() => toggle(s.key)}
+              >
+                <Sticker name={s.key} />
+                {applied && (
+                  <span className="sticker-check" aria-hidden="true">
+                    <svg viewBox="0 0 12 12" width="9" height="9">
+                      <path
+                        d="M2.5 6.4l2.4 2.4 4.6-5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
       <p className="sticker-meta">
         <span data-full={full || undefined}>
           {full ? `Full: ${max} of ${max}` : `${placed.length} of ${max} used`}

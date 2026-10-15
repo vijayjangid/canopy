@@ -1,12 +1,12 @@
 import { produce } from 'immer';
 import { newId } from './ids';
 import { keyBetween } from './order';
-import { DEFAULT_PLANNING, planningOf } from './planning';
+import { planningOf } from './planning';
 import { childrenOf, getTopic, subtreeOf } from './tree';
 import type { CanopyMap, PlanningConfig, Topic, TopicId } from './types';
 
 /** The Core's name in a new map. A map still carrying it is named by its title instead. */
-const DEFAULT_CORE_TITLE = 'Central topic';
+const DEFAULT_CORE_TITLE = 'Core Idea';
 
 export interface GraftResult {
   map: CanopyMap;
@@ -24,34 +24,28 @@ export function graftTitle(source: CanopyMap): string {
   return named || core || 'Imported map';
 }
 
-/** Status and tag choices the imported topics use that this map does not have yet. */
+/** Tag choices the imported topics use that this map does not have yet. */
 function mergePlanning(target: CanopyMap, source: CanopyMap, topics: readonly Topic[]) {
-  const wantedStatus = new Set<string>();
   const wantedTags = new Set<string>();
   for (const t of topics) {
-    if (t.props?.status) wantedStatus.add(t.props.status);
     for (const tag of t.props?.tags ?? []) wantedTags.add(tag);
   }
   const have = planningOf(target);
   const there = planningOf(source);
-  const statuses = there.statusSet.filter(
-    (s) => wantedStatus.has(s.key) && !have.statusSet.some((h) => h.key === s.key),
-  );
   const tags = there.tags.filter(
     (t) => wantedTags.has(t.key) && !have.tags.some((h) => h.key === t.key),
   );
-  if (statuses.length === 0 && tags.length === 0) return target.planning;
+  if (tags.length === 0) return target.planning;
   const next: PlanningConfig = {
-    statusSet: [...(target.planning ?? DEFAULT_PLANNING).statusSet, ...statuses],
-    tags: [...(target.planning ?? DEFAULT_PLANNING).tags, ...tags],
+    tags: [...have.tags, ...tags],
   };
   return next;
 }
 
 /**
  * Adds a whole other map under `parentId` as a new last branch, with new IDs throughout. The other
- * map's Core becomes the top of the branch. Notes, stickers, pictures, lines, properties and fold
- * state come along, and so do the statuses and tags its topics use. References between its own
+ * map's Core becomes the top of the branch. Stickers, pictures, lines, properties and fold
+ * state come along, as do the tags its topics use. References between its own
  * topics are kept. A reference to anything else cannot be kept and is dropped.
  */
 export function graftMap(map: CanopyMap, parentId: TopicId, source: CanopyMap): GraftResult {

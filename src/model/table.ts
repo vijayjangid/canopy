@@ -1,19 +1,9 @@
-import { planningOf, statusDef } from './planning';
+import { planningOf } from './planning';
 import { isOverdue } from './rollup';
 import { ancestorsOf, subtreeOf } from './tree';
 import type { CanopyMap, TopicId } from './types';
 
-export const TABLE_COLUMNS = [
-  'Path',
-  'Topic',
-  'Status',
-  'Category',
-  'Start',
-  'Due',
-  'Overdue',
-  'Tags',
-  'Note',
-] as const;
+export const TABLE_COLUMNS = ['Path', 'Topic', 'Start', 'Due', 'Overdue', 'Tags', 'Tasks'] as const;
 
 export type TableRow = Record<(typeof TABLE_COLUMNS)[number], string>;
 
@@ -24,7 +14,6 @@ export function tableRows(map: CanopyMap, today: string, only?: ReadonlySet<Topi
   for (const topic of subtreeOf(map, map.coreId)) {
     if (only && !only.has(topic.id)) continue;
     const p = topic.props;
-    const status = statusDef(map, p?.status);
     const path = ancestorsOf(map, topic.id)
       .reverse()
       .map((a) => a.title.trim() || 'Untitled')
@@ -32,13 +21,13 @@ export function tableRows(map: CanopyMap, today: string, only?: ReadonlySet<Topi
     rows.push({
       Path: path,
       Topic: topic.title.trim() || 'Untitled',
-      Status: status?.label ?? '',
-      Category: status?.category ?? '',
       Start: p?.due?.start ?? '',
       Due: p?.due?.end ?? '',
       Overdue: isOverdue(map, topic.id, today) ? 'yes' : '',
       Tags: (p?.tags ?? []).map((t) => tagLabels.get(t) ?? t).join('; '),
-      Note: (topic.note ?? '').replace(/\s+/g, ' ').trim(),
+      Tasks: (topic.tasks ?? [])
+        .map((task) => `[${task.done ? 'x' : ' '}] ${task.text}`)
+        .join('; '),
     });
   }
   return rows;

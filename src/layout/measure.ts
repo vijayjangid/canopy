@@ -76,6 +76,11 @@ export const STICKER_SHADOW_OFFSET = { x: 0.8, y: 1.6 };
 export const TOPIC_PADDING = { x: 14, y: 9 };
 export const TOPIC_MIN = { w: 72, h: 36 };
 export const TOPIC_MAX_TEXT_WIDTH = 220;
+export const TASK_ROW_LINE_HEIGHT = 16;
+export const TASK_ROW_GAP = 3;
+export const TASK_BOX_SIZE = 12;
+export const TASK_TEXT_INSET = 22;
+export const TASK_ROW_RIGHT_PADDING = 24;
 /** Space between the title and the chips under it, and below the chips. */
 const CHIPS_GAP = 2;
 const CHIPS_BOTTOM = 3;
@@ -91,7 +96,7 @@ export function firstBaselineOf(
     ? TOPIC_PADDING.y + lineHeight / 2
     : (h - lineCount * lineHeight) / 2 + lineHeight / 2;
 }
-export const EMPTY_TITLE_LABEL = 'New topic';
+export const EMPTY_TITLE_LABEL = 'New node';
 
 export type TextWidth = (text: string, style: TypeStyle) => number;
 
@@ -134,6 +139,12 @@ export function textLines(title: string, depth: number, textWidth: TextWidth): s
     .flatMap((paragraph) => wrapLines(paragraph, TOPIC_MAX_TEXT_WIDTH, (s) => textWidth(s, style)));
 }
 
+export function taskTextLines(text: string, depth: number, textWidth: TextWidth): string[] {
+  const base = typeForDepth(depth);
+  const style = { ...base, size: Math.max(11, base.size * 0.82), weight: 400 };
+  return wrapLines(text, TOPIC_MAX_TEXT_WIDTH, (line) => textWidth(line, style));
+}
+
 export function createTopicMeasurer(textWidth: TextWidth): Measure & { invalidate: () => void } {
   // Topics are immutable, so the same object at the same level always measures the same.
   let cache = new WeakMap<Topic, Map<string, Size>>();
@@ -143,6 +154,7 @@ export function createTopicMeasurer(textWidth: TextWidth): Measure & { invalidat
     let byDepth = cache.get(topic);
     const hit = byDepth?.get(key);
     if (hit) return hit;
+    const tasklist = (topic.tasks?.length ?? 0) > 0;
     const style = typeForDepth(depth);
     const lines = textLines(topic.title, depth, textWidth);
     const prefix = levelNumbers ? levelPrefix(depth, position) : '';
@@ -151,33 +163,82 @@ export function createTopicMeasurer(textWidth: TextWidth): Measure & { invalidat
     );
     const { chips, total: rows } = topicRows(topic);
     const rowWidth = chipRowWidth(chips);
+    const taskLines = tasklist
+      ? (topic.tasks ?? []).map((task) => taskTextLines(task.text, depth, textWidth))
+      : [];
+    const taskWidth = tasklist
+      ? Math.max(
+          0,
+          ...taskLines.map(
+            (wrapped) =>
+              TASK_TEXT_INSET +
+              Math.max(
+                ...wrapped.map((line) =>
+                  textWidth(line, {
+                    ...style,
+                    size: Math.max(11, style.size * 0.82),
+                    weight: 400,
+                  }),
+                ),
+              ),
+          ),
+        )
+      : 0;
+    const taskHeight = tasklist
+      ? taskLines.reduce(
+          (height, task) => height + task.length * TASK_ROW_LINE_HEIGHT + TASK_ROW_GAP,
+          0,
+        )
+      : 0;
     // Stickers hang off the corners, so give them room to sit beside the text.
     const stickers = topic.stickers?.length ?? 0;
     const picture = imageSize(topic.image);
     const above = imageOffset(topic);
-    const size: Size = {
-      w:
-        Math.max(
-          picture ? picture.w + IMAGE_PAD * 2 : 0,
-          TOPIC_MIN.w,
-          Math.ceil(widest) + 2 + TOPIC_PADDING.x * 2,
-          rowWidth > 0 ? rowWidth + TOPIC_PADDING.x * 2 : 0,
-        ) +
-        Math.min(stickers, 2) * 14,
-      h:
-        above +
-        (rows > 0
-          ? // With a row of chips the title sits at the top, and the chips close to it.
+    const size: Size = tasklist
+      ? {
+          w:
             Math.max(
-              TOPIC_PADDING.y + lines.length * style.lineHeight + CHIPS_GAP + rows + CHIPS_BOTTOM,
-              stickers >= 3 ? 52 : 0,
-            )
-          : Math.max(
-              TOPIC_MIN.h,
-              lines.length * style.lineHeight + TOPIC_PADDING.y * 2,
-              stickers >= 3 ? 52 : 0,
-            )),
-    };
+              picture ? picture.w + IMAGE_PAD * 2 : 0,
+              TOPIC_MIN.w,
+              Math.ceil(widest) + 2 + TOPIC_PADDING.x * 2,
+              taskWidth + TOPIC_PADDING.x + TASK_ROW_RIGHT_PADDING,
+              rowWidth > 0 ? rowWidth + TOPIC_PADDING.x * 2 : 0,
+            ) +
+            Math.min(stickers, 2) * 14,
+          h:
+            above +
+            TOPIC_PADDING.y +
+            lines.length * style.lineHeight +
+            (taskLines.length > 0 ? TASK_ROW_GAP + taskHeight : 0) +
+            (rows > 0 ? CHIPS_GAP + rows + CHIPS_BOTTOM : TOPIC_PADDING.y),
+        }
+      : {
+          w:
+            Math.max(
+              picture ? picture.w + IMAGE_PAD * 2 : 0,
+              TOPIC_MIN.w,
+              Math.ceil(widest) + 2 + TOPIC_PADDING.x * 2,
+              rowWidth > 0 ? rowWidth + TOPIC_PADDING.x * 2 : 0,
+            ) +
+            Math.min(stickers, 2) * 14,
+          h:
+            above +
+            (rows > 0
+              ? // With a row of chips the title sits at the top, and the chips close to it.
+                Math.max(
+                  TOPIC_PADDING.y +
+                    lines.length * style.lineHeight +
+                    CHIPS_GAP +
+                    rows +
+                    CHIPS_BOTTOM,
+                  stickers >= 3 ? 52 : 0,
+                )
+              : Math.max(
+                  TOPIC_MIN.h,
+                  lines.length * style.lineHeight + TOPIC_PADDING.y * 2,
+                  stickers >= 3 ? 52 : 0,
+                )),
+        };
     if (!byDepth) {
       byDepth = new Map();
       cache.set(topic, byDepth);

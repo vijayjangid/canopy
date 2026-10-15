@@ -11,7 +11,7 @@ export function removeReference(from: string, to: string): void {
   if (!doc.topics[from]?.references?.includes(to)) return;
   commit(removeTopicReference(doc, from, to));
   setReferenceFocus(null);
-  const name = (title: string | undefined) => title?.trim() || 'Empty topic';
+  const name = (title: string | undefined) => title?.trim() || 'Empty node';
   announce(
     `Removed reference from ${name(doc.topics[from].title)} to ${name(doc.topics[to]?.title)}`,
   );

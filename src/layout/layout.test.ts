@@ -1,9 +1,23 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { createMap, createSubTopic, setFolded, type CanopyMap, type Density } from '../model';
+import {
+  addTopicTask,
+  createMap,
+  createSubTopic,
+  setFolded,
+  type CanopyMap,
+  type Density,
+} from '../model';
 import { connectorPath } from './connectors';
 import { imageOffset, imageSize } from './image';
-import { createTopicMeasurer, textLines, wrapLines } from './measure';
+import {
+  createTopicMeasurer,
+  TASK_ROW_RIGHT_PADDING,
+  TASK_TEXT_INSET,
+  textLines,
+  TOPIC_PADDING,
+  wrapLines,
+} from './measure';
 import { computeLayout, STICKER_CLEARANCE } from './tree-layout';
 import { SPACING, type Box, type Measure } from './types';
 
@@ -159,6 +173,30 @@ describe('computeLayout', () => {
     const a = computeLayout(map, opts);
     expect(a.order).toHaveLength(1);
     expect(computeLayout(map, opts).bounds).toEqual(a.bounds);
+  });
+
+  it('measures each task row without reserving space for node-side controls', () => {
+    let map = createMap({ coreId: 'core' });
+    map = addTopicTask(map, 'core', 'First task');
+    const oneTask = createTopicMeasurer((text) => text.length * 7)(map.topics.core!, 0);
+    map = addTopicTask(map, 'core', 'A much longer second task that wraps onto another line');
+    const twoTasks = createTopicMeasurer((text) => text.length * 7)(map.topics.core!, 0);
+
+    expect(twoTasks.h).toBeGreaterThan(oneTask.h);
+    expect(twoTasks.w).toBeGreaterThan(oneTask.w);
+  });
+
+  it('leaves extra right padding after task text', () => {
+    let map = createSubTopic(createMap({ coreId: 'core' }), 'core', {
+      id: 'node',
+      title: 'x',
+    }).map;
+    map = addTopicTask(map, 'node', 'First task');
+    const width = createTopicMeasurer((text) => text.length * 7)(map.topics.node!, 1).w;
+
+    expect(width).toBe(
+      TASK_TEXT_INSET + 'First task'.length * 7 + TOPIC_PADDING.x + TASK_ROW_RIGHT_PADDING,
+    );
   });
 
   it('reports bounds that contain every topic', () => {

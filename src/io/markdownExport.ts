@@ -1,11 +1,9 @@
 import { childrenOf, planningOf, type CanopyMap, type Topic, type TopicId } from '../model';
 
 export interface MarkdownOptions {
-  /** Put each topic's note under it. */
-  notes: boolean;
   /** Export only these branches. Empty exports the whole map. */
   roots?: readonly TopicId[];
-  /** Write Properties after each title in the same shorthand the editor reads (`/doing #launch ^2026-11-01`). */
+  /** Write Properties after each title in the same shorthand the editor reads (`#launch ^2026-11-01`). */
   tokens?: boolean;
   /** Leave out topics that are not in this set. */
   only?: ReadonlySet<TopicId>;
@@ -18,7 +16,6 @@ export function tokensFor(doc: CanopyMap, topic: Topic): string {
   const p = topic.props;
   if (!p) return '';
   const parts: string[] = [];
-  if (p.status) parts.push(`/${p.status}`);
   const due = p.due?.end ?? p.due?.start;
   if (due) parts.push(`^${due}`);
   const tags = planningOf(doc).tags;
@@ -42,10 +39,11 @@ export function mapToMarkdown(doc: CanopyMap, options: MarkdownOptions): string 
     const pad = '  '.repeat(depth);
     const extra = options.tokens ? tokensFor(doc, topic) : '';
     lines.push(`${pad}- ${oneLine(topic.title)}${extra ? ` ${extra}` : ''}`);
-    if (options.notes && topic.note?.trim()) {
-      lines.push('');
-      for (const l of topic.note.trim().split(/\r?\n/)) lines.push(l === '' ? '' : `${pad}  ${l}`);
-      lines.push('');
+    if (topic.tasks?.length) {
+      lines.push(`${pad}  Tasks:`);
+      for (const task of topic.tasks) {
+        lines.push(`${pad}    - [${task.done ? 'x' : ' '}] ${oneLine(task.text)}`);
+      }
     }
     for (const child of childrenOf(doc, id))
       if (!options.only || options.only.has(child.id)) emit(child.id, depth + 1);
@@ -54,7 +52,12 @@ export function mapToMarkdown(doc: CanopyMap, options: MarkdownOptions): string 
   if (whole) {
     const core = doc.topics[doc.coreId];
     lines.push(`# ${oneLine(core?.title ?? doc.meta.title)}`);
-    if (options.notes && core?.note?.trim()) lines.push('', core.note.trim());
+    if (core?.tasks?.length) {
+      lines.push('', 'Tasks:');
+      for (const task of core.tasks) {
+        lines.push(`  - [${task.done ? 'x' : ' '}] ${oneLine(task.text)}`);
+      }
+    }
     lines.push('');
     for (const child of childrenOf(doc, doc.coreId))
       if (!options.only || options.only.has(child.id)) emit(child.id, 0);

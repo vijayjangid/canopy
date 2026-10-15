@@ -268,7 +268,7 @@ export function AppBar({ onDeleteMap }: { onDeleteMap: (id: string) => Promise<v
           type="button"
           className="app-search"
           aria-label="Search"
-          data-tip="Search topics, commands and filters (⌘F)"
+          data-tip="Search nodes, commands and filters (⌘F)"
           onClick={() => openDialog('palette')}
         >
           <Icon name="search" />

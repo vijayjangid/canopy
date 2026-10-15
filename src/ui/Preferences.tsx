@@ -196,7 +196,7 @@ export function AppearanceBody() {
         />
         <Choice
           legend="Handles"
-          hint="The + and link buttons around the selected topic, for adding topics and references."
+          hint="The + and link buttons around the selected node, for adding nodes and references."
           options={[
             { value: 'hover', label: 'On hover' },
             { value: 'always', label: 'Always' },
@@ -216,7 +216,7 @@ export function AppearanceBody() {
         />
         <Toggle
           legend="Trail"
-          hint="Marks the way up to the Core from the selected topic."
+          hint="Marks the way up to the Core from the selected node."
           checked={trail}
           onChange={(on) => setDevice({ trail: on })}
         />
@@ -228,13 +228,13 @@ export function AppearanceBody() {
         />
         <Toggle
           legend="Preview on hover"
-          hint="Shows a ghost of the topic a + button would add while you point at it. Off by default, since it can get in the way. Dragging a + always shows where it will land."
+          hint="Shows a ghost of the node a + button would add while you point at it. Off by default, since it can get in the way. Dragging a + always shows where it will land."
           checked={handlePreview}
           onChange={(on) => setDevice({ handlePreview: on })}
         />
         <Toggle
           legend="Auto-pan"
-          hint="Keeps the topic you are working on in view."
+          hint="Keeps the node you are working on in view."
           checked={autoPan}
           onChange={(on) => setDevice({ autoPan: on })}
         />
@@ -245,8 +245,8 @@ export function AppearanceBody() {
           onChange={(on) => setDevice({ textExpansion: on })}
         />
         <Toggle
-          legend="Remove empty new topics"
-          hint="A new topic left blank is deleted."
+          legend="Remove empty new nodes"
+          hint="A new node left blank is deleted."
           checked={discardBlank}
           onChange={(on) => setDevice({ discardBlank: on })}
         />

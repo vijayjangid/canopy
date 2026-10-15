@@ -102,9 +102,8 @@ const STICKER_KEYS = [
   'p4',
 ];
 
-/** Adds statuses, due dates, tags and a few stickers to about half the topics. */
+/** Adds due dates, tags and a few stickers to about half the topics. */
 function withPlan(map: CanopyMap, random: () => number): CanopyMap {
-  const statuses = ['todo', 'doing', 'blocked', 'review', 'done', 'canceled'];
   let planned = map;
   const tagKeys = ['Launch', 'Design', 'Risk'].map((label) => {
     const made = ensureTag(planned, label);
@@ -117,9 +116,7 @@ function withPlan(map: CanopyMap, random: () => number): CanopyMap {
       topics[id] = t;
       continue;
     }
-    const props: NonNullable<Topic['props']> = {
-      status: statuses[Math.floor(random() * statuses.length)] ?? 'todo',
-    };
+    const props: NonNullable<Topic['props']> = {};
     if (random() < 0.5) {
       const day = 1 + Math.floor(random() * 28);
       props.due = { end: `2026-${random() < 0.5 ? '09' : '11'}-${String(day).padStart(2, '0')}` };

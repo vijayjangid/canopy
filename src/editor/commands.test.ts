@@ -311,7 +311,7 @@ describe('duplicate, fold and reorder', () => {
     focusOn('a');
     run('topic.toggleFold');
     expect(store.getState().doc.topics['a']?.folded).toBe(true);
-    expect(messages.at(-1)).toBe('Folded A, 2 topics hidden');
+    expect(messages.at(-1)).toBe('Folded A, 2 nodes hidden');
     run('topic.toggleFold');
     expect(store.getState().doc.topics['a']?.folded).toBe(false);
   });
@@ -320,7 +320,7 @@ describe('duplicate, fold and reorder', () => {
     const { run, focusOn, messages } = setup();
     focusOn('c');
     run('topic.toggleFold');
-    expect(messages.at(-1)).toBe('C has no sub-topics');
+    expect(messages.at(-1)).toBe('C has no child nodes');
   });
 
   it('folds to a level and moves hidden selection to the folded ancestor', () => {

@@ -13,15 +13,15 @@ export function validateMap(map: CanopyMap): string[] {
   if (map.topics[map.coreId]?.parentId !== null) errors.push('coreId must point at the Core');
 
   for (const [key, topic] of Object.entries(map.topics)) {
-    if (topic.id !== key) errors.push(`Topic ${key} has mismatched id ${topic.id}`);
+    if (topic.id !== key) errors.push(`Node ${key} has mismatched id ${topic.id}`);
     if (topic.parentId !== null && !map.topics[topic.parentId]) {
-      errors.push(`Topic ${key} has missing parent ${topic.parentId}`);
+      errors.push(`Node ${key} has missing parent ${topic.parentId}`);
     }
     for (const to of topic.references ?? []) {
-      if (!map.topics[to]) errors.push(`Topic ${key} references missing topic ${to}`);
-      if (to === topic.id) errors.push(`Topic ${key} cannot reference itself`);
+      if (!map.topics[to]) errors.push(`Node ${key} references missing node ${to}`);
+      if (to === topic.id) errors.push(`Node ${key} cannot reference itself`);
     }
-    if (!isValidKey(topic.orderKey)) errors.push(`Topic ${key} has invalid order key`);
+    if (!isValidKey(topic.orderKey)) errors.push(`Node ${key} has invalid order key`);
   }
 
   // Every topic must reach the Core, which also rules out cycles.
@@ -34,7 +34,7 @@ export function validateMap(map: CanopyMap): string[] {
     for (const kid of childrenOf(map, id)) stack.push(kid.id);
   }
   if (reachable.size !== topics.length) {
-    errors.push(`${topics.length - reachable.size} topic(s) are unreachable from the Core`);
+    errors.push(`${topics.length - reachable.size} node(s) are unreachable from the Core`);
   }
 
   const seenKeys = new Set<string>();

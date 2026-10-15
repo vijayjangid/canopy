@@ -9,7 +9,7 @@ import { closeDialog } from './uiStore';
 import './dialog.css';
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
-const nameOf = (title: string | undefined) => title?.trim() || 'Empty topic';
+const nameOf = (title: string | undefined) => title?.trim() || 'Empty node';
 
 /** Asks what to do with the sub-topics of topics that are about to be deleted. */
 export function DeleteConfirm() {
@@ -44,12 +44,12 @@ export function DeleteConfirm() {
   };
 
   return (
-    <Dialog title={one ? `Delete “${info.name}”?` : `Delete ${info.count} topics?`}>
+    <Dialog title={one ? `Delete “${info.name}”?` : `Delete ${info.count} nodes?`}>
       <div ref={root} className="dialog-body confirm-delete">
         <p>
           {one
-            ? `“${info.name}” has ${plural(info.below, 'topic')} below it.`
-            : `${info.withKids} of the ${info.count} selected topics have sub-topics (${plural(info.below, 'topic')} below them in all).`}
+            ? `“${info.name}” has ${plural(info.below, 'node')} below it.`
+            : `${info.withKids} of the ${info.count} selected nodes have child nodes (${plural(info.below, 'node')} below them in all).`}
         </p>
         <div className="confirm-choices">
           <button
@@ -59,11 +59,11 @@ export function DeleteConfirm() {
             ref={(el) => el?.setAttribute('autofocus', '')}
             onClick={() => choose('topic.deleteKeep')}
           >
-            <strong>Delete {one ? 'the topic only' : 'the topics only'}</strong>
+            <strong>Delete {one ? 'the node only' : 'the nodes only'}</strong>
             <span>
               {one
-                ? `Its ${plural(info.direct, 'sub-topic')} move up to “${info.parent}”.`
-                : `Their ${plural(info.direct, 'sub-topic')} move up one level.`}
+                ? `Its ${plural(info.direct, 'child node')} move up to “${info.parent}”.`
+                : `Their ${plural(info.direct, 'child node')} move up one level.`}
             </span>
           </button>
           <button
@@ -75,8 +75,8 @@ export function DeleteConfirm() {
             <strong>Delete the whole {one ? 'branch' : 'branches'}</strong>
             <span>
               {one
-                ? `Removes “${info.name}” and all ${plural(info.below, 'topic')} below it.`
-                : `Removes the ${info.count} topics and everything below them.`}
+                ? `Removes “${info.name}” and all ${plural(info.below, 'node')} below it.`
+                : `Removes the ${info.count} nodes and everything below them.`}
             </span>
           </button>
         </div>

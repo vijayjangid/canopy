@@ -16,7 +16,7 @@ export function startNewMap(): void {
   rememberOpenedMap(mapId);
   const { setEditing, doc } = canopyStore.getState();
   setEditing(doc.coreId);
-  announce('New map. Type a name for the central topic');
+  announce('New map. Type a name for the central node');
 }
 
 /** Opens a fresh, editable copy of the built-in SpecKit example. */
@@ -62,7 +62,7 @@ export async function importMapAsBranch(): Promise<void> {
   const { doc, focus, commit } = canopyStore.getState();
   const grafted = graftMap(doc, doc.topics[focus] ? focus : doc.coreId, result.doc);
   commit(grafted.map, { select: [grafted.id], focus: grafted.id });
-  announce(`Added ${result.doc.meta.title} with ${grafted.count} topics`);
+  announce(`Added ${result.doc.meta.title} with ${grafted.count} nodes`);
 }
 
 export async function saveMapAsFile(): Promise<void> {

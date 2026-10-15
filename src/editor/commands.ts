@@ -46,7 +46,7 @@ export interface CommandContext {
     openDialog: (name: DialogName) => void;
     file: (action: 'new' | 'open' | 'save' | 'import') => void;
     /** Opens or closes the Inspector. With a tab, it opens there and focuses its first field. */
-    inspector: (tab?: 'note' | 'stickers' | 'properties') => void;
+    inspector: (tab?: 'tasks' | 'stickers' | 'properties') => void;
     /** Asks whether to delete the selected topics with everything below them, or only the topics. */
     confirmDelete: () => void;
     /** Types a description for the picture on a topic. */
@@ -57,7 +57,7 @@ export interface CommandContext {
     labelEdge: (id: string) => void;
     /** Opens the Stickers tab aimed at the line above a topic. */
     stickEdge: (id: string) => void;
-    quickAdd: (preset: 'all' | 'status' | 'due' | 'tag') => void;
+    quickAdd: (preset: 'all' | 'due' | 'tag') => void;
     filter: (action: 'next' | 'prev' | 'off') => void;
     /** Opens the search. With a source ID, it picks the target of that topic's reference instead. */
     topicSearch: (sourceId?: string) => void;
@@ -79,7 +79,7 @@ export interface KeyInfo {
   shiftKey?: boolean;
 }
 
-const nameOf = (map: CanopyMap, id: TopicId) => map.topics[id]?.title.trim() || 'Empty topic';
+const nameOf = (map: CanopyMap, id: TopicId) => map.topics[id]?.title.trim() || 'Empty node';
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
 /** Drops topics whose ancestor is also in the list, so each branch is handled once. */
@@ -153,7 +153,7 @@ const ARROWS: Record<string, Arrow> = {
 
 /** Commands that need a picked topic. */
 const actsOnTopic = (id: CommandId): boolean =>
-  /^(topic|edge|props)\./.test(id) || id === 'note.open' || id === 'stickers.open';
+  /^(topic|edge|props)\./.test(id) || id === 'tasks.open' || id === 'stickers.open';
 
 /** Runs a command. Returns false when it does not apply, so the key can keep its default. */
 export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo): boolean {
@@ -172,7 +172,7 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
     case 'topic.addChild': {
       const added = createSubTopic(doc, focus);
       state.commit(added.map, { select: [added.id], focus: added.id, edit: added.id });
-      announce(`Added sub-topic to ${nameOf(doc, focus)}`);
+      announce(`Added child node to ${nameOf(doc, focus)}`);
       return true;
     }
 
@@ -194,14 +194,14 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
       if (roots.length === 0 || parents.size !== 1 || !parentId) {
         announce(
           roots.length === 0
-            ? 'The Core has no parent to insert a topic under'
-            : 'Select topics that share a parent to insert a topic above them',
+            ? 'The Core has no parent to insert a node under'
+            : 'Select nodes that share a parent to insert a node above them',
         );
         return true;
       }
       const added = insertBetween(doc, parentId, roots);
       state.commit(added.map, { select: [added.id], focus: added.id, edit: added.id });
-      announce(`Added a topic above ${plural(roots.length, 'topic')}`);
+      announce(`Added a node above ${plural(roots.length, 'node')}`);
       return true;
     }
 
@@ -211,7 +211,7 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
       const added = insertBetween(doc, focus, kids);
       state.commit(added.map, { select: [added.id], focus: added.id, edit: added.id });
       announce(
-        `Added a topic below ${nameOf(doc, focus)}, holding ${plural(kids.length, 'sub-topic')}`,
+        `Added a node below ${nameOf(doc, focus)}, holding ${plural(kids.length, 'child node')}`,
       );
       return true;
     }
@@ -228,7 +228,7 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
 
     case 'topic.imageAlt':
       if (!doc.topics[focus]?.image) {
-        announce('This topic has no picture');
+        announce('This node has no picture');
         return true;
       }
       ctx.app?.editImageAlt(focus);
@@ -236,7 +236,7 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
 
     case 'topic.imageRemove':
       if (!doc.topics[focus]?.image) {
-        announce('This topic has no picture');
+        announce('This node has no picture');
         return true;
       }
       state.commit(setTopicImage(doc, focus, null));
@@ -268,7 +268,7 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
 
     case 'topic.referenceRemove':
       if (!doc.topics[focus]?.references?.length) {
-        announce('This topic has no references');
+        announce('This node has no references');
         return true;
       }
       state.commit(clearTopicReferences(doc, focus));
@@ -312,8 +312,8 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
         return true;
       }
       const message =
-        `Deleted ${plural(count, 'topic')}` +
-        (moved > 0 ? `, and moved ${plural(moved, 'sub-topic')} up` : '');
+        `Deleted ${plural(count, 'node')}` +
+        (moved > 0 ? `, and moved ${plural(moved, 'child node')} up` : '');
       announce(`${message}. Press undo to restore.`);
       ctx.notify?.(message, { label: 'Undo', run: () => store.getState().undo() });
       return true;
@@ -352,7 +352,7 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
     case 'topic.toggleFold': {
       const targets = topLevel(doc, selection).filter((t) => hasChildren(doc, t));
       if (targets.length === 0) {
-        announce(`${nameOf(doc, focus)} has no sub-topics`);
+        announce(`${nameOf(doc, focus)} has no child nodes`);
         return true;
       }
       const pivot = targets.includes(focus) ? focus : (targets[0] ?? focus);
@@ -362,7 +362,7 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
       const hidden = subtreeOf(doc, pivot).length - 1;
       announce(
         fold
-          ? `Folded ${nameOf(doc, pivot)}, ${plural(hidden, 'topic')} hidden`
+          ? `Folded ${nameOf(doc, pivot)}, ${plural(hidden, 'node')} hidden`
           : `Unfolded ${nameOf(doc, pivot)}`,
       );
       return true;
@@ -409,7 +409,7 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
         .map((t) => t.id)
         .filter((t) => !layout || layout.boxes.has(t));
       state.select(ids, focus);
-      announce(`${plural(ids.length, 'topic')} selected`);
+      announce(`${plural(ids.length, 'node')} selected`);
       return true;
     }
 
@@ -517,8 +517,8 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
       ctx.app?.inspector();
       return true;
 
-    case 'note.open':
-      ctx.app?.inspector('note');
+    case 'tasks.open':
+      ctx.app?.inspector('tasks');
       return true;
 
     case 'stickers.open':
@@ -551,10 +551,6 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
 
     case 'props.quickAdd':
       ctx.app?.quickAdd('all');
-      return true;
-
-    case 'props.status':
-      ctx.app?.quickAdd('status');
       return true;
 
     case 'props.due':

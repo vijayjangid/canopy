@@ -48,7 +48,7 @@ export const appContext: CommandContext = {
       }
       setFocusBranch(focus);
       announce(
-        `Showing ${doc.topics[focus]?.title.trim() || 'this topic'} alone, with everything above folded`,
+        `Showing ${doc.topics[focus]?.title.trim() || 'this node'} alone, with everything above folded`,
       );
     },
     tool: (tool) => {
@@ -94,7 +94,9 @@ export const appContext: CommandContext = {
       pointAtEdge(id);
       requestAnimationFrame(() =>
         document
-          .querySelector<HTMLElement>('#inspector-section-stickers input[type="search"]')
+          .querySelector<HTMLElement>(
+            '#inspector-section-stickers .sticker-grid button:not(:disabled)',
+          )
           ?.focus(),
       );
     },
@@ -113,8 +115,8 @@ export const appContext: CommandContext = {
       openInspector(tab);
       // Wait for the panel to draw, then put the cursor in its first field.
       const first: Record<string, string> = {
-        note: 'textarea',
-        stickers: 'input[type="search"]',
+        tasks: 'input[aria-label="Add a task"]',
+        stickers: '.sticker-grid button:not(:disabled)',
         properties: '.pill-group button',
       };
       requestAnimationFrame(() =>

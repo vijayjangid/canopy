@@ -39,7 +39,7 @@ const FORMATS: Array<{ id: Format; label: string; hint: string }> = [
   {
     id: 'csv',
     label: 'Table (CSV)',
-    hint: 'One row per topic with its properties, for spreadsheets.',
+    hint: 'One row per node with its properties, for spreadsheets.',
   },
 ];
 
@@ -69,7 +69,6 @@ export function ExportBody() {
   const [scale, setScale] = useState<(typeof SCALES)[number]>(2);
   const [transparent, setTransparent] = useState(false);
   const [stickers, setStickers] = useState(true);
-  const [notes, setNotes] = useState(true);
   const [selectedOnly, setSelectedOnly] = useState(false);
   const [compact, setCompact] = useState(false);
   const [orientation, setOrientation] = useState<Orientation>('auto');
@@ -159,7 +158,7 @@ export function ExportBody() {
         setStatus(`Saved ${name('csv')}`);
       } else if (format === 'md') {
         const only = filter && filterOnly ? filter.paths : undefined;
-        const text = mapToMarkdown(doc, { notes, roots, tokens, only });
+        const text = mapToMarkdown(doc, { roots, tokens, only });
         downloadBlob(new Blob([text], { type: 'text/markdown;charset=utf-8' }), name('md'));
         setStatus(`Saved ${name('md')}`);
       } else {
@@ -299,24 +298,14 @@ export function ExportBody() {
               </label>
             )}
             {format === 'md' && (
-              <>
-                <label className="export-check">
-                  <input
-                    type="checkbox"
-                    checked={notes}
-                    onChange={(e) => setNotes(e.target.checked)}
-                  />
-                  Include notes
-                </label>
-                <label className="export-check">
-                  <input
-                    type="checkbox"
-                    checked={tokens}
-                    onChange={(e) => setTokens(e.target.checked)}
-                  />
-                  Write properties as shorthand (@owner !p1 ^date)
-                </label>
-              </>
+              <label className="export-check">
+                <input
+                  type="checkbox"
+                  checked={tokens}
+                  onChange={(e) => setTokens(e.target.checked)}
+                />
+                Write properties as shorthand (@owner !p1 ^date)
+              </label>
             )}
             {(format === 'md' || format === 'csv') && filter && (
               <label className="export-check">
@@ -347,7 +336,7 @@ export function ExportBody() {
                 {/* The preview is decorative: the options and status above carry the same facts. */}
                 <img src={preview.url} alt="" />
                 <p>
-                  {preview.built.topics} {preview.built.topics === 1 ? 'topic' : 'topics'},{' '}
+                  {preview.built.topics} {preview.built.topics === 1 ? 'node' : 'nodes'},{' '}
                   {format === 'png'
                     ? `${Math.round(preview.built.width * wanted)} × ${Math.round(preview.built.height * wanted)} px`
                     : `${preview.built.width} × ${preview.built.height}`}

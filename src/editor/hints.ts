@@ -7,7 +7,7 @@ export interface Hint {
 
 /** Shortcuts that exist only while a title is being typed. They are not in `COMMANDS`. */
 const EDITING: Array<{ shortcut: Shortcut; label: string }> = [
-  { shortcut: { key: 'Enter' }, label: 'Next topic' },
+  { shortcut: { key: 'Enter' }, label: 'Next node' },
   { shortcut: { key: 'Tab' }, label: 'Sub-topic' },
   { shortcut: { key: 'Enter', shift: true }, label: 'New line' },
   { shortcut: { key: 'Escape' }, label: 'Cancel' },
@@ -32,7 +32,7 @@ const SHORT: Partial<Record<CommandId, string>> = {
   'props.tag': 'Tag',
   'props.due': 'Due date',
   'stickers.open': 'Sticker',
-  'note.open': 'Note',
+  'tasks.open': 'Tasks',
 };
 
 /** What can be set on a topic, which the hint strip lists after the structure shortcuts. */
@@ -41,7 +41,7 @@ const DETAILS: CommandId[] = [
   'props.tag',
   'props.due',
   'stickers.open',
-  'note.open',
+  'tasks.open',
 ];
 
 function fromCommands(
@@ -92,7 +92,7 @@ export function hintsFor(context: HintContext, mac?: boolean): Hint[] {
   }
   if (context.focusIsCore) {
     return fromCommands(
-      ['topic.addChild', 'topic.edit', 'note.open', 'stickers.open', 'view.unfoldAll'],
+      ['topic.addChild', 'topic.edit', 'tasks.open', 'stickers.open', 'view.unfoldAll'],
       mac,
     );
   }

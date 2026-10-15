@@ -28,7 +28,7 @@ export function describeDrop(types: readonly string[], target: string | null): s
   const maps = types.length - images;
   const where = target ? `“${target.length > 24 ? `${target.slice(0, 23)}…` : target}”` : null;
   if (images > 0 && maps === 0) {
-    return where ? `Add picture to ${where}` : 'Add picture as a new topic';
+    return where ? `Add picture to ${where}` : 'Add picture as a new node';
   }
   if (images === 0) {
     return where ? `Add map as a branch of ${where}` : 'Add map as a branch of the Core';
@@ -118,9 +118,9 @@ export async function addDroppedFiles(
     commit(doc, select.length > 0 ? { select, focus: select[select.length - 1] } : {});
     const parts = [
       pictures > 0 ? plural(pictures, 'picture') : '',
-      maps > 0 ? `${plural(maps, 'map')} (${plural(topics, 'topic')})` : '',
+      maps > 0 ? `${plural(maps, 'map')} (${plural(topics, 'node')})` : '',
     ].filter(Boolean);
-    const name = target ? start.topics[target]?.title.trim() || 'the topic' : 'the Core';
+    const name = target ? start.topics[target]?.title.trim() || 'the node' : 'the Core';
     ctx.announce(`Added ${parts.join(' and ')} to ${name}`);
   }
   if (problems.length > 0) {

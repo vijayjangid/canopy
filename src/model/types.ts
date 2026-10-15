@@ -14,17 +14,34 @@ export interface StickerRef {
   key: string;
 }
 
-export type StatusCategory = 'todo' | 'active' | 'complete' | 'canceled';
-
-/** Status, due date and tags on a topic. Everything is optional, so plain maps stay plain. */
+/** Due date and tags on a topic. Everything is optional, so plain maps stay plain. */
 export interface TopicProps {
-  /** Key into the map's status set. */
-  status?: string;
   /** ISO dates (`2026-11-01`). */
   due?: { start?: string; end?: string };
   /** Tag keys. */
   tags?: string[];
 }
+
+export const MAX_TOPIC_TASK_TEXT = 240;
+export type TopicColor =
+  'coral' | 'orange' | 'yellow' | 'green' | 'teal' | 'blue' | 'purple' | 'pink' | 'red' | 'indigo';
+
+export interface TopicStyle {
+  color?: TopicColor;
+}
+
+export const TOPIC_COLOR_PRESETS: Record<TopicColor, { label: string; value: string }> = {
+  coral: { label: 'Coral', value: '#fca5a5' },
+  orange: { label: 'Orange', value: '#fdba74' },
+  yellow: { label: 'Yellow', value: '#fde68a' },
+  green: { label: 'Green', value: '#86efac' },
+  teal: { label: 'Teal', value: '#0f766e' },
+  blue: { label: 'Blue', value: '#93c5fd' },
+  purple: { label: 'Purple', value: '#c4b5fd' },
+  pink: { label: 'Pink', value: '#f9a8d4' },
+  red: { label: 'Red', value: '#b91c1c' },
+  indigo: { label: 'Indigo', value: '#4338ca' },
+};
 
 export const MAX_EDGE_LABEL = 80;
 /** A line has room for fewer stickers than a topic's four corners. */
@@ -57,16 +74,24 @@ export interface TopicImage {
 
 /** Optional content a topic can carry beyond its title. */
 export interface TopicExtras {
+  /** Optional color override. */
+  style?: TopicStyle;
+  /** Checklist items shown in a Tasklist node. */
+  tasks?: TopicTask[];
   /** The line to the parent: its label and stickers. */
   edge?: EdgeData;
   /** Non-hierarchical links to other topics in this map, in the order they were made. */
   references?: TopicId[];
   /** A picture shown above the title. */
   image?: TopicImage;
-  /** Markdown. */
-  note?: string;
   stickers?: StickerRef[];
   props?: TopicProps;
+}
+
+export interface TopicTask {
+  id: string;
+  text: string;
+  done: boolean;
 }
 
 export interface Topic extends TopicExtras {
@@ -79,14 +104,6 @@ export interface Topic extends TopicExtras {
   folded: boolean;
 }
 
-export interface StatusDef {
-  key: string;
-  label: string;
-  category: StatusCategory;
-  /** Draws attention, as for Blocked. */
-  flagged?: boolean;
-}
-
 export interface TagDef {
   key: string;
   label: string;
@@ -94,7 +111,6 @@ export interface TagDef {
 }
 
 export interface PlanningConfig {
-  statusSet: StatusDef[];
   tags: TagDef[];
 }
 
@@ -107,9 +123,6 @@ export interface Filter {
 }
 
 export interface FilterQuery {
-  /** Match any of these status keys. */
-  status?: string[];
-  statusCategory?: StatusCategory[];
   /** Match topics with any of these tags. */
   tags?: string[];
   /** Fuzzy text that a topic's title or the label on its line must contain. */

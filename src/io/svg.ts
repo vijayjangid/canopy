@@ -12,7 +12,12 @@ import {
   levelPrefix,
   STICKER_RIM,
   STICKER_SHADOW_OFFSET,
+  TASK_ROW_GAP,
+  TASK_ROW_LINE_HEIGHT,
+  TASK_TEXT_INSET,
+  TOPIC_PADDING,
   seedOf,
+  taskTextLines,
   textLines,
   typeForDepth,
   topicRows,
@@ -20,10 +25,19 @@ import {
   type TopicBox,
 } from '../layout';
 import { contextOnCore, type ChipContext } from '../canvas/Chips';
-import { descendantCounts, planningOf, today, type CanopyMap, type TopicId } from '../model';
+import {
+  descendantCounts,
+  planningOf,
+  today,
+  TOPIC_COLOR_PRESETS,
+  topicForeground,
+  type CanopyMap,
+  type Topic,
+  type TopicId,
+} from '../model';
 import { chipsMarkup, edgeMarkup, stickersMarkup } from './chipsMarkup';
 import { mixHex, type ExportTheme } from './exportTheme';
-import { levelOf } from '../theme/levels';
+import { levelOf, playfulColorForDepth } from '../theme/levels';
 
 export interface SvgOptions {
   theme: ExportTheme;
@@ -70,10 +84,25 @@ interface Paint {
   weight: number;
   /** Playful titles are lettered like stickers, with no box behind them. */
   sticker: boolean;
+  stickerFace?: string;
 }
 
 /** The same rules as the screen: the Look and the level decide how a topic is drawn. */
-function paintFor(theme: ExportTheme, depth: number, baseWeight: number): Paint {
+function paintFor(theme: ExportTheme, depth: number, baseWeight: number, topic: Topic): Paint {
+  const color =
+    topic.style?.color ?? (theme.look === 'playful' ? playfulColorForDepth(depth) : undefined);
+  if (color) {
+    const value = TOPIC_COLOR_PRESETS[color].value;
+    return {
+      fill: value,
+      stroke: theme.topicBorder,
+      strokeWidth: theme.look === 'contrast' ? 2.5 : 1.5,
+      text: topicForeground(color),
+      weight: baseWeight,
+      sticker: theme.look === 'playful',
+      ...(theme.look === 'playful' ? { stickerFace: value } : {}),
+    };
+  }
   if (theme.look === 'playful') {
     return {
       fill: 'none',
@@ -187,7 +216,6 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
 
   const now = new Date();
   const chipContext: ChipContext = {
-    statuses: new Map(planningOf(doc).statusSet.map((x) => [x.key, x])),
     tags: new Map(planningOf(doc).tags.map((t) => [t.key, t])),
     today: today(now),
     now,
@@ -240,13 +268,16 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
     const topic = doc.topics[b.id];
     if (!topic) continue;
     const style = typeForDepth(b.depth);
-    const paint = paintFor(theme, b.depth, style.weight);
+    const paint = paintFor(theme, b.depth, style.weight, topic);
     const rows = topicRows(topic);
     const rowH = rows.total;
     const lines = textLines(topic.title, b.depth, options.textWidth);
     const above = imageOffset(topic);
     const picture = imageSize(topic.image);
-    const first = above + firstBaselineOf(b.h - above, rowH, lines.length, style.lineHeight);
+    const tasklist = (topic.tasks?.length ?? 0) > 0;
+    const first = tasklist
+      ? above + TOPIC_PADDING.y + style.lineHeight / 2
+      : above + firstBaselineOf(b.h - above, rowH, lines.length, style.lineHeight);
     const empty = topic.title.trim() === '';
     const radius = cornerRadius(theme.look, b.depth, b.h);
 
@@ -281,7 +312,8 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
       // The sticker is the topic's own box, so it is as wide and tall as the topic.
       const blobOf = (grow: number) =>
         `<rect x="${f(-grow)}" y="${f(-grow)}" width="${f(b.w + grow * 2)}" height="${f(b.h + grow * 2)}" rx="${f(radius + grow)}"/>`;
-      const face = mixHex(paint.text, theme.stickerFaceBase, theme.stickerTint);
+      const face =
+        paint.stickerFace ?? mixHex(paint.text, theme.stickerFaceBase, theme.stickerTint);
       out.push(
         `<g transform="translate(${STICKER_SHADOW_OFFSET.x} ${STICKER_SHADOW_OFFSET.y})" fill="${theme.stickerShadow}" opacity="${theme.stickerShadowOpacity}" filter="url(#sticker-wiggle)">${blobOf(STICKER_RIM)}</g>` +
           `<g fill="${theme.stickerEdge}" filter="url(#sticker-wiggle)">${blobOf(STICKER_RIM)}</g>` +
@@ -291,6 +323,32 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
     out.push(
       `<text ${box} fill="${empty ? theme.muted : paint.text}"${empty ? ' font-style="italic"' : ''}>${spans(theme.muted, '0.75')}</text>`,
     );
+    if (tasklist && topic.tasks?.length) {
+      const titleBottom = above + TOPIC_PADDING.y + lines.length * style.lineHeight;
+      let taskTop = titleBottom + TASK_ROW_GAP;
+      out.push(
+        `<line x1="${TOPIC_PADDING.x}" x2="${f(b.w - TOPIC_PADDING.x)}" y1="${f(titleBottom + TASK_ROW_GAP / 2)}" y2="${f(titleBottom + TASK_ROW_GAP / 2)}" stroke="${paint.text}" stroke-opacity="0.18" stroke-width="1"/>`,
+      );
+      out.push('<g role="list" aria-label="Tasks">');
+      for (const task of topic.tasks ?? []) {
+        const taskLines = taskTextLines(task.text, b.depth, options.textWidth);
+        const taskSize = Math.max(11, style.size * 0.82);
+        out.push(
+          `<g role="listitem" aria-label="${escapeXml(`${task.text}, ${task.done ? 'completed' : 'not completed'}`)}">` +
+            (task.done
+              ? `<path d="M${TOPIC_PADDING.x + 4} ${f(taskTop + 8)}l3 3 5-6" fill="none" stroke="${paint.text}" stroke-width="1.8"/>`
+              : `<circle cx="${TOPIC_PADDING.x + 8}" cy="${f(taskTop + 8)}" r="2.25" fill="${paint.text}" fill-opacity="0.55"/>`) +
+            `<text x="${TOPIC_PADDING.x + TASK_TEXT_INSET}" y="${f(taskTop + taskSize / 2)}" dominant-baseline="central" font-size="${f(taskSize)}" fill="${paint.text}"${task.done ? ' text-decoration="line-through" opacity="0.72"' : ''}>${taskLines
+              .map(
+                (line, index) =>
+                  `<tspan x="${TOPIC_PADDING.x + TASK_TEXT_INSET}" y="${f(taskTop + taskSize / 2 + index * TASK_ROW_LINE_HEIGHT)}">${escapeXml(line)}</tspan>`,
+              )
+              .join('')}</text></g>`,
+        );
+        taskTop += taskLines.length * TASK_ROW_LINE_HEIGHT + TASK_ROW_GAP;
+      }
+      out.push('</g>');
+    }
     if (options.chips !== false && rows.chips.length > 0) {
       out.push(
         `<g transform="translate(${f((b.w - chipRowWidth(rows.chips)) / 2)} ${f(b.h - rows.total)})">${chipsMarkup(

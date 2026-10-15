@@ -7,14 +7,12 @@
 
 export interface DemoTopic {
   title: string;
-  /** A key from the Status Set: todo, doing, blocked, review, done or canceled. */
-  status?: string;
   /** A due date, as YYYY-MM-DD. */
   due?: string;
   tags?: string[];
+  tasks?: Array<{ text: string; done?: boolean }>;
   /** Keys from the sticker catalog. */
   stickers?: string[];
-  note?: string;
   /** A label on the line up to the parent. */
   edge?: string;
   /** Titles of other topics this one points at. */
@@ -22,55 +20,58 @@ export interface DemoTopic {
   children?: DemoTopic[];
 }
 
-/** A product launch plan: statuses, dates, tags, stickers, a note, a line label and references. */
+/** A product launch plan with dates, tags, tasks, stickers, line labels and references. */
 export const PRODUCT_LAUNCH: DemoTopic = {
   title: 'Product launch',
   children: [
     {
       title: 'Strategy',
-      note: 'Why now, who for, and what we charge.\n\n- Positioning first\n- Pricing after interviews',
+      tasks: [
+        { text: 'Define the launch audience', done: true },
+        { text: 'Validate positioning with customers' },
+      ],
       children: [
-        { title: 'Positioning', status: 'done', edge: 'informs' },
+        { title: 'Positioning', edge: 'informs' },
         {
           title: 'Target customers',
           children: [{ title: 'Early adopters' }, { title: 'Enterprise teams' }],
         },
-        { title: 'Pricing', status: 'review', due: '2026-10-16', tags: ['revenue'] },
+        { title: 'Pricing', due: '2026-10-16', tags: ['revenue'] },
       ],
     },
     {
       title: 'Design',
       children: [
-        { title: 'Brand identity', status: 'done', stickers: ['idea'] },
+        { title: 'Brand identity', stickers: ['idea'] },
         {
           title: 'Website',
           children: [
             {
               title: 'Landing page',
-              status: 'doing',
               due: '2026-10-23',
               tags: ['web'],
               stickers: ['monday', 'p1'],
+              tasks: [
+                { text: 'Draft the page copy', done: true },
+                { text: 'Review the mobile layout' },
+              ],
               references: ['Positioning'],
             },
-            { title: 'Pricing page', status: 'todo', due: '2026-10-30', references: ['Pricing'] },
+            { title: 'Pricing page', due: '2026-10-30', references: ['Pricing'] },
           ],
         },
-        { title: 'Demo video', status: 'doing', due: '2026-11-06' },
+        { title: 'Demo video', due: '2026-11-06' },
       ],
     },
     {
       title: 'Engineering',
       children: [
-        { title: 'Onboarding flow', status: 'doing', due: '2026-10-20', tags: ['web'] },
+        { title: 'Onboarding flow', due: '2026-10-20', tags: ['web'] },
         {
           title: 'Performance',
-          children: [
-            { title: 'Cold start', status: 'blocked' },
-            { title: 'Large maps', status: 'done' },
-          ],
+          children: [{ title: 'Cold start' }, { title: 'Large maps' }],
         },
-        { title: 'Accessibility audit', status: 'review', due: '2026-10-27', stickers: ['flag'] },
+        { title: 'Accessibility audit', due: '2026-10-27', stickers: ['flag'] },
       ],
     },
     {
@@ -78,24 +79,23 @@ export const PRODUCT_LAUNCH: DemoTopic = {
       children: [
         {
           title: 'Launch post',
-          status: 'todo',
           due: '2026-11-03',
           stickers: ['celebrate'],
           references: ['Landing page'],
         },
-        { title: 'Newsletter', status: 'todo', due: '2026-11-04' },
+        { title: 'Newsletter', due: '2026-11-04' },
         {
           title: 'Community',
-          children: [{ title: 'Beta testers', status: 'doing' }, { title: 'Office hours' }],
+          children: [{ title: 'Beta testers' }, { title: 'Office hours' }],
         },
       ],
     },
     {
       title: 'Operations',
       children: [
-        { title: 'Support playbook', status: 'todo', due: '2026-11-10' },
-        { title: 'Analytics', status: 'doing', tags: ['revenue'] },
-        { title: 'Legal review', status: 'blocked', due: '2026-10-14', stickers: ['warning'] },
+        { title: 'Support playbook', due: '2026-11-10' },
+        { title: 'Analytics', tags: ['revenue'] },
+        { title: 'Legal review', due: '2026-10-14', stickers: ['warning'] },
       ],
     },
     {
@@ -116,7 +116,7 @@ const AREAS = [
   'Security',
 ];
 
-/** What each area goes through, and the tasks in each step. */
+/** What each area goes through, and the steps in each phase. */
 const PHASES: Record<string, string[]> = {
   Discovery: ['Spike', 'Prototype', 'Review'],
   Design: ['Spike', 'Prototype', 'Review', 'Launch notes'],

@@ -8,10 +8,10 @@ export type IconName =
   | 'export'
   | 'settings'
   | 'properties'
-  | 'note'
   | 'files'
   | 'link'
   | 'folder'
+  | 'home'
   | 'trail'
   | 'insert-level'
   | 'hand'
@@ -85,7 +85,6 @@ const PATHS: Record<IconName, ReactNode> = {
     </>
   ),
   properties: <path d="M2.5 4h11M2.5 8h11M2.5 12h7" />,
-  note: <path d="M4 2h5.5L13 5.5V14H4zM9 2v4h4M6 8.5h5M6 11h5" />,
   info: (
     <>
       <circle cx="8" cy="8" r="6" />
@@ -115,6 +114,7 @@ const PATHS: Record<IconName, ReactNode> = {
   folder: (
     <path d="M2 4.8c0-.7.5-1.3 1.3-1.3h2.9l1.5 1.7h4.9c.7 0 1.4.6 1.4 1.3v5.2c0 .7-.6 1.3-1.3 1.3H3.3c-.7 0-1.3-.6-1.3-1.3z" />
   ),
+  home: <path d="m2 7 6-5 6 5M4 6v7h8V6M6.5 13V9h3v4" />,
   stickers: (
     <>
       <circle cx="8" cy="8" r="6" />

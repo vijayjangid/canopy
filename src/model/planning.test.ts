@@ -78,22 +78,22 @@ describe('dates', () => {
 describe('setProps', () => {
   it('sets and clears properties, and leaves no empty shells', () => {
     let map = setProps(sample(), ['a'], {
-      status: 'doing',
       due: { end: '2026-11-01' },
       tags: ['x'],
     });
     expect(map.topics['a']?.props).toEqual({
-      status: 'doing',
       due: { end: '2026-11-01' },
       tags: ['x'],
     });
-    map = setProps(map, ['a'], { status: null, due: null, tags: null });
+    map = setProps(map, ['a'], { due: null, tags: null });
     expect(map.topics['a']?.props).toBeUndefined();
   });
 
   it('applies to several topics in one step', () => {
-    const map = setProps(sample(), ['a', 'a1', 'b'], { status: 'doing' });
-    expect(['a', 'a1', 'b'].every((id) => map.topics[id]?.props?.status === 'doing')).toBe(true);
+    const map = setProps(sample(), ['a', 'a1', 'b'], { tags: ['launch'] });
+    expect(['a', 'a1', 'b'].every((id) => map.topics[id]?.props?.tags?.includes('launch'))).toBe(
+      true,
+    );
   });
 });
 
@@ -112,31 +112,26 @@ describe('Tags', () => {
 describe('roll-ups', () => {
   const planned = () => {
     let map = sample();
-    map = setProps(map, ['a1'], { status: 'done', due: { end: '2026-10-01' } });
-    map = setProps(map, ['a2'], {
-      status: 'doing',
-      due: { start: '2026-10-05', end: '2026-10-20' },
-    });
-    return setProps(map, ['b'], { status: 'todo', due: { end: '2026-09-01' } });
+    map = setProps(map, ['a1'], { due: { end: '2026-10-01' } });
+    map = setProps(map, ['a2'], { due: { start: '2026-10-05', end: '2026-10-20' } });
+    return setProps(map, ['b'], { due: { end: '2026-09-01' } });
   };
 
-  it('counts by category, finds the date range and overdue topics', () => {
+  it('finds the date range and overdue topics', () => {
     const r = computeRollups(planned(), TODAY);
     expect(r.get('a')).toMatchObject({
-      withStatus: 2,
-      overdue: 0,
+      overdue: 1,
       start: '2026-10-01',
       end: '2026-10-20',
     });
-    expect(r.get('a')?.byCategory).toMatchObject({ complete: 1, active: 1, todo: 0 });
-    expect(r.get('core')).toMatchObject({ withStatus: 3, overdue: 1 });
+    expect(r.get('core')).toMatchObject({ overdue: 2 });
   });
 
   it('is cached for the same topics and recomputed after an edit', () => {
     const map = planned();
     expect(computeRollups(map, TODAY)).toBe(computeRollups(map, TODAY));
-    const edited = setProps(map, ['a2'], { status: 'done' });
-    expect(computeRollups(edited, TODAY).get('a')?.byCategory.complete).toBe(2);
+    const edited = setProps(map, ['a2'], { due: { end: '2026-10-01' } });
+    expect(computeRollups(edited, TODAY).get('a')?.overdue).toBe(2);
   });
 });
 
@@ -144,9 +139,9 @@ describe('Filters', () => {
   const planned = () => {
     let map = ensureTag(sample(), 'launch');
     const tag = map.key;
-    map = { ...map, map: setProps(map.map, ['a1'], { status: 'blocked', tags: [tag] }) };
-    let m = setProps(map.map, ['a2'], { due: { end: '2026-10-09' }, status: 'doing' });
-    m = setProps(m, ['b'], { due: { end: '2026-09-01' }, status: 'todo' });
+    map = { ...map, map: setProps(map.map, ['a1'], { tags: [tag] }) };
+    let m = setProps(map.map, ['a2'], { due: { end: '2026-10-09' } });
+    m = setProps(m, ['b'], { due: { end: '2026-09-01' } });
     return { map: m, tag };
   };
   const run = (map: CanopyMap, id: string) => {
@@ -154,31 +149,28 @@ describe('Filters', () => {
     return evaluateFilter(map, filter?.query ?? {}, { today: TODAY });
   };
 
-  it('offers dates, every status and every tag', () => {
+  it('offers dates and every tag', () => {
     const { map } = planned();
     const ids = filtersOf(map).map((l) => l.id);
-    expect(ids).toEqual(
-      expect.arrayContaining(['preset:overdue', 'preset:week', 'status:blocked', 'tag:launch']),
-    );
+    expect(ids).toEqual(expect.arrayContaining(['preset:overdue', 'preset:week', 'tag:launch']));
     expect(FILTER_PRESETS).toHaveLength(2);
   });
 
-  it('picks out topics by date, status and tag', () => {
+  it('picks out topics by date and tag', () => {
     const { map } = planned();
     expect(run(map, 'preset:overdue').ordered).toEqual(['b']);
     expect(run(map, 'preset:week').ordered).toEqual(['a2']);
-    expect(run(map, 'status:blocked').ordered).toEqual(['a1']);
     expect(run(map, 'tag:launch').ordered).toEqual(['a1']);
   });
 
   it('keeps the path to each match', () => {
     const { map } = planned();
-    expect([...run(map, 'status:blocked').paths].sort()).toEqual(['a', 'a1', 'core']);
+    expect([...run(map, 'tag:launch').paths].sort()).toEqual(['a', 'a1', 'core']);
   });
 
   it('combines conditions with all or any, and matches nothing for an empty query', () => {
     const { map } = planned();
-    const query = { status: ['blocked'], due: 'overdue' as const };
+    const query = { tags: ['launch'], due: 'overdue' as const };
     expect(evaluateFilter(map, { ...query, match: 'all' }, { today: TODAY }).ordered).toEqual([]);
     expect(evaluateFilter(map, { ...query, match: 'any' }, { today: TODAY }).ordered).toEqual([
       'a1',
@@ -247,15 +239,14 @@ describe('Filter by text', () => {
 });
 
 describe('shorthand in titles', () => {
-  it('reads status, tags and a date', () => {
-    const parsed = parseTitle(sample(), 'Ship it /prog #q4 #big_launch ^fri', NOW);
-    expect(parsed.status).toBe('doing');
+  it('reads tags and a date', () => {
+    const parsed = parseTitle(sample(), 'Ship it #q4 #big_launch ^fri', NOW);
     expect(parsed.tags).toEqual(['q4', 'big launch']);
     expect(parsed.due).toBe('2026-10-09');
     expect(parsed.title).toBe('Ship it');
   });
 
-  it('keeps unknown statuses as text', () => {
+  it('leaves slash-prefixed words in the title', () => {
     expect(parseTitle(sample(), 'Ship /nonsense', NOW).title).toBe('Ship /nonsense');
   });
 
@@ -281,14 +272,12 @@ describe('table and CSV', () => {
   it('lists every topic with its path and properties in words', () => {
     const tagged = ensureTag(sample(), 'big');
     const map = setProps(tagged.map, ['a1'], {
-      status: 'doing',
       due: { end: '2026-10-20' },
       tags: [tagged.key],
     });
     const rows = tableRows(map, TODAY);
     expect(rows.find((r) => r.Topic === 'A one')).toMatchObject({
-      Path: 'Central topic > Alpha',
-      Status: 'In progress',
+      Path: 'Core Idea > Alpha',
       Due: '2026-10-20',
       Tags: 'big',
     });
@@ -310,22 +299,21 @@ describe('table and CSV', () => {
 
   it('starts with a header row and a byte order mark', () => {
     const csv = toCsv(tableRows(sample(), TODAY));
-    expect(csv.startsWith('\uFEFFPath,Topic,Status')).toBe(true);
+    expect(csv.startsWith('\uFEFFPath,Topic,Start,Due')).toBe(true);
     expect(csv.split('\r\n').length).toBe(7);
   });
 });
 
 describe('file format', () => {
-  it('keeps properties, planning and filters through save and open', () => {
+  it('keeps supported properties, tags and filters through save and open', () => {
     const tagged = ensureTag(sample(), 'x');
     let map = setProps(tagged.map, ['a'], {
-      status: 'doing',
       due: { start: '2026-10-01', end: '2026-10-20' },
       tags: [tagged.key],
     });
     map = {
       ...map,
-      filters: [{ id: 'l1', name: 'Doing', mode: 'isolate', query: { status: ['doing'] } }],
+      filters: [{ id: 'l1', name: 'Tagged', mode: 'isolate', query: { tags: [tagged.key] } }],
     };
     const result = parseFile(JSON.parse(stringifyFile(map)));
     expect(result.ok).toBe(true);
@@ -333,5 +321,29 @@ describe('file format', () => {
     expect(result.map.topics['a']?.props).toEqual(map.topics['a']?.props);
     expect(result.map.planning).toEqual(map.planning);
     expect(result.map.filters).toEqual(map.filters);
+  });
+
+  it('drops statuses and status filters from legacy files', () => {
+    const raw = JSON.parse(stringifyFile(sample())) as Record<string, unknown>;
+    raw['planning'] = {
+      statusSet: [{ key: 'done', label: 'Done', category: 'complete' }],
+      tags: [],
+    };
+    const core = raw['core'] as Record<string, unknown>;
+    core['props'] = { status: 'done', tags: ['keep'] };
+    raw['filters'] = [
+      {
+        id: 'old-status',
+        name: 'Done',
+        mode: 'dim',
+        query: { status: ['done'], statusCategory: ['complete'] },
+      },
+    ];
+    const result = parseFile(raw);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.map.topics.core?.props).toEqual({ tags: ['keep'] });
+    expect(result.map.planning).toBeUndefined();
+    expect(result.map.filters).toBeUndefined();
   });
 });

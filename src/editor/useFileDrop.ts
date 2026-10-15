@@ -38,7 +38,7 @@ export function useFileDrop(host: RefObject<HTMLElement | null>) {
       setFileDrop({
         active: true,
         target: target && doc.topics[target] ? target : null,
-        label: describeDrop(types.length > 0 ? types : [''], target ? title || 'this topic' : null),
+        label: describeDrop(types.length > 0 ? types : [''], target ? title || 'this node' : null),
       });
     };
 

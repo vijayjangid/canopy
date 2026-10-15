@@ -21,8 +21,8 @@ export function TopicSearchDialog({ referenceFrom }: { referenceFrom: string }) 
             .map((topic) => {
               const path = ancestorsOf(doc, topic.id)
                 .reverse()
-                .map((ancestor) => ancestor.title.trim() || 'Empty topic');
-              const label = topic.title.trim() || 'Empty topic';
+                .map((ancestor) => ancestor.title.trim() || 'Empty node');
+              const label = topic.title.trim() || 'Empty node';
               return {
                 id: `topic:${topic.id}`,
                 label,
@@ -38,7 +38,7 @@ export function TopicSearchDialog({ referenceFrom }: { referenceFrom: string }) 
             });
     return {
       allTopics,
-      browseTopics: allTopics.map((entry) => ({ ...entry, group: 'Topics' })),
+      browseTopics: allTopics.map((entry) => ({ ...entry, group: 'Nodes' })),
     };
   }, [referenceFrom]);
   const source = useCallback(
@@ -47,16 +47,16 @@ export function TopicSearchDialog({ referenceFrom }: { referenceFrom: string }) 
   );
 
   const sourceName = referenceFrom
-    ? canopyStore.getState().doc.topics[referenceFrom]?.title.trim() || 'this topic'
+    ? canopyStore.getState().doc.topics[referenceFrom]?.title.trim() || 'this node'
     : null;
 
   return (
     <Palette
-      title={referenceFrom ? `Reference from ${sourceName}` : 'Find a topic'}
-      placeholder={referenceFrom ? 'Search by topic or path' : 'Search topics by name or path'}
+      title={referenceFrom ? `Reference from ${sourceName}` : 'Find a node'}
+      placeholder={referenceFrom ? 'Search by node or path' : 'Search nodes by name or path'}
       source={source}
       remember={false}
-      resultLabel="topics"
+      resultLabel="nodes"
     />
   );
 }

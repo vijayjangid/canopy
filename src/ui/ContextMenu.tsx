@@ -42,13 +42,13 @@ export function openReferenceMenu(x: number, y: number, from: string, to: string
         head('Reference'),
         {
           kind: 'item',
-          label: 'Go to referenced topic',
+          label: 'Go to referenced node',
           icon: 'arrow-right',
           run: () => navigateToTopic(to),
         },
         {
           kind: 'item',
-          label: 'Go to the topic it leaves',
+          label: 'Go to the node it leaves',
           icon: 'chevron-left',
           run: () => navigateToTopic(from),
         },
@@ -128,23 +128,23 @@ function topicEntries(): Entry[] {
   const many = selection.length > 1;
   return [
     head('Add'),
-    cmd('Add sub-topic', 'topic.addChild', 'sub-topic', { disabled: many }),
+    cmd('Add child node', 'topic.addChild', 'sub-topic', { disabled: many }),
     cmd('Reference to…', 'topic.reference', 'link', { disabled: many }),
     ...(core
       ? []
       : [
           cmd('Add peer below', 'topic.addPeerAfter', 'arrow-down', { disabled: many }),
           cmd('Add peer above', 'topic.addPeerBefore', 'arrow-up', { disabled: many }),
-          cmd(many ? 'Wrap in a new topic' : 'Insert a topic above', 'topic.wrap', 'insert-level'),
+          cmd(many ? 'Wrap in a new node' : 'Insert a node above', 'topic.wrap', 'insert-level'),
         ]),
     ...(hasChildren(doc, focus)
-      ? [cmd('Insert a topic below', 'topic.insertBelow', 'insert-level', { disabled: many })]
+      ? [cmd('Insert a node below', 'topic.insertBelow', 'insert-level', { disabled: many })]
       : []),
 
     head('Edit'),
     cmd('Edit title', 'topic.edit', 'edit', { disabled: many }),
     clip(
-      many ? 'Cut topics' : 'Cut',
+      many ? 'Cut nodes' : 'Cut',
       'cut',
       'X',
       false,
@@ -152,14 +152,14 @@ function topicEntries(): Entry[] {
       core,
     ),
     clip(
-      many ? 'Copy topics' : 'Copy',
+      many ? 'Copy nodes' : 'Copy',
       'copy',
       'C',
       false,
       () => void copyFromMenu(appContext, false),
     ),
     clip(
-      'Paste as sub-topics',
+      'Paste as child nodes',
       'paste',
       'V',
       false,
@@ -181,10 +181,9 @@ function topicEntries(): Entry[] {
         ]),
 
     head('Details'),
-    cmd('Set status…', 'props.status', 'status'),
     cmd('Set due date…', 'props.due', 'calendar'),
     cmd('Add tag…', 'props.tag', 'tag'),
-    cmd('Write a note', 'note.open', 'note', { disabled: many }),
+    cmd('Manage tasks…', 'tasks.open', 'planning', { disabled: many }),
     cmd('Add a sticker', 'stickers.open', 'stickers', { disabled: many }),
     ...(doc.topics[focus]?.parentId
       ? [
@@ -219,7 +218,7 @@ function topicEntries(): Entry[] {
       : [
           { kind: 'separator' } as Entry,
           ...(hasChildren(doc, focus)
-            ? [cmd('Delete topic only', 'topic.deleteKeep', 'trash', { danger: true })]
+            ? [cmd('Delete node only', 'topic.deleteKeep', 'trash', { danger: true })]
             : []),
           cmd(
             hasChildren(doc, focus) ? 'Delete whole branch…' : 'Delete',
@@ -234,14 +233,14 @@ function topicEntries(): Entry[] {
 function canvasEntries(): Entry[] {
   const state = canopyStore.getState();
   const { doc, focus } = state;
-  const name = doc.topics[focus]?.title.trim() || 'Empty topic';
+  const name = doc.topics[focus]?.title.trim() || 'Empty node';
   return [
     head('Edit'),
     cmd('Undo', 'edit.undo', 'undo', { disabled: !canUndo(state) }),
     cmd('Redo', 'edit.redo', 'redo', { disabled: !canRedo(state) }),
     clip('Paste', 'paste', 'V', false, () => void pasteFromMenu(appContext, false)),
     cmd(
-      `Add sub-topic to “${name.length > 22 ? `${name.slice(0, 21)}…` : name}”`,
+      `Add child node to “${name.length > 22 ? `${name.slice(0, 21)}…` : name}”`,
       'topic.addChild',
       'sub-topic',
     ),
@@ -324,7 +323,7 @@ export function ContextMenu() {
       ref={ref}
       className="context-menu"
       role="menu"
-      aria-label={at.where === 'topic' ? 'Topic actions' : 'Map actions'}
+      aria-label={at.where === 'topic' ? 'Node actions' : 'Map actions'}
       tabIndex={-1}
       style={{ left: at.x, top: at.y, visibility: 'hidden' }}
       onKeyDown={onKeyDown}

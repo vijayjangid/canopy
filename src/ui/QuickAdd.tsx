@@ -13,13 +13,11 @@ export function QuickAdd() {
     [preset],
   );
   const placeholder =
-    preset === 'status'
-      ? 'Set status'
-      : preset === 'due'
-        ? 'Set a due date (try fri, +3d, nov 1)'
-        : preset === 'tag'
-          ? 'Add a tag'
-          : 'Set status, due date or tag';
+    preset === 'due'
+      ? 'Set a due date (try fri, +3d, nov 1)'
+      : preset === 'tag'
+        ? 'Add a tag'
+        : 'Set a due date or tag';
   return (
     <Palette
       title="Quick add"

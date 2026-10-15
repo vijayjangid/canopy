@@ -1,11 +1,8 @@
 import { useMemo, type ReactNode } from 'react';
-import { StatusIcon } from '../canvas/Chips';
-import { readExportTheme } from '../io/exportTheme';
 import { planningOf, usedStickers } from '../model';
 import { StickerArt } from '../stickers/art';
 import { STICKERS } from '../stickers/catalog';
 import { useCanopy } from '../store';
-import { useThemeVersion } from '../theme';
 import { DateFilter } from './DateFilter';
 import { useActiveFilter } from './filter';
 import { setFilter, toggleFilterChoice, toggleFilterDue, useUi } from './uiStore';
@@ -39,16 +36,13 @@ function Choice({
   );
 }
 
-/** Pills for narrowing the map by due date, status, tag and sticker. Each one applies at once. */
+/** Pills for narrowing the map by due date, tag and sticker. Each one applies at once. */
 export function QuickFilters() {
   const doc = useCanopy((s) => s.doc);
   const plan = useMemo(() => planningOf(doc), [doc]);
   const used = useMemo(() => usedStickers(doc), [doc]);
   const sel = useUi((s) => s.filterSel);
   const active = useActiveFilter();
-  const themeVersion = useThemeVersion();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const theme = useMemo(() => readExportTheme(), [themeVersion]);
   const count = active?.result.ordered.length ?? 0;
 
   return (
@@ -81,18 +75,6 @@ export function QuickFilters() {
         </Choice>
       </ChoiceList>
       {sel.due === 'range' && <DateFilter />}
-      <ChoiceList label="Status">
-        {plan.statusSet.map((s) => (
-          <Choice
-            key={s.key}
-            on={sel.status.includes(s.key)}
-            onClick={() => toggleFilterChoice('status', s.key)}
-          >
-            <StatusIcon def={s} theme={theme} />
-            {s.label}
-          </Choice>
-        ))}
-      </ChoiceList>
       {plan.tags.length > 0 && (
         <ChoiceList label="Tags">
           {plan.tags.map((t) => (

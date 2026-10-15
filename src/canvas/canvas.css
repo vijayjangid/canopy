@@ -396,6 +396,31 @@
   pointer-events: none;
 }
 
+.topic-task-marker {
+  fill: var(--color-topic-text);
+  opacity: 0.55;
+}
+
+.topic-task-divider {
+  stroke: var(--color-topic-text);
+  stroke-width: 1;
+  opacity: 0.18;
+}
+
+.topic-task-tick {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.topic-task-text {
+  fill: var(--color-topic-text);
+  font-family: var(--font-map);
+  font-size: 0.82em;
+}
+
 .topic[data-focused] .topic-ring {
   stroke-width: 3px;
   opacity: 1;

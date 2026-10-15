@@ -1,21 +1,30 @@
-import { useId, useMemo, useState, type ReactNode } from 'react';
+import { useId, useRef, useState, type FormEvent, type ReactNode, type RefObject } from 'react';
 import { announce } from '../a11y';
 import {
-  addDays,
-  endOfWeek,
+  addTopicTask,
+  ancestorsOf,
+  removeTopicTask,
+  setImageAlt,
+  setTopicStyle,
+  setTopicImage,
+  setTopicTaskText,
+  toggleTopicTask,
   ensureTag,
   formatDate,
   planningOf,
   setProps,
-  today,
+  TOPIC_COLOR_PRESETS,
+  MAX_TOPIC_TASK_TEXT,
+  type TopicColor,
+  type TopicStylePatch,
   type PropsPatch,
   type Topic,
 } from '../model';
-import { StatusIcon } from '../canvas/Chips';
-import { readExportTheme } from '../io/exportTheme';
+import { playfulColorForDepth } from '../theme/levels';
+import { ImageTooLargeError, imageFromBlob } from '../editor/imageImport';
 import { canopyStore, useCanopy } from '../store';
-import { useThemeVersion } from '../theme';
 import { Icon } from './icons';
+import { showToast } from './toast';
 
 type Common<T> = { kind: 'none' } | { kind: 'same'; value: T } | { kind: 'mixed' };
 
@@ -60,37 +69,35 @@ function Field({
   );
 }
 
-/** Edits status, due date and tags for every selected topic. Mixed values are shown as such, and
+/** Edits node color, due date and tags. Mixed values are shown as such, and
 left alone until changed. */
-export function PropertiesTab() {
+export function PropertiesTab({ stickerSection }: { stickerSection?: ReactNode }) {
   const doc = useCanopy((s) => s.doc);
   const selection = useCanopy((s) => s.selection);
-  const ids = { status: useId(), due: useId(), tags: useId(), dateInput: useId() };
+  const ids = {
+    due: useId(),
+    tags: useId(),
+    dateInput: useId(),
+    color: useId(),
+  };
   const [tagText, setTagText] = useState('');
-  const themeVersion = useThemeVersion();
-  const theme = useMemo(
-    () => readExportTheme(),
-    // The theme is read from the page, so a new version needs a new reading.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [themeVersion],
-  );
+  const imageInput = useRef<HTMLInputElement>(null);
   const topics = selection.map((id) => doc.topics[id]).filter((t): t is Topic => t !== undefined);
   if (topics.length === 0) return null;
 
   const plan = planningOf(doc);
-  const status = common(topics, (t) => t.props?.status);
+  const color = common(
+    topics,
+    (t) =>
+      t.style?.color ??
+      (doc.prefs.look === 'playful'
+        ? playfulColorForDepth(ancestorsOf(doc, t.id).length)
+        : undefined),
+  );
   const due = common(topics, (t) => t.props?.due?.end ?? t.props?.due?.start);
   const tagCounts = new Map<string, number>();
   for (const t of topics)
     for (const k of t.props?.tags ?? []) tagCounts.set(k, (tagCounts.get(k) ?? 0) + 1);
-
-  const now = new Date();
-  const base = today(now);
-  const quickDates = [
-    { label: 'Today', iso: base },
-    { label: 'Tomorrow', iso: addDays(base, 1) },
-    { label: 'This week', iso: endOfWeek(now) },
-  ].filter((q, i, all) => all.findIndex((x) => x.iso === q.iso) === i);
 
   const changeTags = (edit: (current: string[], key: string) => string[], label: string) => {
     const { doc: d, selection: sel, commit } = canopyStore.getState();
@@ -131,61 +138,89 @@ export function PropertiesTab() {
   const setDue = (iso: string | null) =>
     apply({ due: iso ? { end: iso } : null }, iso ? `Due ${formatDate(iso)}` : 'Due date cleared');
 
+  const setStyle = (patch: TopicStylePatch, message: string) => {
+    const { doc: current, selection: selected, commit } = canopyStore.getState();
+    let next = current;
+    for (const id of selected) next = setTopicStyle(next, id, patch);
+    commit(next);
+    announce(message);
+  };
+
+  const setImage = async (file: File | undefined) => {
+    if (!file || topics.length !== 1) return;
+    try {
+      const image = await imageFromBlob(file);
+      const { doc: current, commit } = canopyStore.getState();
+      commit(setTopicImage(current, topics[0]!.id, image));
+    } catch (error) {
+      showToast(
+        error instanceof ImageTooLargeError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'That picture could not be read.',
+      );
+    } finally {
+      if (imageInput.current) imageInput.current.value = '';
+    }
+  };
+
   return (
     <div className="props-tab">
       {topics.length > 1 && (
         <p className="inspector-hint">
-          {topics.length} topics selected. Changes apply to all of them.
+          {topics.length} nodes selected. Changes apply to all of them.
         </p>
       )}
 
-      <Field label="Status" labelId={ids.status}>
-        <div className="pill-group" role="group" aria-labelledby={ids.status}>
-          {plan.statusSet.map((s) => {
-            const on = status.kind === 'same' && status.value === s.key;
-            return (
-              <button
-                key={s.key}
-                type="button"
-                className="pill"
-                data-icon=""
-                aria-pressed={on}
-                onClick={() =>
-                  on
-                    ? apply({ status: null }, 'Status cleared')
-                    : apply({ status: s.key }, `Status ${s.label}`)
-                }
-              >
-                <StatusIcon def={s} theme={theme} />
-                {s.label}
-              </button>
-            );
-          })}
+      <Field label="Color" labelId={ids.color}>
+        <div className="topic-color-options" role="group" aria-labelledby={ids.color}>
+          <button
+            type="button"
+            className="topic-color-swatch topic-color-auto"
+            aria-label="Automatic color"
+            title="Automatic color"
+            aria-pressed={color.kind === 'none'}
+            onClick={() => setStyle({ color: null }, 'Automatic color')}
+          />
+          {(
+            Object.entries(TOPIC_COLOR_PRESETS) as [
+              TopicColor,
+              (typeof TOPIC_COLOR_PRESETS)[TopicColor],
+            ][]
+          ).map(([key, preset]) => (
+            <button
+              key={key}
+              type="button"
+              className="topic-color-swatch"
+              aria-label={preset.label}
+              aria-pressed={color.kind === 'same' && color.value === key}
+              data-color={key}
+              title={preset.label}
+              onClick={() => setStyle({ color: key }, `${preset.label} color`)}
+            />
+          ))}
         </div>
-        {status.kind === 'mixed' && (
-          <p className="inspector-hint">Mixed. Pick one to set them all.</p>
-        )}
+        {color.kind === 'mixed' && <p className="inspector-hint">Mixed. Pick one to set all.</p>}
       </Field>
 
+      {topics.length === 1 && (
+        <ImageField
+          topic={topics[0]!}
+          input={imageInput}
+          onPick={() => imageInput.current?.click()}
+          onSelect={setImage}
+        />
+      )}
+
+      {stickerSection}
+
+      <div className="panel-section-heading">
+        <h3>Planning</h3>
+        <span className="panel-section-rule" aria-hidden="true" />
+      </div>
+
       <Field label="Due date" labelId={ids.due}>
-        <div className="pill-group" role="group" aria-labelledby={ids.due}>
-          {quickDates.map((q) => {
-            const on = due.kind === 'same' && due.value === q.iso;
-            return (
-              <button
-                key={q.label}
-                type="button"
-                className="pill"
-                aria-pressed={on}
-                data-tip={formatDate(q.iso, now)}
-                data-tip-side="bottom"
-                onClick={() => setDue(on ? null : q.iso)}
-              >
-                {q.label}
-              </button>
-            );
-          })}
-        </div>
         <div className="date-row">
           <span className="date-field">
             <Icon name="calendar" />
@@ -213,7 +248,7 @@ export function PropertiesTab() {
           )}
         </div>
         {due.kind === 'mixed' && (
-          <p className="inspector-hint">The selected topics have different dates.</p>
+          <p className="inspector-hint">The selected nodes have different dates.</p>
         )}
       </Field>
 
@@ -287,6 +322,160 @@ export function PropertiesTab() {
           </ul>
         )}
       </Field>
+    </div>
+  );
+}
+
+function ImageField({
+  topic,
+  input,
+  onPick,
+  onSelect,
+}: {
+  topic: Topic;
+  input: RefObject<HTMLInputElement | null>;
+  onPick: () => void;
+  onSelect: (file: File | undefined) => void;
+}) {
+  const altId = useId();
+  return (
+    <div className="prop-field topic-image-field">
+      <span className="prop-label">Picture</span>
+      {topic.image && (
+        <div className="topic-image-preview">
+          <img src={topic.image.src} alt={topic.image.alt || 'Node picture'} />
+          <button
+            type="button"
+            className="pill-clear"
+            aria-label="Remove picture"
+            onClick={() => {
+              const { doc, commit } = canopyStore.getState();
+              commit(setTopicImage(doc, topic.id, null));
+              announce('Picture removed');
+            }}
+          >
+            <Icon name="trash" />
+          </button>
+        </div>
+      )}
+      {topic.image && (
+        <input
+          id={altId}
+          type="text"
+          maxLength={200}
+          aria-label="Picture description"
+          placeholder="Add a description for screen readers"
+          value={topic.image.alt ?? ''}
+          onChange={(event) => {
+            const { doc, commit } = canopyStore.getState();
+            commit(setImageAlt(doc, topic.id, event.target.value), {
+              group: `image-alt:${topic.id}`,
+            });
+          }}
+        />
+      )}
+      <input
+        ref={input}
+        hidden
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif"
+        aria-label={topic.image ? 'Replace picture' : 'Add picture'}
+        onChange={(event) => onSelect(event.target.files?.[0])}
+      />
+      <button type="button" className="pill" onClick={onPick}>
+        {topic.image ? 'Replace picture' : 'Add picture'}
+      </button>
+      {!topic.image && <p className="inspector-hint">Choose an image file to add to this node.</p>}
+    </div>
+  );
+}
+
+export function TasksTab({ topic }: { topic: Topic }) {
+  const [newTask, setNewTask] = useState('');
+
+  const add = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const text = newTask.trim();
+    if (!text) return;
+    const { doc, commit } = canopyStore.getState();
+    commit(addTopicTask(doc, topic.id, text));
+    setNewTask('');
+    announce(`Added task: ${text}`);
+  };
+
+  return (
+    <div className="prop-field topic-tasks">
+      <span className="prop-label">Tasks</span>
+      {topic.tasks && topic.tasks.length > 0 ? (
+        <ul className="topic-task-editor" aria-label="Tasks">
+          {topic.tasks.map((task, index) => (
+            <li key={task.id}>
+              <input
+                type="checkbox"
+                checked={task.done}
+                aria-label={`Mark task ${index + 1} complete`}
+                onChange={() => {
+                  const { doc, commit } = canopyStore.getState();
+                  commit(toggleTopicTask(doc, topic.id, task.id));
+                  announce(`${task.done ? 'Reopened' : 'Completed'} task: ${task.text}`);
+                }}
+              />
+              <input
+                type="text"
+                maxLength={MAX_TOPIC_TASK_TEXT}
+                aria-label={`Task ${index + 1}`}
+                value={task.text}
+                data-done={task.done || undefined}
+                onChange={(event) => {
+                  const { doc, commit } = canopyStore.getState();
+                  commit(setTopicTaskText(doc, topic.id, task.id, event.target.value), {
+                    group: `task:${topic.id}:${task.id}`,
+                  });
+                }}
+                onBlur={() => {
+                  const { doc, commit } = canopyStore.getState();
+                  const current = doc.topics[topic.id]?.tasks?.find((item) => item.id === task.id);
+                  const text = current?.text.trim() ?? '';
+                  commit(
+                    text
+                      ? setTopicTaskText(doc, topic.id, task.id, text)
+                      : removeTopicTask(doc, topic.id, task.id),
+                    { group: `task:${topic.id}:${task.id}` },
+                  );
+                }}
+              />
+              <button
+                type="button"
+                className="pill-clear"
+                aria-label={`Remove task ${index + 1}`}
+                onClick={() => {
+                  const { doc, commit } = canopyStore.getState();
+                  commit(removeTopicTask(doc, topic.id, task.id));
+                  announce(`Removed task: ${task.text}`);
+                }}
+              >
+                <Icon name="close" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="inspector-hint">No tasks yet.</p>
+      )}
+      <form className="topic-task-add" onSubmit={add}>
+        <input
+          id={`topic-task-add-${topic.id}`}
+          type="text"
+          maxLength={MAX_TOPIC_TASK_TEXT}
+          aria-label="Add a task"
+          value={newTask}
+          placeholder="Add a task"
+          onChange={(event) => setNewTask(event.target.value)}
+        />
+        <button type="submit" className="pill" disabled={!newTask.trim()}>
+          Add
+        </button>
+      </form>
     </div>
   );
 }

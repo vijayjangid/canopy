@@ -10,7 +10,7 @@ export function removeImage(id: string): void {
   if (!topic?.image) return;
   select([id], id);
   commit(setTopicImage(doc, id, null));
-  announce(`Removed the picture from ${topic.title.trim() || 'the topic'}`);
+  announce(`Removed the picture from ${topic.title.trim() || 'the node'}`);
 }
 
 /** Opens the box for describing a topic's picture. */

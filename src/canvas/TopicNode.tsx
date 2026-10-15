@@ -8,18 +8,24 @@ import {
   imageOffset,
   imageSize,
   levelPrefix,
+  TASK_ROW_GAP,
+  TASK_ROW_LINE_HEIGHT,
+  TASK_TEXT_INSET,
+  TOPIC_PADDING,
   STICKER_RIM,
   STICKER_SHADOW_OFFSET,
   textLines,
+  taskTextLines,
   typeForDepth,
   type ChipItem,
   type TopicBox,
 } from '../layout';
-import type { Topic } from '../model';
+import { TOPIC_COLOR_PRESETS, topicForeground, type Topic } from '../model';
 import { ChipRow, contextOnCore, type ChipContext } from './Chips';
 import { StickerLayer } from './StickerLayer';
 import { TopicGlyph } from './TopicGlyph';
 import type { Look } from '../model';
+import { playfulColorForDepth } from '../theme/levels';
 import { textWidth } from './metrics';
 
 export type Detail = 'full' | 'low';
@@ -74,7 +80,7 @@ interface Props {
   trail: boolean;
   /** Roll-up shown on a folded topic, such as "3/7". */
   rollup: string | undefined;
-  /** Spoken after the title, such as "has a note, status Done". */
+  /** Spoken after the title, such as "two tasks, one complete". */
   summary: string;
   /** Changes with the font, so lines are wrapped again even when the box stays the same. */
   epoch: number;
@@ -184,25 +190,54 @@ export const TopicNode = memo(function TopicNode({
   epoch,
 }: Props) {
   const { w, h, depth } = box;
+  const tasklist = (topic?.tasks?.length ?? 0) > 0;
   const style = typeForDepth(depth);
   const hasImage = topic?.image !== undefined;
   const lines = useMemo(
     () =>
-      detail === 'full' && !editing && !(hasImage && title.trim() === '')
+      detail === 'full' && !(hasImage && title.trim() === '')
         ? textLines(title, depth, textWidth)
         : [],
     // `epoch` is not read inside, but a new font wraps the same title differently.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [detail, editing, title, depth, epoch, hasImage],
+    [detail, title, depth, epoch, hasImage],
+  );
+  const taskRows = useMemo(
+    () =>
+      tasklist && topic
+        ? (topic.tasks ?? []).map((task) => ({
+            task,
+            lines: taskTextLines(task.text, depth, textWidth),
+          }))
+        : [],
+    // A font load can change where long task labels wrap.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tasklist, topic, depth, epoch],
   );
   const empty = title.trim().length === 0;
   const radius = cornerRadius(look, depth, h);
-  const chipsH = chips.length > 0 ? CHIP_ROW_HEIGHT : 0;
+  const chipsVisible = chips.length > 0;
+  const chipsH = chipsVisible ? CHIP_ROW_HEIGHT : 0;
   const rowH = chipsH;
   // A picture sits above the title, which is then centred in what is left of the box.
   const above = topic ? imageOffset(topic) : 0;
   const picture = imageSize(topic?.image);
-  const firstBaseline = above + firstBaselineOf(h - above, rowH, lines.length, style.lineHeight);
+  const firstBaseline = tasklist
+    ? above + TOPIC_PADDING.y + style.lineHeight / 2
+    : above + firstBaselineOf(h - above, rowH, lines.length, style.lineHeight);
+  const taskStart = above + TOPIC_PADDING.y + lines.length * style.lineHeight + TASK_ROW_GAP;
+  const { positions: taskPositions } = taskRows.reduce(
+    (result, entry) => ({
+      positions: [...result.positions, { ...entry, top: result.nextTop }],
+      nextTop: result.nextTop + entry.lines.length * TASK_ROW_LINE_HEIGHT + TASK_ROW_GAP,
+    }),
+    { positions: [] as Array<(typeof taskRows)[number] & { top: number }>, nextTop: taskStart },
+  );
+  const topicColor = topic
+    ? (topic.style?.color ?? (look === 'playful' ? playfulColorForDepth(depth) : undefined))
+    : undefined;
+  const topicBackground = topicColor ? TOPIC_COLOR_PRESETS[topicColor].value : undefined;
+  const topicTextColor = topicColor ? topicForeground(topicColor) : undefined;
   const real = kind === 'topic';
   const count = hidden > 99 ? '99+' : String(hidden);
   const badgeText = rollup ? `${count} · ${rollup}` : count;
@@ -230,12 +265,13 @@ export const TopicNode = memo(function TopicNode({
       aria-selected={real ? selected : undefined}
       aria-expanded={real ? expanded : undefined}
       aria-label={
-        real ? [title.trim() || 'Empty topic', summary].filter(Boolean).join(', ') : undefined
+        real ? [title.trim() || 'Empty node', summary].filter(Boolean).join(', ') : undefined
       }
       data-topic-id={real ? box.id : undefined}
       data-kind={kind}
       data-depth={Math.min(depth, 3)}
       data-level={levelOf(depth)}
+      data-node-type={tasklist ? 'tasklist' : 'standard'}
       data-selected={selected || undefined}
       data-dim={dim || undefined}
       data-trail={trail || undefined}
@@ -249,7 +285,13 @@ export const TopicNode = memo(function TopicNode({
       {real && detail === 'full' && (
         <rect className="topic-shadow" y={2} width={w} height={h} rx={radius} />
       )}
-      <rect className="topic-box" width={w} height={h} rx={radius} />
+      <rect
+        className="topic-box"
+        width={w}
+        height={h}
+        rx={radius}
+        style={topicBackground ? { fill: topicBackground } : undefined}
+      />
       {selected && <rect className="topic-wash" width={w} height={h} rx={radius} />}
       {picture && topic?.image && (
         <TopicPicture
@@ -272,9 +314,16 @@ export const TopicNode = memo(function TopicNode({
         />
       )}
       {real && detail === 'low' && topic && chipContext && (
-        <TopicGlyph topic={topic} depth={depth} w={w} h={h} ctx={chipContext} />
+        <TopicGlyph
+          topic={topic}
+          depth={depth}
+          w={w}
+          h={h}
+          ctx={chipContext}
+          ink={topicTextColor}
+        />
       )}
-      {lines.length > 0 && look === 'playful' && (
+      {lines.length > 0 && !editing && look === 'playful' && (
         <g className="sticker-blob" aria-hidden="true">
           {STICKER_LAYERS.map((layer) => (
             <g
@@ -292,12 +341,13 @@ export const TopicNode = memo(function TopicNode({
                 width={w + grow(layer) * 2}
                 height={h + grow(layer) * 2}
                 rx={radius + grow(layer)}
+                style={layer === 'face' && topicBackground ? { fill: topicBackground } : undefined}
               />
             </g>
           ))}
         </g>
       )}
-      {lines.length > 0 && (
+      {lines.length > 0 && !editing && (
         <text
           className="topic-text"
           data-empty={empty || undefined}
@@ -305,11 +355,64 @@ export const TopicNode = memo(function TopicNode({
           dominantBaseline="central"
           fontSize={style.size}
           fontWeight={style.weight}
+          style={topicTextColor ? { fill: topicTextColor } : undefined}
         >
           {titleLines}
         </text>
       )}
-      {detail === 'full' && chips.length > 0 && topic && chipContext && (
+      {real && tasklist && detail === 'full' && (
+        <g className="topic-task-list" aria-hidden="true" pointerEvents="none">
+          {taskPositions.length > 0 && (
+            <line
+              className="topic-task-divider"
+              x1={TOPIC_PADDING.x}
+              x2={w - TOPIC_PADDING.x}
+              y1={taskStart - TASK_ROW_GAP / 2}
+              y2={taskStart - TASK_ROW_GAP / 2}
+              style={topicTextColor ? { stroke: topicTextColor } : undefined}
+            />
+          )}
+          {taskPositions.map(({ task, lines: taskLines, top }) => (
+            <g key={task.id} className="topic-task" data-done={task.done || undefined}>
+              {!task.done && (
+                <circle
+                  className="topic-task-marker"
+                  cx={TOPIC_PADDING.x + 8}
+                  cy={top + 8}
+                  r={2.25}
+                  style={topicTextColor ? { fill: topicTextColor } : undefined}
+                />
+              )}
+              {task.done && (
+                <path
+                  className="topic-task-tick"
+                  d={`M${TOPIC_PADDING.x + 4} ${top + 8}l3 3 5-6`}
+                  style={topicTextColor ? { stroke: topicTextColor } : undefined}
+                />
+              )}
+              <text
+                className="topic-task-text"
+                x={TOPIC_PADDING.x + TASK_TEXT_INSET}
+                y={top + TASK_ROW_LINE_HEIGHT / 2}
+                dominantBaseline="central"
+                textDecoration={task.done ? 'line-through' : undefined}
+                style={topicTextColor ? { fill: topicTextColor } : undefined}
+              >
+                {taskLines.map((line, index) => (
+                  <tspan
+                    key={index}
+                    x={TOPIC_PADDING.x + TASK_TEXT_INSET}
+                    y={top + TASK_ROW_LINE_HEIGHT / 2 + index * TASK_ROW_LINE_HEIGHT}
+                  >
+                    {line}
+                  </tspan>
+                ))}
+              </text>
+            </g>
+          ))}
+        </g>
+      )}
+      {detail === 'full' && chipsVisible && topic && chipContext && (
         <g
           className="topic-chips"
           aria-hidden="true"

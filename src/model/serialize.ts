@@ -37,7 +37,8 @@ const MAX_ERRORS = 20;
 
 function extrasOf(topic: Topic): TopicExtras {
   const out: TopicExtras = {};
-  if (topic.note) out.note = topic.note;
+  if (topic.style) out.style = topic.style;
+  if (topic.tasks?.length) out.tasks = topic.tasks;
   if (topic.references?.length) out.references = topic.references;
   if (topic.image) out.image = topic.image;
   if (topic.stickers?.length) out.stickers = topic.stickers;
@@ -186,14 +187,14 @@ export function parseFile(raw: unknown): ParseResult {
   }
 
   if (errors.length > 0 || coreId === null) {
-    return { ok: false, errors: errors.length > 0 ? errors : ['The file has no Core topic'] };
+    return { ok: false, errors: errors.length > 0 ? errors : ['The file has no Core node'] };
   }
 
   const map: CanopyMap = { schema: SCHEMA, meta, prefs, coreId, topics };
   for (const topic of Object.values(topics)) {
     for (const to of topic.references ?? []) {
-      if (!topics[to]) fail(`Topic "${topic.id}" references missing topic "${to}"`);
-      else if (to === topic.id) fail(`Topic "${topic.id}" cannot reference itself`);
+      if (!topics[to]) fail(`Node "${topic.id}" references missing node "${to}"`);
+      else if (to === topic.id) fail(`Node "${topic.id}" cannot reference itself`);
     }
   }
   if (errors.length > 0) return { ok: false, errors };
