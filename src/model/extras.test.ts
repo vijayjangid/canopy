@@ -17,6 +17,7 @@ import {
   setEdgeLabel,
   setImageAlt,
   setProps,
+  setTopicNote,
   setTopicImage,
   addTopicReference,
   clearTopicReferences,
@@ -303,7 +304,11 @@ describe('topic references', () => {
 
 describe('content survives saving, copying and pasting', () => {
   const rich = () => {
-    const map = addSticker(base(), 'a', 'bug');
+    const map = setTopicNote(
+      addSticker(base(), 'a', 'bug'),
+      'a',
+      '- [ ] Ship\n\n[docs](https://example.com)',
+    );
     return setProps(map, ['a'], { due: { end: '2026-11-01' }, tags: ['x'] });
   };
 
@@ -312,7 +317,7 @@ describe('content survives saving, copying and pasting', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const a = result.map.topics['a'];
-    expect(a).not.toHaveProperty('note');
+    expect(a?.note).toBe('- [ ] Ship\n\n[docs](https://example.com)');
     expect(a?.stickers?.[0]?.key).toBe('bug');
     expect(a?.props).toEqual({ due: { end: '2026-11-01' }, tags: ['x'] });
   });
@@ -329,19 +334,13 @@ describe('content survives saving, copying and pasting', () => {
     if (result.ok) expect(result.map.topics['a']?.props).toEqual(rich().topics['a']?.props);
   });
 
-  it('discards legacy topic notes and carries remaining content through copy and paste', () => {
+  it('carries the note and other content through copy and paste', () => {
     const map = rich();
-    const legacy = JSON.parse(stringifyFile(map));
-    legacy.core.children[0].note = 'A legacy note';
-    const parsed = parseFile(legacy);
-    expect(parsed.ok).toBe(true);
-    if (parsed.ok) expect(parsed.map.topics['a']).not.toHaveProperty('note');
-
     const branches = branchesFromJson(branchesToJson(copyBranches(map, ['a'])));
-    expect(branches?.[0]?.extras).not.toHaveProperty('note');
+    expect(branches?.[0]?.extras?.note).toBe('- [ ] Ship\n\n[docs](https://example.com)');
     const pasted = pasteBranches(map, branches ?? [], { kind: 'child', parentId: 'core' });
     const copy = pasted.map.topics[pasted.ids[0] ?? ''];
-    expect(copy).not.toHaveProperty('note');
+    expect(copy?.note).toBe(map.topics['a']?.note);
     expect(copy?.stickers).toHaveLength(1);
     expect(copy?.props).toEqual(map.topics['a']?.props);
   });

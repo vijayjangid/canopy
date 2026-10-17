@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { parseMarkdown, type Block, type Inline } from './markdownParse';
+import { parseMarkdown, type Block, type Inline } from '../model/markdown';
 import './markdown.css';
 
 function inline(nodes: readonly Inline[]): ReactNode {

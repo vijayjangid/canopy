@@ -32,7 +32,7 @@ const SHORT: Partial<Record<CommandId, string>> = {
   'props.tag': 'Tag',
   'props.due': 'Due date',
   'stickers.open': 'Sticker',
-  'tasks.open': 'Tasks',
+  'note.open': 'Note',
 };
 
 /** What can be set on a topic, which the hint strip lists after the structure shortcuts. */
@@ -41,7 +41,7 @@ const DETAILS: CommandId[] = [
   'props.tag',
   'props.due',
   'stickers.open',
-  'tasks.open',
+  'note.open',
 ];
 
 function fromCommands(
@@ -92,7 +92,7 @@ export function hintsFor(context: HintContext, mac?: boolean): Hint[] {
   }
   if (context.focusIsCore) {
     return fromCommands(
-      ['topic.addChild', 'topic.edit', 'tasks.open', 'stickers.open', 'view.unfoldAll'],
+      ['topic.addChild', 'topic.edit', 'note.open', 'stickers.open', 'view.unfoldAll'],
       mac,
     );
   }

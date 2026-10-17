@@ -45,7 +45,7 @@ export type CommandId =
   | 'palette.open'
   | 'prefs.open'
   | 'inspector.toggle'
-  | 'tasks.open'
+  | 'note.open'
   | 'stickers.open'
   | 'edge.label'
   | 'edge.sticker'
@@ -162,7 +162,7 @@ export const COMMANDS: readonly CommandDef[] = [
   },
   { id: 'prefs.open', label: 'Open preferences', shortcuts: [{ key: ',', mod: true }] },
   { id: 'inspector.toggle', label: 'Show or hide the inspector', shortcuts: [{ key: 'i' }] },
-  { id: 'tasks.open', label: 'Manage tasks', shortcuts: [{ key: 't' }] },
+  { id: 'note.open', label: 'Edit note', shortcuts: [{ key: 'n' }] },
   { id: 'stickers.open', label: 'Add a sticker', shortcuts: [{ key: 's' }] },
   { id: 'edge.label', label: 'Label the line to the parent', shortcuts: [{ key: 'l' }] },
   { id: 'edge.sticker', label: 'Add a sticker to the line', shortcuts: [] },
@@ -241,7 +241,7 @@ export const COMMAND_GROUPS: Record<CommandId, string> = {
   'help.shortcuts': 'App',
   'prefs.open': 'App',
   'inspector.toggle': 'Node content',
-  'tasks.open': 'Node content',
+  'note.open': 'Node content',
   'stickers.open': 'Node content',
   'edge.label': 'Node content',
   'edge.sticker': 'Node content',

@@ -1,4 +1,4 @@
-import { isSafeLink } from '../model/sanitize';
+import { isSafeLink } from './sanitize';
 
 /** A small, safe subset of Markdown. Nothing here produces raw HTML. */
 export type Inline =

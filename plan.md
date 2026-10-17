@@ -276,10 +276,10 @@ Done when: every theme × colour mode combination renders correctly and passes c
 
 Done when: every action in the app is reachable from the palette.
 
-### M2.3 Notes (done, simplified)
-- [x] Notes are Markdown, edited in a plain text field with a toolbar (bold, italic, heading, lists, task list, code, link) and a Write / Preview switch. **Deviation:** the plan said TipTap. A rich-text editor was left out to keep the bundle small and the note format plain. Revisit if people want live formatting.
-- [x] Inspector (`i`) with a Note tab (`n` jumps to it), and a note icon on topics.
-- [x] The renderer (`ui/markdownParse.ts`) supports headings, lists, task lists, code, quotes, tables, rules, bold, italic, strike, links. It builds React elements, so no HTML is ever injected, and only web and mail links are allowed. Raw HTML shows as text.
+### M2.3 Notes (done)
+- [x] Notes are Markdown, edited in a Tiptap rich text editor (bold, italic, strikethrough, code, headings, bulleted, numbered and check lists, quotes, code blocks, links). The editor reads and writes Markdown, so files stay plain text. It loads on demand when the Note tab opens, to keep the main bundle small.
+- [x] Inspector (`i`) with a Note tab (`n` jumps to it). A node with a note shows a preview of its first lines under the title; tasks were removed and an older `tasks` list is read as a Markdown check list.
+- [x] The reader (`model/markdown.ts`) supports headings, lists, task lists, code, quotes, tables, rules, bold, italic, strike, links. The node preview is laid out from it (`layout/notePreview.ts`) and drawn as SVG, so no HTML is ever injected, and only web and mail links are allowed. Raw HTML shows as text.
 - [ ] Not built: hover peek card on the note icon and inline note preview at high zoom.
 
 Done when: Notes round-trip through JSON and Markdown export and render safely. (Verified by unit tests.)

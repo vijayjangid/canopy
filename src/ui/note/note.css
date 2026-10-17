@@ -1,0 +1,129 @@
+.note-editor {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.note-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.panel .note-tool {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 var(--space-2);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.panel .note-tool:hover {
+  background: var(--color-hover);
+}
+
+.panel .note-tool[aria-pressed='true'] {
+  color: var(--color-core-text);
+  background: var(--color-accent);
+}
+
+.panel .note-tool:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.note-tool[data-tool='italic'] {
+  font-style: italic;
+}
+
+.note-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+}
+
+.panel .note-link input {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 32px;
+  padding: 4px var(--space-3);
+}
+
+.note-link-problem {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-warn, var(--color-text-muted));
+}
+
+.note-content {
+  min-height: 140px;
+  max-height: 360px;
+  overflow: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.note-content:focus-within {
+  border-color: var(--color-focus);
+  outline: 2px solid var(--color-focus);
+  outline-offset: -1px;
+}
+
+.note-content .ProseMirror {
+  min-height: 138px;
+  padding: var(--space-2) var(--space-3);
+  outline: none;
+}
+
+.note-content .ProseMirror > :first-child {
+  margin-top: 0;
+}
+
+.note-content .ProseMirror p.is-editor-empty:first-child::before {
+  float: left;
+  height: 0;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  content: attr(data-placeholder);
+}
+
+.note-content .ProseMirror a {
+  cursor: text;
+}
+
+.note-content ul[data-type='taskList'] {
+  padding-left: 0;
+  list-style: none;
+}
+
+.note-content ul[data-type='taskList'] li {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.note-content ul[data-type='taskList'] li > label {
+  flex: none;
+  margin-top: 0.2em;
+  user-select: none;
+}
+
+.note-content ul[data-type='taskList'] li > label input {
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.note-content ul[data-type='taskList'] li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.note-content ul[data-type='taskList'] li > div > p {
+  margin: 0;
+}

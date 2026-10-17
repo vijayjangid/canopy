@@ -58,7 +58,7 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 - **Top bar [Built]:** a File menu (New, Open, Save a copy, the built-in SpecKit example, your maps, and confirmed map deletion), the map title with a save indicator, undo and redo as icon buttons, the colour mode switch (Auto, Light, Dark), and the Search (⌘F) and shortcut sheet buttons. Theme and Flow live in the left panel.
 - **Canvas [Built]:** the infinite map.
 - **Left panel [Built]:** a strip of four tabs that opens into a floating panel: Settings (theme, layout and behaviour), Filter, Tags and Export. Its tabs sit on the header line, each with its icon and name, and a bar under the open one slides in. The Outline is planned to join it.
-- **Right inspector [Built]:** floating details panel that opens when a node is clicked and closes with its own button. Tabs: Details and Tasks, set and animated like the left panel's. Details orders controls as Color, Picture, Stickers, then Planning (due date and tags). The Tasks tab manages checklist items; adding the first task makes the node a Tasklist, and removing the last restores its standard appearance. The node title is editable from the panel heading. Image add, replace and remove controls are also in Details.
+- **Right inspector [Built]:** floating details panel that opens when a node is clicked and closes with its own button. Tabs: Details and Note, set and animated like the left panel's. Details orders controls as Color, Picture, Stickers, then Planning (due date and tags). The Note tab holds a rich text editor for the node's Markdown note; adding a note makes the node show a preview, and clearing it restores the standard appearance. The node title is editable from the panel heading. Image add, replace and remove controls are also in Details.
 - **Bottom-left toolbar [Built]:** pointer tools (Select, Pan, Zoom), unfold everything (which also fits the whole map in view), Zen. There is no separate fit button or shortcut. A minimap is planned.
 - **Bottom-center [Built]:** a transient shortcut hint strip that adapts to the current selection, and a Trail pill.
 - **Readable panels [Built]:** both side panels follow one rhythm: content 20px from the edge, groups 20px apart, related things 8px apart, names 13 to 13.5px, labels and small print 12px, and panels 372px wide. Explanations are not printed under every control. They sit behind a small **"i"** beside the name (shown on hover or keyboard focus, and read out as the button's name), so a panel reads as names and controls first and needs less scrolling. This covers every Settings row, the Behaviour note, the Filter's search hint and the sticker hint.
@@ -100,7 +100,7 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 
 ### 3.3 Copy, paste, fold [Built, except paste style]
 
-- Copy and paste a node or a branch as JSON (in-app, preserves everything including Properties, Tasks and Stickers) and as Markdown (to other apps). Pasted plain text is read as an outline.
+- Copy and paste a node or a branch as JSON (in-app, preserves everything including Properties, Note and Stickers) and as Markdown (to other apps). Pasted plain text is read as an outline.
 - **Paste modes:** `⌘V` pastes as a child node and `⌘⇧V` pastes as a peer. `⌘⌥V` (style only) is not built.
 - **Fold:** press `]`, click the fold button, or click the Fold Badge. The fold button is a circle with a curly brace, shown on the side where the child nodes are, when you hover or select a node. `0` unfolds everything, and so does the Unfold everything button in the bottom-left toolbar.
 - **Fold Badge:** shows the hidden count and a **peek** of the first children on hover. `⌥`-click to fold all peers is not built.
@@ -108,7 +108,7 @@ Where the app differs from what v0.2 said, the text below describes the app, and
 
 ### 3.4 Properties (metadata for planning) [Built, reduced scope]
 
-Every node can carry optional Due date and Tags Properties, a color override and Tasklist items. A node with one or more tasks is displayed as a Tasklist; a node with no tasks uses the standard appearance. People, Roles, Approval, Priority, Progress and custom Properties are not in scope.
+Every node can carry optional Due date and Tags Properties, a color override and a Markdown note. A node with a note shows a preview of it beneath the title; a node with no note uses the standard appearance. People, Roles, Approval, Priority, Progress and custom Properties are not in scope.
 
 The Details panel orders its controls as Color, Picture, Stickers, then Planning (Due date and Tags). This keeps stickers ahead of other marking mechanisms while making each control easy to find. Due dates are chosen in the date picker; tags remain structured metadata for filtering and shorthand.
 
@@ -132,11 +132,11 @@ The Details panel orders its controls as Color, Picture, Stickers, then Planning
 - **Chip density** (Settings): Off, Compact, Full. It is measured into the layout, so nodes grow to hold their chips.
 - Chips are also drawn in SVG, PNG and PDF exports.
 - Chips that fade with semantic zoom are **[Planned]** with M4.2. Today, zoomed far out, text and chips give way to icons for what a node holds.
-- Each node's accessible name includes its Properties and Tasklist items.
+- Each node's accessible name includes its Properties and note.
 
-**Color and Tasklists [Built]**
-- Nodes with tasks show the title at the top, followed by all checklist items and a subtle divider. The title editor stays in the title area; task rows are not interactive on the canvas.
-- Add, edit, complete and remove tasks in the Tasks tab. A task's checked state is shown on the node and included in JSON, copy/paste, and exports.
+**Color and Notes [Built]**
+- Nodes with a note show the title at the top, followed by a subtle divider and a preview of the note: its first eight lines laid out from the Markdown (headings and bold as bold, italic, strikethrough, links underlined, code in a monospace face, bullet, numbered and check list markers, quote bars, rules), with a trailing ellipsis when cut. The title editor stays in the title area; the preview is not interactive on the canvas.
+- Write the note in the Note tab with a rich text editor (Tiptap) whose toolbar offers bold, italic, bulleted and check lists, and links; headings, numbered lists, quotes, code and strikethrough are kept and can be typed as Markdown. The editor reads and writes Markdown, so the note is stored as Markdown text and included in JSON, copy/paste, and exports. Only web and mail links are allowed. Ctrl/⌘-click opens a link in the editor; a plain click on a link in a node's preview opens it in a new tab. The editor code loads on demand when the Note tab is first opened.
 - The color row uses circular presets that stay on one line. Foreground text color is chosen automatically for contrast.
 
 **Roll-ups [Built]**
@@ -179,7 +179,7 @@ The Details panel orders its controls as Color, Picture, Stickers, then Planning
   - **A picture dropped on empty canvas** becomes a new, untitled node under the Core, with the picture on it.
   - **A picture dropped on a node** puts the picture on that node (replacing any it had). Several pictures dropped on one node: the first goes on it, and the others become child nodes, each with its own picture. Several on empty canvas each become a new node under the Core.
   - **A Canopy map file (`.json` or `.canopy.json`) dropped on a node** adds the whole map as a new last branch under it, or under the Core when dropped on empty canvas. The other map's Core becomes the top of the branch (named by the Core's title, or by the map's title when the Core still has the default name). It can be dropped any number of times.
-    - Every node gets a new ID, so nothing clashes with the map it joins. Stickers, pictures, lines, properties, tasks, style and fold state come along, and so do tags its nodes use that this map lacks. References between its own nodes are kept; a reference to anything else cannot be, and is dropped. Its own Looks, preferences and saved Filters are not imported.
+    - Every node gets a new ID, so nothing clashes with the map it joins. Stickers, pictures, lines, properties, note, style and fold state come along, and so do tags its nodes use that this map lacks. References between its own nodes are kept; a reference to anything else cannot be, and is dropped. Its own Looks, preferences and saved Filters are not imported.
     - Files over 40 MB are refused.
   - Pictures and maps can be dropped together. Everything in one drop is one undo step, and the new nodes are selected.
   - **Feedback:** while files are dragged over the map, the node they would land on is outlined (or the whole canvas, for the Core), and a label says what will happen, such as "Add picture to “Beta”". Dropping outside the map does nothing, and the browser never opens the file in place of the map. A file that is neither a picture nor a map is refused with a message, and a map file that cannot be read says why.
@@ -227,7 +227,7 @@ Settings live in the Settings tab of the left panel, in a theme choice and two g
   - **PDF** through the browser's print dialog: one page sized to the map, vector, with selectable text. **Deviation:** no multi-page tiling and no bundled PDF writer.
   - **Compact layout for A4** (PNG, SVG and PDF): moves nodes so the map fills one A4 page, portrait, landscape or best fit. Each branch picks the arrangement that wastes least room (a column beside its parent, a row under it, or indented under it like an outline), and the top node can split its branches onto both sides. The picture takes the page's size and is shrunk only as far as needed. A map that already fits at full size is left as drawn. The map on screen is not changed.
   - **JSON**, versioned (`canopy/1`), round-trippable. Saved with File > Save a copy as a file.
-  - **Markdown outline**, with tasks and links, and Properties written as the inline shorthand from 3.4.
+  - **Markdown outline**, with each note indented under its node, and Properties written as the inline shorthand from 3.4.
   - **CSV**, one row per node with its path and Properties, defusing spreadsheet formulas.
   - **Selection export [Built]:** only the selected branches. **Frame export [Planned, low priority].**
 - **Export options:** toggles for Stickers and Chips, and a **Filter-aware export** that includes only what the active Filter picks out.
@@ -284,9 +284,9 @@ These are where we should beat Miro, XMind, MindMeister, Coggle and Whimsical. T
 
 1. **Ghost-Growth Handles [Built].** Hovering a handle previews the new node and its layout shift before you commit. Most tools only show a `+` icon. Ours shows the outcome.
 2. **Outline and Map dual view, live-synced [Planned].** Edit in either view and the other updates, with an animated cross-highlight. This is both an accessibility feature and a power-user feature. Competitors are canvas-only.
-3. **Semantic zoom (levels of detail) [Partly built].** Zoomed out, you see structure only. Zoomed in, Tasklists and Chips reveal themselves in place. Today there are two levels: full, and an icon level below 35% zoom, plus viewport culling. In the icon level text is not drawn. The Core shows a house; a picture shows a picture mark; Tasklists show a checklist, and text-only nodes show a **T**; tags show as dots in their colours and a due date as a small square (in the warning colour when late). Fold buttons stay on maps of up to 600 nodes, and the add and reference handles step aside, since they would be larger than the nodes.
+3. **Semantic zoom (levels of detail) [Partly built].** Zoomed out, you see structure only. Zoomed in, note previews and Chips reveal themselves in place. Today there are two levels: full, and an icon level below 35% zoom, plus viewport culling. In the icon level text is not drawn. The Core shows a house; a picture shows a picture mark; nodes with a note show lines of text, and text-only nodes show a **T**; tags show as dots in their colours and a due date as a small square (in the warning colour when late). Fold buttons stay on maps of up to 600 nodes, and the add and reference handles step aside, since they would be larger than the nodes.
 4. **Flow morphing and per-branch Flow [Planned].** Layouts are animated transformations, not jumps, and each branch can use a different Flow. Few competitors support mixed layouts.
-5. **Map-native planning with shorthand entry [Built].** Type `Draft launch plan #launch ^fri` and you get a node with a tag and due date, without opening a form. Tasklists keep checkable work inline with the map. Most planners have no free-form thinking space.
+5. **Map-native planning with shorthand entry [Built].** Type `Draft launch plan #launch ^fri` and you get a node with a tag and due date, without opening a form. Markdown notes keep lists, links and formatted text inline with the map. Most planners have no free-form thinking space.
 6. **Filters that follow you across views [Partly built].** One Filter applies to the map, the Trail, the next-match jumps and the exports, and the map dims instead of rearranging, so spatial memory is preserved. The Outline, Board, Table and Timeline are the views still to join.
 7. **One data model, many projections [Planned].** Map, Board, Table and Timeline are animated views of the same nodes. Dragging a card in Board changes the map, and no sync or duplication is involved.
 8. **Tour mode with camera choreography [Planned].** Present the map as a story. Each step focuses a branch, dims the rest, and moves the camera smoothly with an optional narration note. Tour order can differ from tree order. The Branch view and Trail (3.9) cover part of the "focus" half already.
@@ -320,7 +320,7 @@ Tokens live in `motion/`. A layout animator (`canvas/animator.ts`) tweens every 
 - **Re-parent drag [Built]:** the node lifts, a drop-target line shows the exact slot, and on drop it settles.
 - **Filter and Trail [Built]:** non-matching nodes fade, and the camera follows the selection (auto-pan). Smooth camera paths for **Focus / Tour** are **[Planned]**.
 - **Selection [Built]:** a ring and a light wash, and the handles fade in after a short delay to avoid flicker.
-- **Task completion [Built]:** marking a task complete updates its checkmark and label in the node and Details panel.
+- **Notes [Built]:** editing a note updates the preview on the node as you type.
 - **Stickers [Built]:** land like a stamp.
 - **Reduced motion [Built]:** springs become short fades, and layout changes jump. Changes are still shown, but without travel.
 
@@ -329,8 +329,8 @@ Tokens live in `motion/`. A layout animator (`canvas/animator.ts`) tweens every 
 - WCAG 2.2 AA minimum, and AAA in the High Contrast theme. Automated axe-core checks run in Light and Dark, in every theme, while editing, and in every panel and dialog. A manual screen-reader pass by a person is still to do, as is a measured 7:1 check for High Contrast.
 - **Tree semantics [Built]:** the map is one tab stop exposed as `role="tree"` with `aria-activedescendant`, and each node is a `treeitem` with `aria-level`, `aria-expanded`, `aria-posinset`, `aria-setsize` and `aria-selected`. Nothing needs DOM focus to move, which also works with viewport culling. **Deviation:** v0.2 said roving tabindex. The **Outline** view, as the canonical accessible representation, is **[Planned]** (M4.1).
 - Visible focus ring in every theme (at least 3:1 contrast). Selection has its own colour, an offset halo and a light wash, and editing shows one selection mark.
-- Never rely on color alone: overdue dates are bold and underlined, task completion has a checkmark and strikethrough, and High Contrast carries Level in corner shape.
-- Nodes have accessible names that include their Properties and tasks.
+- Never rely on color alone: overdue dates are bold and underlined, ticked check list items show a checkmark, and High Contrast carries Level in corner shape.
+- Nodes have accessible names that include their Properties and note.
 - Property Quick-Add, the Filter and every panel are fully keyboard and screen-reader operable.
 - Board view keyboard moves (select card, then `⌥+Arrows` to change column) with announcements **[Planned]** with the Board.
 - Target size of at least 24×24 px **[Partly]**. The larger option in Settings is **[Cut]**.
@@ -354,7 +354,7 @@ Tokens live in `motion/`. A layout animator (`canvas/animator.ts`) tweens every 
 | Fold everything above (Branch view), toggle | `[` | Built |
 | Move selection / reorder peers | Arrows / `⌥`+Arrows | Built |
 | Select branch | `⌘A` | Built |
-| Manage tasks | `T` | Built |
+| Edit note | `N` | Built |
 | Sticker picker | `S` | Built |
 | Label the line to the parent | `L` | Built |
 | Show or hide the inspector | `I` | Built |
@@ -401,7 +401,7 @@ The file keeps schema `canopy/1`. Every change since v0.2 only removed fields or
   "core": {
     "id": "t_1", "title": "", "folded": false,
     "style": { "color": "purple" },
-    "tasks": [{ "id": "task_1", "text": "Write release notes", "done": false }],
+    "note": "- [ ] Write release notes\n- See the [docs](https://example.com)",
     "stickers": [{ "id": "s_1", "key": "love" }],
     "edge": { "label": "depends on", "stickers": [{ "id": "s_2", "key": "flag" }] },
     "references": ["t_9", "t_12"],
@@ -421,7 +421,7 @@ Notes:
 - A Filter query can use `tags`, `stickers`, `due` (`overdue` or `week`), `dueBetween` and `match` (`all` or `any`).
 - `image` holds the pasted picture as `src` (an embedded `data:image/png|jpeg|webp|gif;base64,` URL) with its pixel size `w` and `h`, and an optional `alt` description (up to 200 characters). The display size is worked out from these and is not stored. A file whose `image` is not an embedded raster picture of a sensible size fails to open with a message.
 - **Removed:** workflow statuses and status filters. Legacy `planning.statusSet`, `props.status`, and status-only filter data are discarded when a file is opened. Attachments and other removed fields are also dropped on the next save.
-- **Node styling and tasks:** optional `style.color` (a preset name) and `tasks` (items with an ID, text and completion state) are stored per node. Older `style.type` fields are ignored; task presence determines whether a node is rendered as a Tasklist.
+- **Node styling and notes:** optional `style.color` (a preset name) and `note` (Markdown text, up to 5,000 characters) are stored per node. Older `style.type` fields are ignored. Files from before notes carry a `tasks` list; it is read as a Markdown check list in `note` and is no longer written.
 - **Not yet present:** `flowOverride` and `tour`, which belong to planned features.
 - Tags are referenced by key so renaming a tag updates every node.
 
@@ -451,7 +451,7 @@ React Flow (MIT, `@xyflow/react`) is excellent for node-and-edge diagrams, and i
 | Vector export (SVG, PDF) | Nodes are HTML elements, so export is rasterized (image) | Fails the vector export goal |
 | Accessibility | Basic keyboard and ARIA support for nodes | We need `role="tree"` semantics and the Outline as canonical view |
 | Growth Handles | `Handle` is a connection port | Ghost-preview add handles are custom regardless |
-| Performance | Docs recommend memoization, hiding collapsed subtrees and simple styles. Rich DOM nodes (Chips, Tasks, stickers) are costly | Tight at 5k nodes with rich nodes |
+| Performance | Docs recommend memoization, hiding collapsed subtrees and simple styles. Rich DOM nodes (Chips, notes, stickers) are costly | Tight at 5k nodes with rich nodes |
 | Pro features | Edge routing and editable edges are paid | Not needed for trees |
 
 What React Flow would give us for free (pan/zoom, selection box, minimap, fit view) is a small part of the work and is easy to build or borrow from `d3-zoom`. **Decision: custom SVG renderer.** A time-boxed spike with React Flow is only worth it if we later decide to drop vector export and Flow morph.
@@ -483,7 +483,7 @@ v0.2 planned vendored open-licence packs (Fluent Emoji, Noto Emoji, Phosphor). T
 
 1. **Foundation [Done]:** Map data model, Core/Node CRUD, the Right and Down Flows, full keyboard model, Growth Handles with ghost preview, fold/unfold, copy/paste, autosave, undo/redo, colour mode and the Standard theme, JSON import and export.
 2. **Expression [Done, simplified]:** Stickers, all Themes, Settings, PNG/SVG/PDF export, Command Palette. Topic notes were removed; attachments were cut.
-3. **Planning [Done, reduced]:** Properties (Due date, Tags), Tasklists, Chips, Quick-Add and inline shorthand, roll-ups, Filters, CSV export. Workflow statuses and other planner fields were removed.
+3. **Planning [Done, reduced]:** Properties (Due date, Tags), Notes, Chips, Quick-Add and inline shorthand, roll-ups, Filters, CSV export. Workflow statuses and other planner fields were removed.
 4. **Interface rework and navigation aids [Done, unplanned]:** floating panels, inspector, Trail, Branch view, Zen, pointer tools, lines, insert between, context menu, status bar, text expansion (section 12).
 5. **Delight and depth [Not started]:** Outline view, semantic zoom, Flow morph and per-branch Flow, Brain-dump import, Focus, Tour, minimap.
 6. **Planner views and polish [Not started]:** Board, Table, Timeline, custom Properties and workflow rules, visual history timeline, accessibility audit, shortcut customization, performance on 5k+ nodes, OPML and CSV import, localization.
@@ -500,7 +500,7 @@ The plan numbers these as Phases 1 to 5, with the interface rework recorded as u
 6. **Planning depth:** Board, Table and Timeline are enough for v1. Dependencies between nodes are out of scope.
 7. **Approval model:** **[Cut]** with People. Approval is not part of v1.
 8. **Sticker style:** one original flat die-cut style in every theme. The Playful theme sets its nodes in the same sticker style.
-9. **Planning scope:** v1 planning is Due date, Tags and Tasklists, plus roll-ups and Filters. People, Roles, Approval, Priority, Progress, custom Properties and workflow rules are out of v1.
+9. **Planning scope:** v1 planning is Due date, Tags and Notes, plus roll-ups and Filters. People, Roles, Approval, Priority, Progress, custom Properties and workflow rules are out of v1.
 10. **Attachments:** out of v1.
 11. **Saving:** a map is stored only after it is edited, so opening or creating an untouched map leaves nothing behind.
 12. **Shortcut keys:** `[` folds the parents (Branch view) and `]` folds the children, and both toggle, so the two directions of the tree sit on adjacent keys. The Filter's next and previous match moved to `.` and `,` to free the brackets.
@@ -519,7 +519,7 @@ A scope cut on 2026-10-08 removed several planner concepts; a later cleanup also
 | Workflow statuses | Removed from the model, UI, filters and exports. Legacy status fields are discarded when files are opened |
 | Topic notes | Removed from the model, UI and exports. Legacy `note` fields are ignored when files are opened |
 | Priority and Progress | Removed with the scope cut. Roll-ups count due dates |
-| Custom Properties | Not built. Tags and Tasklists cover common needs |
+| Custom Properties | Not built. Tags and Notes cover common needs |
 | Attachments and link previews | Removed with the scope cut. Link previews also needed network requests, which conflicts with local-first |
 | Custom sticker upload | Replaced by a built-in original set |
 | Saved-Filter presets such as Mine and Awaiting my approval | Depended on People. Filters cover Tags, Due date and Stickers |
@@ -529,7 +529,7 @@ A scope cut on 2026-10-08 removed several planner concepts; a later cleanup also
 
 | Area | v0.2 | Now |
 |---|---|---|
-| Topic notes | Markdown text field with toolbar and preview | Removed; tasks remain as the node's inline structured content |
+| Topic notes | Markdown text field with toolbar and preview | Built again: a Tiptap rich text editor that stores Markdown, previewed on the node. Replaces Tasklists |
 | Stickers | Vendored open packs, drag and rotate | 28 original die-cut stickers on four corners, plus lines |
 | PDF export | Vector with multi-page tiling | One page through the print dialog |
 | Undo history | Immer patches | Snapshots with structural sharing |

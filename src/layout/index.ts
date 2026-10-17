@@ -6,3 +6,4 @@ export * from './chips';
 export * from './image';
 export * from './edge';
 export * from './compact';
+export * from './notePreview';

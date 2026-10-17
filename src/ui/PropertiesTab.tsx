@@ -1,20 +1,16 @@
-import { useId, useRef, useState, type FormEvent, type ReactNode, type RefObject } from 'react';
+import { lazy, Suspense, useId, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { announce } from '../a11y';
 import {
-  addTopicTask,
   ancestorsOf,
-  removeTopicTask,
   setImageAlt,
   setTopicStyle,
   setTopicImage,
-  setTopicTaskText,
-  toggleTopicTask,
+  setTopicNote,
   ensureTag,
   formatDate,
   planningOf,
   setProps,
   TOPIC_COLOR_PRESETS,
-  MAX_TOPIC_TASK_TEXT,
   type TopicColor,
   type TopicStylePatch,
   type PropsPatch,
@@ -390,92 +386,28 @@ function ImageField({
   );
 }
 
-export function TasksTab({ topic }: { topic: Topic }) {
-  const [newTask, setNewTask] = useState('');
+const NoteEditor = lazy(() => import('./note/NoteEditor').then((m) => ({ default: m.NoteEditor })));
 
-  const add = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const text = newTask.trim();
-    if (!text) return;
-    const { doc, commit } = canopyStore.getState();
-    commit(addTopicTask(doc, topic.id, text));
-    setNewTask('');
-    announce(`Added task: ${text}`);
-  };
-
+/** The note of a topic, written as rich text and kept in the file as Markdown. */
+export function NotesTab({ topic }: { topic: Topic }) {
   return (
-    <div className="prop-field topic-tasks">
-      <span className="prop-label">Tasks</span>
-      {topic.tasks && topic.tasks.length > 0 ? (
-        <ul className="topic-task-editor" aria-label="Tasks">
-          {topic.tasks.map((task, index) => (
-            <li key={task.id}>
-              <input
-                type="checkbox"
-                checked={task.done}
-                aria-label={`Mark task ${index + 1} complete`}
-                onChange={() => {
-                  const { doc, commit } = canopyStore.getState();
-                  commit(toggleTopicTask(doc, topic.id, task.id));
-                  announce(`${task.done ? 'Reopened' : 'Completed'} task: ${task.text}`);
-                }}
-              />
-              <input
-                type="text"
-                maxLength={MAX_TOPIC_TASK_TEXT}
-                aria-label={`Task ${index + 1}`}
-                value={task.text}
-                data-done={task.done || undefined}
-                onChange={(event) => {
-                  const { doc, commit } = canopyStore.getState();
-                  commit(setTopicTaskText(doc, topic.id, task.id, event.target.value), {
-                    group: `task:${topic.id}:${task.id}`,
-                  });
-                }}
-                onBlur={() => {
-                  const { doc, commit } = canopyStore.getState();
-                  const current = doc.topics[topic.id]?.tasks?.find((item) => item.id === task.id);
-                  const text = current?.text.trim() ?? '';
-                  commit(
-                    text
-                      ? setTopicTaskText(doc, topic.id, task.id, text)
-                      : removeTopicTask(doc, topic.id, task.id),
-                    { group: `task:${topic.id}:${task.id}` },
-                  );
-                }}
-              />
-              <button
-                type="button"
-                className="pill-clear"
-                aria-label={`Remove task ${index + 1}`}
-                onClick={() => {
-                  const { doc, commit } = canopyStore.getState();
-                  commit(removeTopicTask(doc, topic.id, task.id));
-                  announce(`Removed task: ${task.text}`);
-                }}
-              >
-                <Icon name="close" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="inspector-hint">No tasks yet.</p>
-      )}
-      <form className="topic-task-add" onSubmit={add}>
-        <input
-          id={`topic-task-add-${topic.id}`}
-          type="text"
-          maxLength={MAX_TOPIC_TASK_TEXT}
-          aria-label="Add a task"
-          value={newTask}
-          placeholder="Add a task"
-          onChange={(event) => setNewTask(event.target.value)}
+    <div className="prop-field topic-note-editor">
+      <label className="prop-label" htmlFor={`topic-note-${topic.id}`}>
+        Note
+      </label>
+      <Suspense fallback={<p className="inspector-hint">Loading the editor…</p>}>
+        <NoteEditor
+          id={`topic-note-${topic.id}`}
+          value={topic.note ?? ''}
+          onChange={(markdown) => {
+            const { doc, commit } = canopyStore.getState();
+            commit(setTopicNote(doc, topic.id, markdown), { group: `note:${topic.id}` });
+          }}
         />
-        <button type="submit" className="pill" disabled={!newTask.trim()}>
-          Add
-        </button>
-      </form>
+      </Suspense>
+      <p className="inspector-hint">
+        The first lines show on the node. Hold Ctrl or ⌘ and click a link to open it.
+      </p>
     </div>
   );
 }

@@ -183,7 +183,7 @@ function topicEntries(): Entry[] {
     head('Details'),
     cmd('Set due date…', 'props.due', 'calendar'),
     cmd('Add tag…', 'props.tag', 'tag'),
-    cmd('Manage tasks…', 'tasks.open', 'planning', { disabled: many }),
+    cmd('Edit note…', 'note.open', 'planning', { disabled: many }),
     cmd('Add a sticker', 'stickers.open', 'stickers', { disabled: many }),
     ...(doc.topics[focus]?.parentId
       ? [

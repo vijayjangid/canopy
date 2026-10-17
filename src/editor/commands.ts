@@ -46,7 +46,7 @@ export interface CommandContext {
     openDialog: (name: DialogName) => void;
     file: (action: 'new' | 'open' | 'save' | 'import') => void;
     /** Opens or closes the Inspector. With a tab, it opens there and focuses its first field. */
-    inspector: (tab?: 'tasks' | 'stickers' | 'properties') => void;
+    inspector: (tab?: 'notes' | 'stickers' | 'properties') => void;
     /** Asks whether to delete the selected topics with everything below them, or only the topics. */
     confirmDelete: () => void;
     /** Types a description for the picture on a topic. */
@@ -153,7 +153,7 @@ const ARROWS: Record<string, Arrow> = {
 
 /** Commands that need a picked topic. */
 const actsOnTopic = (id: CommandId): boolean =>
-  /^(topic|edge|props)\./.test(id) || id === 'tasks.open' || id === 'stickers.open';
+  /^(topic|edge|props)\./.test(id) || id === 'note.open' || id === 'stickers.open';
 
 /** Runs a command. Returns false when it does not apply, so the key can keep its default. */
 export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo): boolean {
@@ -517,8 +517,8 @@ export function executeCommand(id: CommandId, ctx: CommandContext, key?: KeyInfo
       ctx.app?.inspector();
       return true;
 
-    case 'tasks.open':
-      ctx.app?.inspector('tasks');
+    case 'note.open':
+      ctx.app?.inspector('notes');
       return true;
 
     case 'stickers.open':

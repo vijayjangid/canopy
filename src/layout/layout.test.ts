@@ -1,7 +1,7 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import {
-  addTopicTask,
+  setTopicNote,
   createMap,
   createSubTopic,
   setFolded,
@@ -10,14 +10,8 @@ import {
 } from '../model';
 import { connectorPath } from './connectors';
 import { imageOffset, imageSize } from './image';
-import {
-  createTopicMeasurer,
-  TASK_ROW_RIGHT_PADDING,
-  TASK_TEXT_INSET,
-  textLines,
-  TOPIC_PADDING,
-  wrapLines,
-} from './measure';
+import { createTopicMeasurer, textLines, TOPIC_PADDING, wrapLines } from './measure';
+import { NOTE_MAX_LINES, NOTE_RIGHT_PADDING } from './notePreview';
 import { computeLayout, STICKER_CLEARANCE } from './tree-layout';
 import { SPACING, type Box, type Measure } from './types';
 
@@ -175,28 +169,47 @@ describe('computeLayout', () => {
     expect(computeLayout(map, opts).bounds).toEqual(a.bounds);
   });
 
-  it('measures each task row without reserving space for node-side controls', () => {
+  it('grows a topic to fit its note preview', () => {
     let map = createMap({ coreId: 'core' });
-    map = addTopicTask(map, 'core', 'First task');
-    const oneTask = createTopicMeasurer((text) => text.length * 7)(map.topics.core!, 0);
-    map = addTopicTask(map, 'core', 'A much longer second task that wraps onto another line');
-    const twoTasks = createTopicMeasurer((text) => text.length * 7)(map.topics.core!, 0);
+    map = setTopicNote(map, 'core', 'First line');
+    const short = createTopicMeasurer((text) => text.length * 7)(map.topics.core!, 0);
+    map = setTopicNote(
+      map,
+      'core',
+      '- one\n- two\n\nA much longer paragraph that wraps onto another line',
+    );
+    const long = createTopicMeasurer((text) => text.length * 7)(map.topics.core!, 0);
+    const plain = createTopicMeasurer((text) => text.length * 7)(
+      createMap({ coreId: 'core' }).topics.core!,
+      0,
+    );
 
-    expect(twoTasks.h).toBeGreaterThan(oneTask.h);
-    expect(twoTasks.w).toBeGreaterThan(oneTask.w);
+    expect(short.h).toBeGreaterThan(plain.h);
+    expect(long.h).toBeGreaterThan(short.h);
+    expect(long.w).toBeGreaterThan(short.w);
   });
 
-  it('leaves extra right padding after task text', () => {
+  it('shows no more than a few lines of a long note', () => {
+    const many = Array.from({ length: 40 }, (_, i) => `- item ${i}`).join('\n');
+    const map = setTopicNote(createMap({ coreId: 'core' }), 'core', many);
+    const capped = createTopicMeasurer((text) => text.length * 7)(map.topics.core!, 0);
+    const exact = setTopicNote(
+      createMap({ coreId: 'core' }),
+      'core',
+      Array.from({ length: NOTE_MAX_LINES }, (_, i) => `- item ${i}`).join('\n'),
+    );
+    expect(capped.h).toBe(createTopicMeasurer((text) => text.length * 7)(exact.topics.core!, 0).h);
+  });
+
+  it('leaves extra right padding after note text', () => {
     let map = createSubTopic(createMap({ coreId: 'core' }), 'core', {
       id: 'node',
       title: 'x',
     }).map;
-    map = addTopicTask(map, 'node', 'First task');
+    map = setTopicNote(map, 'node', 'First note');
     const width = createTopicMeasurer((text) => text.length * 7)(map.topics.node!, 1).w;
 
-    expect(width).toBe(
-      TASK_TEXT_INSET + 'First task'.length * 7 + TOPIC_PADDING.x + TASK_ROW_RIGHT_PADDING,
-    );
+    expect(width).toBe('First note'.length * 7 + TOPIC_PADDING.x + NOTE_RIGHT_PADDING);
   });
 
   it('reports bounds that contain every topic', () => {

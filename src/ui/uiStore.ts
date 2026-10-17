@@ -13,7 +13,7 @@ export type DialogName =
   | 'export';
 
 /** Parts of the details panel on the right. */
-export type InspectorTab = 'properties' | 'tasks' | 'stickers';
+export type InspectorTab = 'properties' | 'notes' | 'stickers';
 
 /** Tabs of the panel on the left. */
 export type LeftTab = 'settings' | 'tags' | 'export';

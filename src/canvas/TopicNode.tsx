@@ -8,14 +8,17 @@ import {
   imageOffset,
   imageSize,
   levelPrefix,
-  TASK_ROW_GAP,
-  TASK_ROW_LINE_HEIGHT,
-  TASK_TEXT_INSET,
+  NOTE_BOX_SIZE,
+  NOTE_GAP,
+  NOTE_LINE_HEIGHT,
+  noteStyleFor,
+  runLook,
   TOPIC_PADDING,
   STICKER_RIM,
   STICKER_SHADOW_OFFSET,
   textLines,
-  taskTextLines,
+  topicNoteLines,
+  type NoteLine,
   typeForDepth,
   type ChipItem,
   type TopicBox,
@@ -80,10 +83,137 @@ interface Props {
   trail: boolean;
   /** Roll-up shown on a folded topic, such as "3/7". */
   rollup: string | undefined;
-  /** Spoken after the title, such as "two tasks, one complete". */
+  /** Spoken after the title, such as "due Nov 1, has a note". */
   summary: string;
   /** Changes with the font, so lines are wrapped again even when the box stays the same. */
   epoch: number;
+}
+
+/** One line of a note preview: its marker, quote bar or rule, and text in runs of different looks. */
+function NoteRow({
+  line,
+  top,
+  w,
+  size,
+  ink,
+}: {
+  line: NoteLine;
+  top: number;
+  w: number;
+  size: number;
+  ink: string | undefined;
+}) {
+  const left = TOPIC_PADDING.x;
+  const mid = top + NOTE_LINE_HEIGHT / 2;
+  const marker = line.marker;
+  const paint = (key: 'fill' | 'stroke') => (ink ? { [key]: ink } : undefined);
+  return (
+    <g className="topic-note-row">
+      {line.bar !== undefined && (
+        <line
+          className="topic-note-bar"
+          x1={left + line.bar}
+          x2={left + line.bar}
+          y1={top + 1}
+          y2={top + NOTE_LINE_HEIGHT - 1}
+          style={paint('stroke')}
+        />
+      )}
+      {line.rule && (
+        <line
+          className="topic-note-line"
+          x1={left + line.x}
+          x2={w - left}
+          y1={mid}
+          y2={mid}
+          style={paint('stroke')}
+        />
+      )}
+      {marker?.kind === 'bullet' && (
+        <circle
+          className="topic-note-mark"
+          cx={left + line.x - 9}
+          cy={mid}
+          r={2}
+          style={paint('fill')}
+        />
+      )}
+      {(marker?.kind === 'todo' || marker?.kind === 'done') && (
+        <>
+          <rect
+            className="topic-note-box"
+            x={left + line.x - 14}
+            y={mid - NOTE_BOX_SIZE / 2}
+            width={NOTE_BOX_SIZE}
+            height={NOTE_BOX_SIZE}
+            rx={2}
+            style={paint('stroke')}
+          />
+          {marker.kind === 'done' && (
+            <path
+              className="topic-note-tick"
+              d={`M${left + line.x - 12} ${mid}l2 2 3.5-4`}
+              style={paint('stroke')}
+            />
+          )}
+        </>
+      )}
+      {marker?.kind === 'number' && (
+        <text
+          className="topic-note-text"
+          x={left + line.x - 4}
+          y={mid}
+          textAnchor="end"
+          dominantBaseline="central"
+          fontSize={size}
+          opacity={0.7}
+          style={paint('fill')}
+        >
+          {marker.label}
+        </text>
+      )}
+      {!line.rule && (
+        <text
+          className="topic-note-text"
+          x={left + line.x}
+          y={mid}
+          dominantBaseline="central"
+          fontSize={size}
+          style={paint('fill')}
+        >
+          {line.runs.map((run, i) => {
+            const look = runLook(run);
+            const span = (
+              <tspan
+                key={i}
+                className={look.mono ? 'topic-note-mono' : undefined}
+                fontWeight={look.weight}
+                fontStyle={look.italic ? 'italic' : undefined}
+                textDecoration={look.decoration}
+              >
+                {run.text}
+              </tspan>
+            );
+            // Links work on the map: a click opens the address in a new tab.
+            return run.href ? (
+              <a
+                key={i}
+                className="topic-note-link"
+                href={run.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                tabIndex={-1}
+              >
+                {span}
+              </a>
+            ) : (
+              span
+            );
+          })}
+        </text>
+      )}
+    </g>
+  );
 }
 
 /** Describe and remove buttons on the corner of a picture. The canvas handles the presses. */
@@ -190,7 +320,6 @@ export const TopicNode = memo(function TopicNode({
   epoch,
 }: Props) {
   const { w, h, depth } = box;
-  const tasklist = (topic?.tasks?.length ?? 0) > 0;
   const style = typeForDepth(depth);
   const hasImage = topic?.image !== undefined;
   const lines = useMemo(
@@ -202,18 +331,14 @@ export const TopicNode = memo(function TopicNode({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [detail, title, depth, epoch, hasImage],
   );
-  const taskRows = useMemo(
-    () =>
-      tasklist && topic
-        ? (topic.tasks ?? []).map((task) => ({
-            task,
-            lines: taskTextLines(task.text, depth, textWidth),
-          }))
-        : [],
-    // A font load can change where long task labels wrap.
+  const noteText = topic?.note;
+  const noteRows = useMemo(
+    () => topicNoteLines(noteText, depth, textWidth),
+    // A font load can change where long notes wrap.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tasklist, topic, depth, epoch],
+    [noteText, depth, epoch],
   );
+  const hasNote = noteRows.length > 0;
   const empty = title.trim().length === 0;
   const radius = cornerRadius(look, depth, h);
   const chipsVisible = chips.length > 0;
@@ -222,17 +347,10 @@ export const TopicNode = memo(function TopicNode({
   // A picture sits above the title, which is then centred in what is left of the box.
   const above = topic ? imageOffset(topic) : 0;
   const picture = imageSize(topic?.image);
-  const firstBaseline = tasklist
+  const firstBaseline = hasNote
     ? above + TOPIC_PADDING.y + style.lineHeight / 2
     : above + firstBaselineOf(h - above, rowH, lines.length, style.lineHeight);
-  const taskStart = above + TOPIC_PADDING.y + lines.length * style.lineHeight + TASK_ROW_GAP;
-  const { positions: taskPositions } = taskRows.reduce(
-    (result, entry) => ({
-      positions: [...result.positions, { ...entry, top: result.nextTop }],
-      nextTop: result.nextTop + entry.lines.length * TASK_ROW_LINE_HEIGHT + TASK_ROW_GAP,
-    }),
-    { positions: [] as Array<(typeof taskRows)[number] & { top: number }>, nextTop: taskStart },
-  );
+  const noteStart = above + TOPIC_PADDING.y + lines.length * style.lineHeight + NOTE_GAP;
   const topicColor = topic
     ? (topic.style?.color ?? (look === 'playful' ? playfulColorForDepth(depth) : undefined))
     : undefined;
@@ -271,7 +389,7 @@ export const TopicNode = memo(function TopicNode({
       data-kind={kind}
       data-depth={Math.min(depth, 3)}
       data-level={levelOf(depth)}
-      data-node-type={tasklist ? 'tasklist' : 'standard'}
+      data-node-type={hasNote ? 'note' : 'standard'}
       data-selected={selected || undefined}
       data-dim={dim || undefined}
       data-trail={trail || undefined}
@@ -360,55 +478,25 @@ export const TopicNode = memo(function TopicNode({
           {titleLines}
         </text>
       )}
-      {real && tasklist && detail === 'full' && (
-        <g className="topic-task-list" aria-hidden="true" pointerEvents="none">
-          {taskPositions.length > 0 && (
-            <line
-              className="topic-task-divider"
-              x1={TOPIC_PADDING.x}
-              x2={w - TOPIC_PADDING.x}
-              y1={taskStart - TASK_ROW_GAP / 2}
-              y2={taskStart - TASK_ROW_GAP / 2}
-              style={topicTextColor ? { stroke: topicTextColor } : undefined}
+      {real && detail === 'full' && noteRows.length > 0 && (
+        <g className="topic-note" aria-hidden="true" pointerEvents="none">
+          <line
+            className="topic-note-divider"
+            x1={TOPIC_PADDING.x}
+            x2={w - TOPIC_PADDING.x}
+            y1={noteStart - NOTE_GAP / 2}
+            y2={noteStart - NOTE_GAP / 2}
+            style={topicTextColor ? { stroke: topicTextColor } : undefined}
+          />
+          {noteRows.map((line, index) => (
+            <NoteRow
+              key={index}
+              line={line}
+              top={noteStart + index * NOTE_LINE_HEIGHT}
+              w={w}
+              size={noteStyleFor(depth).size}
+              ink={topicTextColor}
             />
-          )}
-          {taskPositions.map(({ task, lines: taskLines, top }) => (
-            <g key={task.id} className="topic-task" data-done={task.done || undefined}>
-              {!task.done && (
-                <circle
-                  className="topic-task-marker"
-                  cx={TOPIC_PADDING.x + 8}
-                  cy={top + 8}
-                  r={2.25}
-                  style={topicTextColor ? { fill: topicTextColor } : undefined}
-                />
-              )}
-              {task.done && (
-                <path
-                  className="topic-task-tick"
-                  d={`M${TOPIC_PADDING.x + 4} ${top + 8}l3 3 5-6`}
-                  style={topicTextColor ? { stroke: topicTextColor } : undefined}
-                />
-              )}
-              <text
-                className="topic-task-text"
-                x={TOPIC_PADDING.x + TASK_TEXT_INSET}
-                y={top + TASK_ROW_LINE_HEIGHT / 2}
-                dominantBaseline="central"
-                textDecoration={task.done ? 'line-through' : undefined}
-                style={topicTextColor ? { fill: topicTextColor } : undefined}
-              >
-                {taskLines.map((line, index) => (
-                  <tspan
-                    key={index}
-                    x={TOPIC_PADDING.x + TASK_TEXT_INSET}
-                    y={top + TASK_ROW_LINE_HEIGHT / 2 + index * TASK_ROW_LINE_HEIGHT}
-                  >
-                    {line}
-                  </tspan>
-                ))}
-              </text>
-            </g>
           ))}
         </g>
       )}

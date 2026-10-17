@@ -21,7 +21,7 @@ describe('hintsFor', () => {
       'Tag',
       'Due date',
       'Sticker',
-      'Tasks',
+      'Note',
     ]);
     expect(labels(hintsFor({ ...base, focusHasChildren: true }, true))).toContain('Fold');
     expect(
@@ -33,7 +33,7 @@ describe('hintsFor', () => {
     expect(labels(hintsFor({ ...base, focusIsCore: true }, true))).toEqual([
       'Add child node',
       'Edit title',
-      'Tasks',
+      'Note',
       'Sticker',
       'Unfold everything',
     ]);

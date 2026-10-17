@@ -19,7 +19,7 @@ import { StickerArt } from '../stickers/art';
 import { STICKERS } from '../stickers/catalog';
 import { Icon } from './icons';
 import { InfoTip } from './InfoTip';
-import { PropertiesTab, TasksTab } from './PropertiesTab';
+import { NotesTab, PropertiesTab } from './PropertiesTab';
 import { showToast } from './toast';
 import { closeInspector, setEdgeFocus, setInspectorTab, useUi } from './uiStore';
 import './inspector.css';
@@ -39,7 +39,7 @@ export function Inspector() {
   const topic = useCanopy((s) => s.doc.topics[s.focus]);
   const selectionCount = useCanopy((s) => s.selection.length);
   const many = selectionCount > 1;
-  const pane = !many && target === 'tasks' ? 'tasks' : 'details';
+  const pane = !many && target === 'notes' ? 'notes' : 'details';
 
   // Bring the requested section into view when it is asked for.
   useEffect(() => {
@@ -180,13 +180,13 @@ export function Inspector() {
           <button
             type="button"
             role="tab"
-            id="inspector-tab-tasks"
-            aria-selected={pane === 'tasks'}
+            id="inspector-tab-notes"
+            aria-selected={pane === 'notes'}
             aria-controls="inspector-panel"
-            onClick={() => setInspectorTab('tasks')}
+            onClick={() => setInspectorTab('notes')}
           >
-            Tasks
-            {topic.tasks?.length ? <span className="tab-mark" aria-label="has tasks" /> : null}
+            Note
+            {topic.note ? <span className="tab-mark" aria-label="has a note" /> : null}
           </button>
         </div>
       )}
@@ -199,14 +199,14 @@ export function Inspector() {
           many ? undefined : `inspector-tab-${pane === 'details' ? 'details' : pane}`
         }
       >
-        {pane === 'tasks' ? (
+        {pane === 'notes' ? (
           <section
-            id="inspector-section-tasks"
+            id="inspector-section-notes"
             className="panel-section panel-section-plain"
-            aria-label="Tasks"
+            aria-label="Note"
           >
             <div className="panel-section-body">
-              <TasksTab key={focus} topic={topic} />
+              <NotesTab key={focus} topic={topic} />
             </div>
           </section>
         ) : (
@@ -238,7 +238,7 @@ export function Inspector() {
         )}
         {many && (
           <p className="inspector-hint panel-note">
-            Select one node to edit its tasks and stickers.
+            Select one node to edit its note and stickers.
           </p>
         )}
       </div>

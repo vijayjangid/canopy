@@ -12,13 +12,12 @@ import {
   levelPrefix,
   STICKER_RIM,
   STICKER_SHADOW_OFFSET,
-  TASK_ROW_GAP,
-  TASK_ROW_LINE_HEIGHT,
-  TASK_TEXT_INSET,
+  NOTE_GAP,
+  noteStyleFor,
   TOPIC_PADDING,
   seedOf,
-  taskTextLines,
   textLines,
+  topicNoteLines,
   typeForDepth,
   topicRows,
   type Layout,
@@ -36,6 +35,7 @@ import {
   type TopicId,
 } from '../model';
 import { chipsMarkup, edgeMarkup, stickersMarkup } from './chipsMarkup';
+import { noteMarkup } from './noteMarkup';
 import { mixHex, type ExportTheme } from './exportTheme';
 import { levelOf, playfulColorForDepth } from '../theme/levels';
 
@@ -274,10 +274,11 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
     const lines = textLines(topic.title, b.depth, options.textWidth);
     const above = imageOffset(topic);
     const picture = imageSize(topic.image);
-    const tasklist = (topic.tasks?.length ?? 0) > 0;
-    const first = tasklist
-      ? above + TOPIC_PADDING.y + style.lineHeight / 2
-      : above + firstBaselineOf(b.h - above, rowH, lines.length, style.lineHeight);
+    const note = topicNoteLines(topic.note, b.depth, options.textWidth);
+    const first =
+      note.length > 0
+        ? above + TOPIC_PADDING.y + style.lineHeight / 2
+        : above + firstBaselineOf(b.h - above, rowH, lines.length, style.lineHeight);
     const empty = topic.title.trim() === '';
     const radius = cornerRadius(theme.look, b.depth, b.h);
 
@@ -323,31 +324,12 @@ export function buildSvg(doc: CanopyMap, layout: Layout, options: SvgOptions): B
     out.push(
       `<text ${box} fill="${empty ? theme.muted : paint.text}"${empty ? ' font-style="italic"' : ''}>${spans(theme.muted, '0.75')}</text>`,
     );
-    if (tasklist && topic.tasks?.length) {
+    if (note.length > 0) {
       const titleBottom = above + TOPIC_PADDING.y + lines.length * style.lineHeight;
-      let taskTop = titleBottom + TASK_ROW_GAP;
       out.push(
-        `<line x1="${TOPIC_PADDING.x}" x2="${f(b.w - TOPIC_PADDING.x)}" y1="${f(titleBottom + TASK_ROW_GAP / 2)}" y2="${f(titleBottom + TASK_ROW_GAP / 2)}" stroke="${paint.text}" stroke-opacity="0.18" stroke-width="1"/>`,
+        `<line x1="${TOPIC_PADDING.x}" x2="${f(b.w - TOPIC_PADDING.x)}" y1="${f(titleBottom + NOTE_GAP / 2)}" y2="${f(titleBottom + NOTE_GAP / 2)}" stroke="${paint.text}" stroke-opacity="0.18" stroke-width="1"/>`,
+        `<g role="note" aria-label="${escapeXml(topic.note ?? '')}">${noteMarkup(note, titleBottom + NOTE_GAP, b.w, noteStyleFor(b.depth).size, paint.text)}</g>`,
       );
-      out.push('<g role="list" aria-label="Tasks">');
-      for (const task of topic.tasks ?? []) {
-        const taskLines = taskTextLines(task.text, b.depth, options.textWidth);
-        const taskSize = Math.max(11, style.size * 0.82);
-        out.push(
-          `<g role="listitem" aria-label="${escapeXml(`${task.text}, ${task.done ? 'completed' : 'not completed'}`)}">` +
-            (task.done
-              ? `<path d="M${TOPIC_PADDING.x + 4} ${f(taskTop + 8)}l3 3 5-6" fill="none" stroke="${paint.text}" stroke-width="1.8"/>`
-              : `<circle cx="${TOPIC_PADDING.x + 8}" cy="${f(taskTop + 8)}" r="2.25" fill="${paint.text}" fill-opacity="0.55"/>`) +
-            `<text x="${TOPIC_PADDING.x + TASK_TEXT_INSET}" y="${f(taskTop + taskSize / 2)}" dominant-baseline="central" font-size="${f(taskSize)}" fill="${paint.text}"${task.done ? ' text-decoration="line-through" opacity="0.72"' : ''}>${taskLines
-              .map(
-                (line, index) =>
-                  `<tspan x="${TOPIC_PADDING.x + TASK_TEXT_INSET}" y="${f(taskTop + taskSize / 2 + index * TASK_ROW_LINE_HEIGHT)}">${escapeXml(line)}</tspan>`,
-              )
-              .join('')}</text></g>`,
-        );
-        taskTop += taskLines.length * TASK_ROW_LINE_HEIGHT + TASK_ROW_GAP;
-      }
-      out.push('</g>');
     }
     if (options.chips !== false && rows.chips.length > 0) {
       out.push(

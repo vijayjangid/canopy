@@ -38,7 +38,7 @@ const MAX_ERRORS = 20;
 function extrasOf(topic: Topic): TopicExtras {
   const out: TopicExtras = {};
   if (topic.style) out.style = topic.style;
-  if (topic.tasks?.length) out.tasks = topic.tasks;
+  if (topic.note) out.note = topic.note;
   if (topic.references?.length) out.references = topic.references;
   if (topic.image) out.image = topic.image;
   if (topic.stickers?.length) out.stickers = topic.stickers;

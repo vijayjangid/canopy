@@ -115,13 +115,20 @@ export const appContext: CommandContext = {
       openInspector(tab);
       // Wait for the panel to draw, then put the cursor in its first field.
       const first: Record<string, string> = {
-        tasks: 'input[aria-label="Add a task"]',
+        notes: '[contenteditable="true"]',
         stickers: '.sticker-grid button:not(:disabled)',
         properties: '.pill-group button',
       };
-      requestAnimationFrame(() =>
-        document.querySelector<HTMLElement>(`#inspector-section-${tab} ${first[tab]}`)?.focus(),
-      );
+      // The note editor loads on demand, so keep looking for a moment.
+      const focusField = (tries: number) =>
+        requestAnimationFrame(() => {
+          const field = document.querySelector<HTMLElement>(
+            `#inspector-section-${tab} ${first[tab]}`,
+          );
+          if (field) field.focus();
+          else if (tries > 0) focusField(tries - 1);
+        });
+      focusField(tab === 'notes' ? 60 : 0);
     },
     file: (action) => {
       if (action === 'new') startNewMap();

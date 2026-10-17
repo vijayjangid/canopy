@@ -396,29 +396,57 @@
   pointer-events: none;
 }
 
-.topic-task-marker {
-  fill: var(--color-topic-text);
-  opacity: 0.55;
-}
-
-.topic-task-divider {
+.topic-note-divider {
   stroke: var(--color-topic-text);
   stroke-width: 1;
   opacity: 0.18;
 }
 
-.topic-task-tick {
+.topic-note-text {
+  fill: var(--color-topic-text);
+  font-family: var(--font-map);
+  white-space: pre;
+}
+
+.topic-note-mark {
+  fill: var(--color-topic-text);
+  opacity: 0.55;
+}
+
+.topic-note-box {
   fill: none;
-  stroke: var(--color-accent);
-  stroke-width: 1.8;
+  stroke: var(--color-topic-text);
+  stroke-width: 1.2;
+  opacity: 0.7;
+}
+
+.topic-note-tick {
+  fill: none;
+  stroke: var(--color-topic-text);
+  stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.topic-task-text {
-  fill: var(--color-topic-text);
-  font-family: var(--font-map);
-  font-size: 0.82em;
+.topic-note-line {
+  stroke: var(--color-topic-text);
+  stroke-width: 1;
+  opacity: 0.3;
+}
+
+.topic-note-bar {
+  stroke: var(--color-topic-text);
+  stroke-width: 2;
+  opacity: 0.4;
+}
+
+.topic-note-link {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.topic-note-mono {
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 }
 
 .topic[data-focused] .topic-ring {

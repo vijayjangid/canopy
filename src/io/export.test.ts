@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { computeLayout, createTopicMeasurer, type Measure } from '../layout';
 import {
-  addTopicTask,
+  setTopicNote,
   addSticker,
   ensureTag,
   parseTitle,
@@ -12,7 +12,6 @@ import {
   setPrefs,
   setTopicImage,
   setTopicStyle,
-  toggleTopicTask,
   type CanopyMap,
 } from '../model';
 import { legibleOn, luminance, type ExportTheme } from './exportTheme';
@@ -162,12 +161,14 @@ describe('SVG export', () => {
     expect(playful).toContain('stroke="#b4b5c3"');
   });
 
-  it('exports Tasklist rows and custom node colors', () => {
-    let map = createSubTopic(sample(), 'core', { id: 'tasks', title: 'Release' }).map;
-    map = setTopicStyle(map, 'tasks', { color: 'teal' });
-    map = addTopicTask(map, 'tasks', 'Write release notes');
-    const taskId = map.topics.tasks?.tasks?.[0]?.id;
-    if (taskId) map = toggleTopicTask(map, 'tasks', taskId);
+  it('exports note previews and custom node colors', () => {
+    let map = createSubTopic(sample(), 'core', { id: 'release', title: 'Release' }).map;
+    map = setTopicStyle(map, 'release', { color: 'teal' });
+    map = setTopicNote(
+      map,
+      'release',
+      '- [x] Write **release** notes\n- See [the docs](https://example.com)',
+    );
     const layout = computeLayout(map, {
       flow: map.prefs.flow,
       density: 'comfortable',
@@ -181,8 +182,10 @@ describe('SVG export', () => {
     }).svg;
 
     expect(svg).toContain('fill="#0f766e"');
-    expect(svg).toContain('Write release notes');
-    expect(svg).toContain('text-decoration="line-through"');
+    expect(svg).toContain('>Write </tspan>');
+    expect(svg).toContain('font-weight="650">release</tspan>');
+    expect(svg).toContain('text-decoration="underline">the docs</tspan>');
+    expect(svg).not.toContain('https://example.com</');
   });
 
   it('embeds font rules when given, and sizes the picture to the map', () => {
@@ -234,11 +237,13 @@ describe('Markdown outline', () => {
     expect(mapToMarkdown(sample(), { roots: ['a'] })).toBe('- Alpha & <Beta>\n  - Deep\n');
   });
 
-  it('exports checklist state without confusing tasks with child topics', () => {
-    let map = createSubTopic(sample(), 'core', { id: 'tasks', title: 'Release' }).map;
-    map = addTopicTask(map, 'tasks', 'Write release notes');
+  it('exports notes indented under their topic', () => {
+    let map = createSubTopic(sample(), 'core', { id: 'release', title: 'Release' }).map;
+    map = setTopicNote(map, 'release', '- [ ] Write release notes\n\n[docs](https://example.com)');
     const text = mapToMarkdown(map, {});
-    expect(text).toContain('  Tasks:\n    - [ ] Write release notes');
+    expect(text).toContain(
+      '- Release\n  - [ ] Write release notes\n\n  [docs](https://example.com)',
+    );
   });
 });
 

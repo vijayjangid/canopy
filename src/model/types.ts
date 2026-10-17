@@ -22,7 +22,8 @@ export interface TopicProps {
   tags?: string[];
 }
 
-export const MAX_TOPIC_TASK_TEXT = 240;
+/** Longest Markdown note kept on a topic. */
+export const MAX_TOPIC_NOTE = 5000;
 export type TopicColor =
   'coral' | 'orange' | 'yellow' | 'green' | 'teal' | 'blue' | 'purple' | 'pink' | 'red' | 'indigo';
 
@@ -76,8 +77,8 @@ export interface TopicImage {
 export interface TopicExtras {
   /** Optional color override. */
   style?: TopicStyle;
-  /** Checklist items shown in a Tasklist node. */
-  tasks?: TopicTask[];
+  /** Markdown shown as a preview under the title. */
+  note?: string;
   /** The line to the parent: its label and stickers. */
   edge?: EdgeData;
   /** Non-hierarchical links to other topics in this map, in the order they were made. */
@@ -86,12 +87,6 @@ export interface TopicExtras {
   image?: TopicImage;
   stickers?: StickerRef[];
   props?: TopicProps;
-}
-
-export interface TopicTask {
-  id: string;
-  text: string;
-  done: boolean;
 }
 
 export interface Topic extends TopicExtras {

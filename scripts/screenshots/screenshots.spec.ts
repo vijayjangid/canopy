@@ -21,6 +21,7 @@ const out = (file: string) => path.join(OUT, `${file}.png`);
 /** Modules the dev server serves, loaded in the page by path. */
 const MODEL = '/src/model/index.ts';
 const STORE = '/src/store/index.ts';
+const VIEWPORT = '/src/canvas/viewportStore.ts';
 const LAYOUT = '/src/layout/index.ts';
 const METRICS = '/src/canvas/metrics.ts';
 
@@ -53,14 +54,7 @@ async function loadMap(page: Page, tree: DemoTopic, title: string): Promise<void
               ...(tags.length > 0 ? { tags } : {}),
             });
           }
-          for (const task of kid.tasks ?? []) {
-            map = model.addTopicTask(map, id, task.text);
-            if (task.done) {
-              const taskId = map.topics[id]?.tasks?.at(-1)?.id;
-              if (!taskId) throw new Error(`Could not add screenshot task to "${kid.title}"`);
-              map = model.toggleTopicTask(map, id, taskId);
-            }
-          }
+          if (kid.note) map = model.setTopicNote(map, id, kid.note);
           for (const sticker of kid.stickers ?? []) map = model.addSticker(map, id, sticker);
           if (kid.edge) map = model.setEdgeLabel(map, id, kid.edge);
           for (const to of kid.references ?? []) pending.push([id, to]);
@@ -126,16 +120,31 @@ test('inspector: a picked topic, its trail and the details panel', async ({ page
   await page.screenshot({ path: out('inspector') });
 });
 
-test('tasklist: inline tasks on the node and in the Tasks panel', async ({ page }) => {
+test('notes: a Markdown preview on the node and the editor in the Note tab', async ({ page }) => {
   await loadMap(page, PRODUCT_LAUNCH, 'Product launch');
-  await page.getByRole('treeitem', { name: /Landing page/ }).click();
+  await pick(page, 'Landing page');
+  await page.getByRole('tree', { name: 'Mind map' }).focus();
+  await page.keyboard.press('n');
   await expect(page.getByRole('complementary', { name: 'Inspector' })).toBeVisible();
-  await expect(page.getByRole('tab', { name: /Tasks/ })).toBeVisible();
-  await page.getByRole('tab', { name: /Tasks/ }).click();
-  await expect(page.getByRole('textbox', { name: 'Task 1' })).toHaveValue('Draft the page copy');
+  await page.getByRole('tab', { name: /Note/ }).click();
+  await expect(page.getByRole('textbox', { name: 'Note' })).toContainText('Draft the page copy');
+  // Zoom in on the node so its note preview is readable.
+  const box = await page.getByRole('treeitem', { name: /Landing page/ }).boundingBox();
+  if (!box) throw new Error('The Landing page node is not on screen');
+  const host = await page.locator('.canvas-host').boundingBox();
+  await page.evaluate(
+    async ({ at, viewportUrl }) => {
+      const { viewportStore } = await import(/* @vite-ignore */ viewportUrl);
+      viewportStore.getState().zoom(3.2, at);
+    },
+    {
+      at: { x: box.x + box.width / 2 - (host?.x ?? 0), y: box.y + box.height / 2 - (host?.y ?? 0) },
+      viewportUrl: VIEWPORT,
+    },
+  );
   await page.mouse.move(700, 880);
   await settle(page);
-  await page.screenshot({ path: out('tasklist') });
+  await page.screenshot({ path: out('notes') });
 });
 
 test('stickers: the picker with weekday and priority cutouts', async ({ page }) => {

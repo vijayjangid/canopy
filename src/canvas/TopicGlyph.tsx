@@ -8,8 +8,8 @@ const HOME = 'M0 -8.5L9.5 -0.2H7V8.5H-7V-0.2H-9.5ZM-2.2 8.5V2.6H2.2V8.5Z';
 const PICTURE = 'M-9 -7H9V7H-9ZM-9 7L-3 0.5L1 4.5L4 1.5L9 7';
 /** The letter T, for a topic that is only text. */
 const TEXT = 'M-6.5 -6H6.5M0 -6V7';
-/** Three short rows with checkboxes, for a Tasklist node. */
-const TASKLIST = 'M-8 -7h3v3h-3ZM-2 -5.5H8M-8 -1.5h3v3h-3ZM-2 0H8M-8 4h3v3h-3ZM-2 5.5H8';
+/** A few rows of text, for a node with a note. */
+const NOTE = 'M-8 -6H8M-8 -2H8M-8 2H8M-8 6H1';
 
 /** The room one glyph is drawn in: its drawings are about 20 units across. */
 const CELL = 20;
@@ -70,7 +70,7 @@ export function TopicGlyph({
   ink?: string;
 }) {
   const core = depth === 0;
-  const tasklist = (topic.tasks?.length ?? 0) > 0;
+  const hasNote = (topic.note?.trim() ?? '') !== '';
   const picture = imageSize(topic.image);
   const above = imageOffset(topic);
   const hasTitle = topic.title.trim() !== '';
@@ -78,7 +78,7 @@ export function TopicGlyph({
   const marksH = marks.length > 0 ? MARKS_ROW : 0;
 
   // Under a picture a topic with no title has nothing more to say.
-  const showMain = core || tasklist || hasTitle;
+  const showMain = core || hasNote || hasTitle;
   const room = h - above - marksH;
   const size = Math.max(12, Math.min(room * 0.7, 28));
   const cx = w / 2;
@@ -102,8 +102,8 @@ export function TopicGlyph({
         <g data-glyph={core ? 'home' : 'text'} transform={`translate(${cx} ${cy})`}>
           {core ? (
             <Glyph d={HOME} size={size} fill />
-          ) : tasklist ? (
-            <Glyph d={TASKLIST} size={size} />
+          ) : hasNote ? (
+            <Glyph d={NOTE} size={size} />
           ) : (
             <Glyph d={TEXT} size={size} />
           )}

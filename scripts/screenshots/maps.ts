@@ -10,7 +10,8 @@ export interface DemoTopic {
   /** A due date, as YYYY-MM-DD. */
   due?: string;
   tags?: string[];
-  tasks?: Array<{ text: string; done?: boolean }>;
+  /** Markdown shown as a preview on the node. */
+  note?: string;
   /** Keys from the sticker catalog. */
   stickers?: string[];
   /** A label on the line up to the parent. */
@@ -20,16 +21,13 @@ export interface DemoTopic {
   children?: DemoTopic[];
 }
 
-/** A product launch plan with dates, tags, tasks, stickers, line labels and references. */
+/** A product launch plan with dates, tags, notes, stickers, line labels and references. */
 export const PRODUCT_LAUNCH: DemoTopic = {
   title: 'Product launch',
   children: [
     {
       title: 'Strategy',
-      tasks: [
-        { text: 'Define the launch audience', done: true },
-        { text: 'Validate positioning with customers' },
-      ],
+      note: '- [x] Define the launch audience\n- [ ] Validate positioning with customers',
       children: [
         { title: 'Positioning', edge: 'informs' },
         {
@@ -51,10 +49,7 @@ export const PRODUCT_LAUNCH: DemoTopic = {
               due: '2026-10-23',
               tags: ['web'],
               stickers: ['monday', 'p1'],
-              tasks: [
-                { text: 'Draft the page copy', done: true },
-                { text: 'Review the mobile layout' },
-              ],
+              note: '**Brief:** see the [launch plan](https://example.com/plan)\n\n- [x] Draft the page copy\n- [ ] Review the mobile layout',
               references: ['Positioning'],
             },
             { title: 'Pricing page', due: '2026-10-30', references: ['Pricing'] },

@@ -50,10 +50,6 @@ export function describeProps(topic: Topic, ctx: ChipContext): string {
   if (due) parts.push(`due ${shortDate(due, ctx.now)}${due < ctx.today ? ', overdue' : ''}`);
   if (p?.tags?.length)
     parts.push(`tags ${p.tags.map((t) => ctx.tags.get(t)?.label ?? t).join(', ')}`);
-  if (topic.tasks?.length) {
-    const done = topic.tasks?.filter((task) => task.done).length ?? 0;
-    parts.push(`${topic.tasks?.length ?? 0} tasks, ${done} complete`);
-  }
   return parts.join(', ');
 }
 

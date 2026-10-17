@@ -18,3 +18,7 @@ All four fonts are published on Google Fonts and bundled through the `@fontsourc
 | Bricolage Grotesque | The Canopy name in the top bar             | Copyright 2022 The Bricolage Grotesque Project Authors (https://github.com/ateliertriay/bricolage) |
 
 The Standard theme and the app interface use the system font, so nothing is bundled for them.
+
+## Libraries
+
+The note editor uses [Tiptap](https://tiptap.dev) (`@tiptap/*`) and ProseMirror (`@tiptap/pm`), both under the MIT licence. Each package ships its own `LICENSE` file.

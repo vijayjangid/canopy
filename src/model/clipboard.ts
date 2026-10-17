@@ -18,7 +18,7 @@ export interface Branch {
 function extrasOf(topic: Topic): TopicExtras | undefined {
   const extras: TopicExtras = {};
   if (topic.style) extras.style = { ...topic.style };
-  if (topic.tasks?.length) extras.tasks = topic.tasks.map((task) => ({ ...task }));
+  if (topic.note) extras.note = topic.note;
   if (topic.stickers) extras.stickers = topic.stickers;
   if (topic.props) extras.props = topic.props;
   if (topic.edge) extras.edge = topic.edge;

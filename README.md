@@ -32,7 +32,7 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 | 🎬 **Motion explains, never decorates** | New nodes grow out of their parent and removed ones fold back. Your system's reduced-motion setting is respected.          |
 | ♿ **Accessible by default**            | The map is a real ARIA tree, not just pixels on a canvas. Automated axe checks run in the test suite.                      |
 | 🔒 **Local-first and private**          | Works offline, autosaves to your browser, and needs no account. Your map is a plain `.canopy.json` file.                   |
-| 📋 **A map is also a plan**             | Add due dates, tags and inline Tasklists, then filter and export without leaving the map.                                  |
+| 📋 **A map is also a plan**             | Add due dates, tags and Markdown notes, then filter and export without leaving the map.                                    |
 
 <br />
 
@@ -57,7 +57,7 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 - **Search** (`⌘F`, `⌘K`, `F` or `/`) is one box for nodes, commands and filters. Type to find a node by title or path, run a command, or filter the map by tag, sticker or due date. Empty, it shows quick filters, your recent searches and common commands.
 - **Fold** with `]`, fold the whole map to **Level N** with `1`–`9`, and peek inside a folded branch from its badge.
 - **Zen** (`Z`) hides every panel until you press `Esc` or click **Exit Zen**, which sits in the bottom left where the toolbar was. **Auto-pan** keeps the node you are working on in view.
-- **Zoomed out, nodes become icons** so the map stays readable at a glance: a house for the Core, a checklist for Tasklists, a **T** for text-only nodes, a picture mark for pictures, and small dots for tags and due dates.
+- **Zoomed out, nodes become icons** so the map stays readable at a glance: a house for the Core, a few lines of text for nodes with a note, a **T** for text-only nodes, a picture mark for pictures, and small dots for tags and due dates.
 - The same search runs **every action**, shows its shortcut, and covers settings too.
 
 <table>
@@ -75,12 +75,12 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 
 - **Properties:** Due date and Tags, shown as compact chips.
 - **Shorthand while typing:** `#launch ^fri` becomes a tag and a due date when you finish the title.
-- **Tasklists:** add, edit, complete and remove tasks in the Tasks tab. A node with tasks shows its checklist beneath the title, separated by a subtle divider; removing the last task returns it to its standard appearance.
+- **Markdown notes:** write a note in the Note tab with a rich text editor (bold, italic, bulleted and check lists, and links; other Markdown such as headings, numbered lists, quotes and code works when typed). Notes are saved as Markdown. A node with a note shows the first lines of it as a preview beneath the title, separated by a subtle divider; clearing the note returns the node to its standard appearance. Links in the preview open in a new tab when clicked; in the editor, hold Ctrl or ⌘ and click.
 - **Quick styling:** choose a circular color preset in the details panel. Text color adjusts automatically for contrast.
 - **Filters** pick out nodes by property, text or sticker, and step through matches with `.` and `,`. Exports can respect the active Filter.
 
 <p align="center">
-  <img src="docs/screenshots/tasklist.png" alt="A selected tasklist node with a completed task and an open task, alongside its Tasks panel" width="920" />
+  <img src="docs/screenshots/notes.png" alt="A selected node previewing its Markdown note, alongside the rich text editor in the Note tab" width="920" />
 </p>
 
 ### 🎭 Make it yours: Themes and colour modes
@@ -150,8 +150,8 @@ The top node can also split its branches onto **both sides**, and the layout tri
 | **PNG**      | 1×, 2× or 4×, optional transparent background. The scale lowers itself if a canvas would be too big. |
 | **SVG**      | Vector, follows the Theme, level numbers and folds, with the map's font embedded.                    |
 | **PDF**      | One page, vector, selectable text, through the browser's print dialog.                               |
-| **Markdown** | A nested outline with tasks and properties written as the inline shorthand.                          |
-| **CSV**      | One row per node with its path, tasks and properties. Spreadsheet formulas are defused.              |
+| **Markdown** | A nested outline with notes and properties written as the inline shorthand.                          |
+| **CSV**      | One row per node with its path, note and properties. Spreadsheet formulas are defused.               |
 | **JSON**     | `canopy/1`, versioned and lossless. Export then import gives you the same map back.                  |
 
 <br />
@@ -169,7 +169,7 @@ Press `?` in the app for the searchable cheat sheet. A hint strip at the bottom 
 | Reference another node       | `X`                |                          |                       |
 | Fold to Level N / unfold all | `1`–`9` / `0`      | Trail on or off          | `R`                   |
 | Due date / Tag               | `D` / `G`          | Zen                      | `Z`                   |
-| Tasks / Sticker / Line label | `T` / `S` / `L`    | Select / Pan / Zoom tool | `V` / `H` / `Shift+Z` |
+| Note / Sticker / Line label  | `N` / `S` / `L`    | Select / Pan / Zoom tool | `V` / `H` / `Shift+Z` |
 | Duplicate / Delete node      | `⌘D` / `Del`       | Undo / Redo              | `⌘Z` / `⌘⇧Z`          |
 
 <br />

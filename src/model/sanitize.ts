@@ -19,11 +19,10 @@ import {
   type TopicStyle,
   type TopicExtras,
   type TopicImage,
-  type TopicTask,
   type TopicProps,
   type CanopyMap,
   TOPIC_COLOR_PRESETS,
-  MAX_TOPIC_TASK_TEXT,
+  MAX_TOPIC_NOTE,
 } from './types';
 
 export type Fail = (message: string) => void;
@@ -155,34 +154,27 @@ function readTopicStyle(raw: unknown, path: string, fail: Fail): TopicStyle | un
   return Object.keys(style).length > 0 ? style : undefined;
 }
 
-function readTasks(raw: unknown, path: string, fail: Fail): TopicTask[] | undefined {
+/** A note is Markdown text. It is cut to the allowed length, and blank notes are dropped. */
+function readNote(raw: unknown, path: string, fail: Fail): string | undefined {
   if (raw === undefined) return undefined;
-  if (!Array.isArray(raw)) {
-    fail(`${path} must be a list`);
+  if (!isString(raw)) {
+    fail(`${path} must be text`);
     return undefined;
   }
-  const seen = new Set<string>();
-  const tasks: TopicTask[] = [];
-  raw.forEach((task, index) => {
-    if (
-      !isRecord(task) ||
-      !isString(task['id']) ||
-      !task['id'] ||
-      !isString(task['text']) ||
-      typeof task['done'] !== 'boolean'
-    ) {
-      fail(`${path}[${index}] must have an id, text and completion state`);
-      return;
-    }
-    if (seen.has(task['id'])) {
-      fail(`${path}[${index}].id is used more than once`);
-      return;
-    }
-    seen.add(task['id']);
-    const text = task['text'].slice(0, MAX_TOPIC_TASK_TEXT);
-    if (text.trim()) tasks.push({ id: task['id'], text, done: task['done'] });
-  });
-  return tasks.length > 0 ? tasks : undefined;
+  const note = raw.replace(/\r\n?/g, '\n').slice(0, MAX_TOPIC_NOTE);
+  return note.trim() ? note : undefined;
+}
+
+/** Files from before notes kept a checklist; it becomes a Markdown task list. */
+function readLegacyTasks(raw: unknown): string | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const lines: string[] = [];
+  for (const task of raw) {
+    if (!isRecord(task) || !isString(task['text'])) continue;
+    const text = task['text'].replace(/\s+/g, ' ').trim();
+    if (text) lines.push(`- [${task['done'] === true ? 'x' : ' '}] ${text}`);
+  }
+  return lines.length > 0 ? lines.join('\n').slice(0, MAX_TOPIC_NOTE) : undefined;
 }
 
 function readProps(raw: unknown, path: string, fail: Fail): TopicProps | undefined {
@@ -211,8 +203,8 @@ export function readExtras(node: Record<string, unknown>, path: string, fail: Fa
   const out: TopicExtras = {};
   const style = readTopicStyle(node['style'], `${path}.style`, fail);
   if (style) out.style = style;
-  const tasks = readTasks(node['tasks'], `${path}.tasks`, fail);
-  if (tasks) out.tasks = tasks;
+  const note = readNote(node['note'], `${path}.note`, fail) ?? readLegacyTasks(node['tasks']);
+  if (note) out.note = note;
   if (node['stickers'] !== undefined) {
     if (!Array.isArray(node['stickers'])) fail(`${path}.stickers must be a list`);
     else {

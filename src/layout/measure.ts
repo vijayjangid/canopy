@@ -1,6 +1,14 @@
 import type { Topic } from '../model';
 import { chipRowWidth, topicRows } from './chips';
 import { IMAGE_PAD, imageOffset, imageSize } from './image';
+import {
+  NOTE_GAP,
+  NOTE_LINE_HEIGHT,
+  NOTE_RIGHT_PADDING,
+  noteLines,
+  noteReach,
+  type NoteLine,
+} from './notePreview';
 import type { Measure, Size } from './types';
 
 export interface TypeStyle {
@@ -76,11 +84,6 @@ export const STICKER_SHADOW_OFFSET = { x: 0.8, y: 1.6 };
 export const TOPIC_PADDING = { x: 14, y: 9 };
 export const TOPIC_MIN = { w: 72, h: 36 };
 export const TOPIC_MAX_TEXT_WIDTH = 220;
-export const TASK_ROW_LINE_HEIGHT = 16;
-export const TASK_ROW_GAP = 3;
-export const TASK_BOX_SIZE = 12;
-export const TASK_TEXT_INSET = 22;
-export const TASK_ROW_RIGHT_PADDING = 24;
 /** Space between the title and the chips under it, and below the chips. */
 const CHIPS_GAP = 2;
 const CHIPS_BOTTOM = 3;
@@ -139,10 +142,24 @@ export function textLines(title: string, depth: number, textWidth: TextWidth): s
     .flatMap((paragraph) => wrapLines(paragraph, TOPIC_MAX_TEXT_WIDTH, (s) => textWidth(s, style)));
 }
 
-export function taskTextLines(text: string, depth: number, textWidth: TextWidth): string[] {
+/** Notes are set a little smaller than the title, in the regular weight. */
+export function noteStyleFor(depth: number): TypeStyle {
   const base = typeForDepth(depth);
-  const style = { ...base, size: Math.max(11, base.size * 0.82), weight: 400 };
-  return wrapLines(text, TOPIC_MAX_TEXT_WIDTH, (line) => textWidth(line, style));
+  return {
+    ...base,
+    size: Math.max(11, base.size * 0.82),
+    weight: 400,
+    lineHeight: NOTE_LINE_HEIGHT,
+  };
+}
+
+/** The lines of a topic's note preview. Empty when the topic has no note. */
+export function topicNoteLines(
+  note: string | undefined,
+  depth: number,
+  textWidth: TextWidth,
+): NoteLine[] {
+  return note?.trim() ? noteLines(note, noteStyleFor(depth), TOPIC_MAX_TEXT_WIDTH, textWidth) : [];
 }
 
 export function createTopicMeasurer(textWidth: TextWidth): Measure & { invalidate: () => void } {
@@ -154,7 +171,6 @@ export function createTopicMeasurer(textWidth: TextWidth): Measure & { invalidat
     let byDepth = cache.get(topic);
     const hit = byDepth?.get(key);
     if (hit) return hit;
-    const tasklist = (topic.tasks?.length ?? 0) > 0;
     const style = typeForDepth(depth);
     const lines = textLines(topic.title, depth, textWidth);
     const prefix = levelNumbers ? levelPrefix(depth, position) : '';
@@ -163,45 +179,20 @@ export function createTopicMeasurer(textWidth: TextWidth): Measure & { invalidat
     );
     const { chips, total: rows } = topicRows(topic);
     const rowWidth = chipRowWidth(chips);
-    const taskLines = tasklist
-      ? (topic.tasks ?? []).map((task) => taskTextLines(task.text, depth, textWidth))
-      : [];
-    const taskWidth = tasklist
-      ? Math.max(
-          0,
-          ...taskLines.map(
-            (wrapped) =>
-              TASK_TEXT_INSET +
-              Math.max(
-                ...wrapped.map((line) =>
-                  textWidth(line, {
-                    ...style,
-                    size: Math.max(11, style.size * 0.82),
-                    weight: 400,
-                  }),
-                ),
-              ),
-          ),
-        )
-      : 0;
-    const taskHeight = tasklist
-      ? taskLines.reduce(
-          (height, task) => height + task.length * TASK_ROW_LINE_HEIGHT + TASK_ROW_GAP,
-          0,
-        )
-      : 0;
+    const note = topicNoteLines(topic.note, depth, textWidth);
+    const hasNote = note.length > 0;
     // Stickers hang off the corners, so give them room to sit beside the text.
     const stickers = topic.stickers?.length ?? 0;
     const picture = imageSize(topic.image);
     const above = imageOffset(topic);
-    const size: Size = tasklist
+    const size: Size = hasNote
       ? {
           w:
             Math.max(
               picture ? picture.w + IMAGE_PAD * 2 : 0,
               TOPIC_MIN.w,
               Math.ceil(widest) + 2 + TOPIC_PADDING.x * 2,
-              taskWidth + TOPIC_PADDING.x + TASK_ROW_RIGHT_PADDING,
+              noteReach(note) + TOPIC_PADDING.x + NOTE_RIGHT_PADDING,
               rowWidth > 0 ? rowWidth + TOPIC_PADDING.x * 2 : 0,
             ) +
             Math.min(stickers, 2) * 14,
@@ -209,7 +200,8 @@ export function createTopicMeasurer(textWidth: TextWidth): Measure & { invalidat
             above +
             TOPIC_PADDING.y +
             lines.length * style.lineHeight +
-            (taskLines.length > 0 ? TASK_ROW_GAP + taskHeight : 0) +
+            NOTE_GAP +
+            note.length * NOTE_LINE_HEIGHT +
             (rows > 0 ? CHIPS_GAP + rows + CHIPS_BOTTOM : TOPIC_PADDING.y),
         }
       : {

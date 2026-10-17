@@ -25,6 +25,14 @@ export function tokensFor(doc: CanopyMap, topic: Topic): string {
   return parts.join(' ');
 }
 
+/** A note's Markdown, indented under its topic. Blank lines stay empty. */
+const noteLines = (note: string, pad: string): string[] =>
+  note
+    .replace(/\r\n?/g, '\n')
+    .trimEnd()
+    .split('\n')
+    .map((line) => (line.trim() ? `${pad}${line}` : ''));
+
 const oneLine = (text: string) => text.replace(/\s+/g, ' ').trim() || 'Untitled';
 
 /** An outline in Markdown: the Core as the title, and every topic as a nested list item. */
@@ -39,12 +47,7 @@ export function mapToMarkdown(doc: CanopyMap, options: MarkdownOptions): string 
     const pad = '  '.repeat(depth);
     const extra = options.tokens ? tokensFor(doc, topic) : '';
     lines.push(`${pad}- ${oneLine(topic.title)}${extra ? ` ${extra}` : ''}`);
-    if (topic.tasks?.length) {
-      lines.push(`${pad}  Tasks:`);
-      for (const task of topic.tasks) {
-        lines.push(`${pad}    - [${task.done ? 'x' : ' '}] ${oneLine(task.text)}`);
-      }
-    }
+    if (topic.note?.trim()) lines.push(...noteLines(topic.note, `${pad}  `));
     for (const child of childrenOf(doc, id))
       if (!options.only || options.only.has(child.id)) emit(child.id, depth + 1);
   };
@@ -52,12 +55,7 @@ export function mapToMarkdown(doc: CanopyMap, options: MarkdownOptions): string 
   if (whole) {
     const core = doc.topics[doc.coreId];
     lines.push(`# ${oneLine(core?.title ?? doc.meta.title)}`);
-    if (core?.tasks?.length) {
-      lines.push('', 'Tasks:');
-      for (const task of core.tasks) {
-        lines.push(`  - [${task.done ? 'x' : ' '}] ${oneLine(task.text)}`);
-      }
-    }
+    if (core?.note?.trim()) lines.push('', ...noteLines(core.note, ''));
     lines.push('');
     for (const child of childrenOf(doc, doc.coreId))
       if (!options.only || options.only.has(child.id)) emit(child.id, 0);

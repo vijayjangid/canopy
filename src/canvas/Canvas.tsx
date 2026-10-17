@@ -33,6 +33,7 @@ import {
   computeRollups,
   descendantCounts,
   hasChildren,
+  markdownToPlain,
   planningOf,
   today,
   type CanopyMap,
@@ -112,14 +113,11 @@ const NO_CHIPS: ChipItem[] = [];
 /** What a screen reader hears after a topic's title. */
 function summaryOf(topic: CanopyTopic, ctx: ChipContext): string {
   const stickers = topic.stickers?.length ?? 0;
-  const tasks = topic.tasks ?? [];
   return [
     describeProps(topic, ctx),
     stickers > 0 ? `${stickers} ${stickers === 1 ? 'sticker' : 'stickers'}` : '',
     topic.image ? (topic.image.alt ? `picture: ${topic.image.alt}` : 'has a picture') : '',
-    tasks.length > 0
-      ? `tasks: ${tasks.map((task) => `${task.text}, ${task.done ? 'complete' : 'not complete'}`).join('; ')}`
-      : '',
+    topic.note?.trim() ? `note: ${markdownToPlain(topic.note, 400)}` : '',
   ]
     .filter(Boolean)
     .join(', ');
@@ -472,6 +470,8 @@ export function Canvas() {
       setFocusBranch(null);
       return;
     }
+    // A link in a note opens in a new tab on release, so the press must not select or drag.
+    if ((e.target as Element).closest('a[href]')) return;
     const control = imageControlOf(e.target);
     if (control) {
       if (control.kind === 'delete') removeImage(control.id);
@@ -674,6 +674,7 @@ export function Canvas() {
   };
 
   const onDoubleClick = (e: MouseEvent<SVGSVGElement>) => {
+    if ((e.target as Element).closest('a[href]')) return;
     const id = topicIdOf(e.target);
     if (!id) {
       const edgeId = edgeIdOf(e.target);

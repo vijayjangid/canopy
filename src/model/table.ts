@@ -3,7 +3,7 @@ import { isOverdue } from './rollup';
 import { ancestorsOf, subtreeOf } from './tree';
 import type { CanopyMap, TopicId } from './types';
 
-export const TABLE_COLUMNS = ['Path', 'Topic', 'Start', 'Due', 'Overdue', 'Tags', 'Tasks'] as const;
+export const TABLE_COLUMNS = ['Path', 'Topic', 'Start', 'Due', 'Overdue', 'Tags', 'Note'] as const;
 
 export type TableRow = Record<(typeof TABLE_COLUMNS)[number], string>;
 
@@ -25,9 +25,7 @@ export function tableRows(map: CanopyMap, today: string, only?: ReadonlySet<Topi
       Due: p?.due?.end ?? '',
       Overdue: isOverdue(map, topic.id, today) ? 'yes' : '',
       Tags: (p?.tags ?? []).map((t) => tagLabels.get(t) ?? t).join('; '),
-      Tasks: (topic.tasks ?? [])
-        .map((task) => `[${task.done ? 'x' : ' '}] ${task.text}`)
-        .join('; '),
+      Note: topic.note ?? '',
     });
   }
   return rows;

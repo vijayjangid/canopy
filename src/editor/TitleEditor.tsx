@@ -7,6 +7,7 @@ import {
   imageOffset,
   topicRows,
   textLines,
+  topicNoteLines,
   typeForDepth,
   TOPIC_PADDING,
   TOPIC_MAX_TEXT_WIDTH,
@@ -74,19 +75,17 @@ export function TitleEditor({ box }: { box: TopicBox }) {
   }, [box.id, started]);
 
   const style = typeForDepth(box.depth);
-  const tasklist = (topic?.tasks?.length ?? 0) > 0;
+  const hasNote = topicNoteLines(topic?.note, box.depth, textWidth).length > 0;
   const lineCount = textLines(title, box.depth, textWidth).length;
   // Stickers and icons sit in a row under the title, so the title centres above them.
   const rowH = topic ? topicRows(topic).total : 0;
   // A picture stays visible above the title, so the editor covers only the text part.
   const above = topic ? imageOffset(topic) : 0;
   const padTop =
-    tasklist || rowH > 0
+    hasNote || rowH > 0
       ? TOPIC_PADDING.y
       : Math.max(TOPIC_PADDING.y, (box.h - above - lineCount * style.lineHeight) / 2);
-  const editorWidth = tasklist
-    ? Math.min(box.w, TOPIC_MAX_TEXT_WIDTH + TOPIC_PADDING.x * 2)
-    : box.w;
+  const editorWidth = hasNote ? Math.min(box.w, TOPIC_MAX_TEXT_WIDTH + TOPIC_PADDING.x * 2) : box.w;
 
   // Shorthand typed so far, shown under the topic before it becomes Properties.
   const doc = useCanopy((s) => s.doc);
@@ -185,7 +184,7 @@ export function TitleEditor({ box }: { box: TopicBox }) {
           left: (box.x + (box.w - editorWidth) / 2) * vp.k + vp.x,
           top: (box.y + above) * vp.k + vp.y,
           width: editorWidth,
-          height: tasklist ? TOPIC_PADDING.y + lineCount * style.lineHeight : box.h - above,
+          height: hasNote ? TOPIC_PADDING.y + lineCount * style.lineHeight : box.h - above,
           transform: `scale(${vp.k})`,
           fontSize: style.size,
           fontWeight: style.weight,
