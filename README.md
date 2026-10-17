@@ -15,7 +15,7 @@ Local-first, private by default, accessible to the core, and a pleasure to look 
 
 <br />
 
-<img src="docs/screenshots/hero.png" alt="Canopy showing a product launch plan as a mind map, with the Settings panel on the left and the details panel on the right" width="920" />
+<img src="docs/screenshots/hero.png?v=notes" alt="Canopy showing a product launch plan as a mind map, with the Settings panel on the left and the details panel on the right" width="920" />
 
 </div>
 
@@ -62,8 +62,8 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/inspector.png" alt="Selecting a node marks its trail to the Core in the interactive colour and opens the details panel with due date, tags and stickers" /></td>
-    <td width="50%"><img src="docs/screenshots/palette.png" alt="The search dialog with quick filters and common commands" /></td>
+    <td width="50%"><img src="docs/screenshots/inspector.png?v=notes" alt="Selecting a node marks its trail to the Core in the interactive colour and opens the details panel with due date, tags and stickers" /></td>
+    <td width="50%"><img src="docs/screenshots/palette.png?v=notes" alt="The search dialog with quick filters and common commands" /></td>
   </tr>
   <tr>
     <td align="center"><sub><b>Trail and details panel</b>: follow the path to the Core while you edit properties.</sub></td>
@@ -80,7 +80,7 @@ Most mind-mapping tools make you choose between a pretty doodle and a useful pla
 - **Filters** pick out nodes by property, text or sticker, and step through matches with `.` and `,`. Exports can respect the active Filter.
 
 <p align="center">
-  <img src="docs/screenshots/notes.png" alt="A selected node previewing its Markdown note, alongside the rich text editor in the Note tab" width="920" />
+  <img src="docs/screenshots/notes.png?v=notes" alt="A selected node previewing its Markdown note, alongside the rich text editor in the Note tab" width="920" />
 </p>
 
 ### 🎭 Make it yours: Themes and colour modes
@@ -89,9 +89,9 @@ Three **Themes**, each a ready-made preset of colour, shape and font, in Light, 
 
 <table>
   <tr>
-    <td width="33%"><img src="docs/screenshots/look-playful.png" alt="Playful theme: every node is a die-cut sticker with a wavy white rim, a flat shadow and text coloured by level" /></td>
-    <td width="33%"><img src="docs/screenshots/look-contrast.png" alt="High Contrast theme: black on white, thicker strokes, a serif font and a different corner shape per level" /></td>
-    <td width="33%"><img src="docs/screenshots/look-playful-dark.png" alt="Playful theme in Dark mode: charcoal stickers with a dark rim and coloured text on the darkest canvas" /></td>
+    <td width="33%"><img src="docs/screenshots/look-playful.png?v=notes" alt="Playful theme: every node is a die-cut sticker with a wavy white rim, a flat shadow and text coloured by level" /></td>
+    <td width="33%"><img src="docs/screenshots/look-contrast.png?v=notes" alt="High Contrast theme: black on white, thicker strokes, a serif font and a different corner shape per level" /></td>
+    <td width="33%"><img src="docs/screenshots/look-playful-dark.png?v=notes" alt="Playful theme in Dark mode: charcoal stickers with a dark rim and coloured text on the darkest canvas" /></td>
   </tr>
   <tr>
     <td align="center"><sub><b>Playful</b><br />sticker nodes, colour by level</sub></td>
@@ -110,7 +110,7 @@ Three **Themes**, each a ready-made preset of colour, shape and font, in Light, 
 - **Stickers:** 28 original die-cut designs on nodes and the **lines** between them. New maps put a Home sticker on the Core. The full picker groups work, reactions, status, timing, markers, directions and priorities, with MON–SUN as its final row. Priority and weekday labels use bold handwritten lettering; each weekday has its own three-stop gradient. Sticker-aware spacing keeps artwork clear of neighbouring nodes.
 
 <p align="center">
-  <img src="docs/screenshots/stickers.png" alt="The sticker picker showing handwritten priority and weekday stickers, with Monday and Priority 1 on the selected node" width="920" />
+  <img src="docs/screenshots/stickers.png?v=notes" alt="The sticker picker showing handwritten priority and weekday stickers, with Monday and Priority 1 on the selected node" width="920" />
 </p>
 - **Delete with care:** deleting a node that has child nodes asks whether to remove **the whole branch** or **only the node**, in which case its child nodes move up to its parent, in its place.
 
@@ -121,12 +121,12 @@ Three **Themes**, each a ready-made preset of colour, shape and font, in Light, 
 Big maps print badly: a tidy tree grows tall and thin, and shrinks to an unreadable sliver on a page. The **Compact layout** option moves nodes around so the map fills an **A4** page, then shrinks it only as far as it has to.
 
 <div align="center">
-<img src="docs/screenshots/compact-before-after.png" alt="The same 153-node map on A4: the standard layout at 18% size, the compact layout at 57% size" width="920" />
+<img src="docs/screenshots/compact-before-after.png?v=notes" alt="The same 153-node map on A4: the standard layout at 18% size, the compact layout at 57% size" width="920" />
 </div>
 
 <table>
   <tr>
-    <td width="260" valign="top"><img src="docs/screenshots/export-compact.png" alt="The Export panel with Compact layout enabled and Best fit page orientation" width="260" /></td>
+    <td width="260" valign="top"><img src="docs/screenshots/export-compact.png?v=notes" alt="The Export panel with Compact layout enabled and Best fit page orientation" width="260" /></td>
     <td valign="top">
 
 **How it decides.** Every branch picks the arrangement that wastes the least room:
